@@ -1,0 +1,8 @@
+**/.DS_Store
+/.vscode
+**/__pycache__
+/.cache
+/.idea
+/venv
+~
+readme.txt
