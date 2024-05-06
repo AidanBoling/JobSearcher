@@ -25,7 +25,8 @@ def main():
     unique_jobs_found = dedupe_list(all_job_ids)
     print(f'\nUnique jobs found: {len(unique_jobs_found)}/{len(all_job_ids)}\n')
     
-    jobs = li_bot.get_job_info_from_ids(unique_jobs_found)
+    li_bot.set_job_ids(unique_jobs_found)
+    jobs = li_bot.get_job_info_from_ids()
     
     # Later TODO: Test data with pandas
     # Later TODO: Save data into db

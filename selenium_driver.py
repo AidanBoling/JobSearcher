@@ -21,7 +21,7 @@ class SeleniumDriver:
     def wait_until_available(self, element, timeout=5, poll_frequency=.2):
         errors = [selexceptions.NoSuchElementException, selexceptions.ElementNotInteractableException]
         
-        wait = WebDriverWait(driver, timeout=timeout, poll_frequency=poll_frequency, ignored_exceptions=errors)
+        wait = WebDriverWait(self.driver, timeout=timeout, poll_frequency=poll_frequency, ignored_exceptions=errors)
         wait.until(lambda d : element.is_displayed())
 
     def quit(self):

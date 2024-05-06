@@ -30,6 +30,8 @@ class LinkedInScraper:
         self.job_ids = []
         self.retry_ids_list = []
 
+    def set_job_ids(self, ids: list):
+        self.job_ids = ids
 
     def login_to_linkedin(self):
         self.driver.get(LINKEDIN_LOGIN_URL)
@@ -186,7 +188,10 @@ class LinkedInScraper:
         try:
             job_view = self.driver.find_element(By.CSS_SELECTOR, 'div.jobs-details')
             self.sel.wait_until_available(job_view, timeout=5)
+        # If times out, return true to add id to retry list
         except selexceptions.NoSuchElementException:
+            return True
+        except selexceptions.TimeoutException:
             return True
         
         if attempt_num > 1:
