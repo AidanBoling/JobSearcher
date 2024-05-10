@@ -1,0 +1,10 @@
+{% extends "base.html" %} 
+
+{% block page_title %}Home{% endblock %} 
+
+{% block content %}
+<div>
+    <!-- <button class="btn btn-primary"></button> -->
+    <a class="btn btn-primary" href="{{ url_for('run_job_search') }}" role="button">Run Search</a>
+</div>
+{% endblock %}

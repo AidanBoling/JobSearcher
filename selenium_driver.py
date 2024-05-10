@@ -8,17 +8,19 @@ CHROME_PROFILE_DIR = '--user-data-dir=/Users/'+ LOCAL_USERNAME + '/Library/Appli
 
 
 class SeleniumDriver:
-    def __init__(self):
+    def __init__(self, is_headless: bool=False):
         options = webdriver.ChromeOptions()
-        options.add_experimental_option('detach', True)
+        # options.add_experimental_option('detach', True)   # Uncomment this only if you have headless OFF and want browser window to stay open for troubleshooting.
         options.add_argument(CHROME_PROFILE_DIR)
+        if is_headless:
+            options.add_argument("--headless=new")
 
         self.driver = webdriver.Chrome(options=options)
 
     def get_driver(self):
         return self.driver
 
-    def wait_until_available(self, element, timeout=5, poll_frequency=.2):
+    def wait_until_available(self, element, timeout=10, poll_frequency=.2):
         errors = [selexceptions.NoSuchElementException, selexceptions.ElementNotInteractableException]
         
         wait = WebDriverWait(self.driver, timeout=timeout, poll_frequency=poll_frequency, ignored_exceptions=errors)
@@ -26,6 +28,3 @@ class SeleniumDriver:
 
     def quit(self):
         return self.driver.quit()
-
-
-#NOTE: Using specific profile, it seems Chrome browser must be quit completely between tests, or selenium will throw error (Chrome failed to launch...). 

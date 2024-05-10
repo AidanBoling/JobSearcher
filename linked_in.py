@@ -13,37 +13,55 @@ LINKEDIN_PASSWORD = os.environ.get('LINKEDIN_PASSWORD')
 
 LINKEDIN_LOGIN_URL = 'https://www.linkedin.com/login'
 
+# Later TODO: For easier changing of search params, change below so can paste the entire url from an example
+# search, and get the START and END from that.
 LI_SEARCH_URL_START = 'https://www.linkedin.com/jobs/search/?f_E=2&f_TPR=r604800&f_WT=2&geoId=103644278&keywords='
 LI_SEARCH_URL_END = '&location=United%20States&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true'
 LI_JOB_PAGE_BASE_URL = 'https://www.linkedin.com/jobs/view/'
 
-MAX_ATTEMPTS = 2
+DEFAULT_MAX_ATTEMPTS = 2
+
+
+class JobBoardScraper:
+    def __init__(self, driver_control: SeleniumDriver):
+        self.sel = driver_control
+        self.driver = driver_control.get_driver()
 
 
 class LinkedInScraper:
 
-    def __init__(self, driver_control: SeleniumDriver):
+    def __init__(self, driver_control: SeleniumDriver, limit_result_pages='', max_attempts=DEFAULT_MAX_ATTEMPTS):
+        # super().__init__(driver_control)
         self.sel = driver_control
         self.driver = driver_control.get_driver()
         self.current_results_page = 1
         self.total_pages = 1
+        self.result_pages_limit = limit_result_pages
         self.job_ids = []
-        self.retry_ids_list = []
+        self.max_attempts = max_attempts
+        # self.retry_ids_list = []
+
 
     def set_job_ids(self, ids: list):
         self.job_ids = ids
 
-    def login_to_linkedin(self):
+
+    def login(self):
         self.driver.get(LINKEDIN_LOGIN_URL)
-
-        username_field = self.driver.find_element(By.NAME, 'session_key')
-        password_field = self.driver.find_element(By.NAME, 'session_password')
-
-        self.sel.wait_until_available(username_field)
         
-        username_field.send_keys(LINKEDIN_USERNAME)
-        sleep(random.choice([1,2,3]))
-        password_field.send_keys(LINKEDIN_PASSWORD, Keys.ENTER)
+        try:
+            username_field = self.driver.find_element(By.NAME, 'session_key')
+            password_field = self.driver.find_element(By.NAME, 'session_password')
+        
+            self.sel.wait_until_available(username_field)
+        
+            username_field.send_keys(LINKEDIN_USERNAME)
+            sleep(random.choice([1,2,3]))
+            password_field.send_keys(LINKEDIN_PASSWORD, Keys.ENTER)
+
+        except selexceptions.NoSuchElementException:
+            # Skips if already logged in --> username field element won't be found, so throws error
+            return
 
         # Allow time for user to complete captcha and confirm 2fa auth -- do 10-second loop to check page header (max wait of 60 seconds)
         awaiting_verification = True
@@ -76,9 +94,10 @@ class LinkedInScraper:
             sys.exit()
 
 
-    def search_jobs(self, search_phrase):
+    def search_jobs(self, search_phrase: str):
         '''Searches LinkedIn for given search_phrase, and returns list of all job ids found in results.'''
-
+        
+        search_phrase = search_phrase.replace(' ', '%20')
         self.driver.get(LI_SEARCH_URL_START + search_phrase + LI_SEARCH_URL_END)
         sleep(2)
         
@@ -96,8 +115,11 @@ class LinkedInScraper:
         # Go through each page of results and get job ids
 
         # TODO: Test page cycling when there are many result pages
-        # while current_page <= total_pages:
-        while self.current_results_page <= 2:            
+        total_pages = self.total_pages
+        if self.result_pages_limit:
+            total_pages = self.result_pages_limit
+        
+        while  self.current_results_page <= total_pages:
             # Get all job cards on results page
             job_cards_on_page = self.driver.find_elements(By.CSS_SELECTOR, 'div.jobs-search-results-list > ul > li')
 
@@ -105,11 +127,11 @@ class LinkedInScraper:
             ids = [self.job_ids.append(card.get_attribute('data-occludable-job-id')) for card in job_cards_on_page]
             print(f'Page {self.current_results_page} -- IDs collected: {len(ids)}/{len(job_cards_on_page)}')
             
-            if self.total_pages > 1:     
+            if self.current_results_page < total_pages > 1:
                 self.go_to_next_page()
             else:
                 break
-        
+
         return self.job_ids
 
 
@@ -142,30 +164,30 @@ class LinkedInScraper:
 
 
     def get_job_info_from_ids(self):
-        '''For each job id, navigate to job page and try to get info. Tries again (up to given maximum attempts) on jobs for which 
-        sufficient info couldn't be pulled.'''
+        '''
+        For each job id, navigate to job page and try to get info. If sufficient info is pulled, job details added to jobs list 
+        and job removed from ids list. Any jobs left in ids list (insufficient info) are retried, until max_attempts limit is reached.
+        '''
         jobs = []
-
-        # For each job id, navigate to job page and get info for each job id. 
-        # If can't pull sufficient info for a job, job id is added to retry list.
-        for id in self.job_ids:
-            retry_id = self.get_job_info(id, jobs)
-            if retry_id:
-                self.retry_ids_list.append(id)
-        
-        print(f'\nJobs to retry: {self.retry_ids_list}\n')
-        
-        # Retry jobs which failed/have missing info. If retry is successful, id is removed from retry list.
-        for _ in range(MAX_ATTEMPTS - 1):
-            while len(self.retry_ids_list) > 0:
-                for id in self.retry_ids_list:
-                    retry = self.get_job_info(id, jobs, attempt_num=2)
-                    if not retry:
-                        self.retry_ids_list.remove(id)
-        
-        print('\nJobs collected: ', len(jobs))
-        print('Jobs not collected: ', self.retry_ids_list)
-        
+          
+        for n in range(0, self.max_attempts):
+            attempt = n+1
+            print(f'\nAttempt: {attempt}/{self.max_attempts}')
+            
+            if len(self.job_ids) > 0:
+                for id in self.job_ids:
+                    retry, job = self.get_job_info(id, attempt_num=attempt)
+                    # Some non-critical fields can trigger retry=true if error finding info (more chances to get missing info). 
+                    # But if is final attempt, job will still save as long as have enough critical info.
+                    if job:
+                        if not retry or n+1 >= self.max_attempts:
+                            jobs.append(job)
+                            self.job_ids.remove(id)
+                print('Jobs left to retry: ', self.job_ids)
+            
+            else:
+                break
+                    
         return jobs
 
 
@@ -179,57 +201,58 @@ class LinkedInScraper:
         return False
 
 
-    def get_job_info(self, job_id:str, jobs:list, attempt_num:int=1):
+    def get_job_info(self, job_id:str, attempt_num:int=1):
         job = {}
-        job_link = LI_JOB_PAGE_BASE_URL + job_id
         retry = False
+        el_wait_timeout = 5 + (5 * attempt_num)
+
+        job_link = LI_JOB_PAGE_BASE_URL + job_id
         self.driver.get(job_link)
         
+        sleep(3 * (attempt_num - 1))
+
         try:
             job_view = self.driver.find_element(By.CSS_SELECTOR, 'div.jobs-details')
-            self.sel.wait_until_available(job_view, timeout=5)
+            self.sel.wait_until_available(job_view, timeout=el_wait_timeout)
         # If times out, return true to add id to retry list
-        except selexceptions.NoSuchElementException:
-            return True
-        except selexceptions.TimeoutException:
-            return True
+        except selexceptions.NoSuchElementException or selexceptions.TimeoutException:
+            return True, []
         
-        if attempt_num > 1:
-            sleep(3)
-        
+
         # MAIN POST DETAILS
         # ...Post title and link: 
-        job['post title'] = job_view.find_element(By.TAG_NAME, 'h1').text
-        job['id'] = job_id
-        job['post link'] = job_link
-        print(f'title: {job["post title"]} [#{job["id"]}]')
+        job['post_title'] = job_view.find_element(By.TAG_NAME, 'h1').text
+        job['post_id'] = job_id
+        job['post_link'] = job_link
+        print(f'title: {job["post_title"]} [#{job["post_id"]}]')
+
 
         # ...Company and posting details
         try:
             company_posting_details_el = job_view.find_element(By.CSS_SELECTOR, 'div.job-details-jobs-unified-top-card__primary-description-container div')
-            self.sel.wait_until_available(company_posting_details_el, timeout=10)
+            self.sel.wait_until_available(company_posting_details_el, timeout=el_wait_timeout)
             
-        except selexceptions.NoSuchElementException:
-        # NOTE: Would be better to use try/catch outside of function? Might depend on whether pandas requires all keys present for each item in a dict...
-            
+        except selexceptions.NoSuchElementException or selexceptions.TimeoutException:            
             retry = True
             # If not yet at max attempts, stop scraping and go to next id. Otherwise, continue collecting but leave fields blank.
-            if attempt_num < MAX_ATTEMPTS:
-                return retry
+            if attempt_num < self.max_attempts:
+                return retry, []
             else:
-                job['company name'] = ''
-                job['company location'] = ''
-                job['posted date'] = ''
+                job['company_name'] = ''
+                job['company_location'] = ''
+                job['posted_date'] = ''
 
         else:
             company_posting_details = [item.strip() for item in company_posting_details_el.text.split('·')]
             # print('company and post details: ', company_posting_details)
             
-            job['posted date'] = company_posting_details[2]
-            job['company name'] = company_posting_details[0]
-            job['company location'] = company_posting_details[1]
-            print(f'Company: {job["company name"]} ({job["company location"]})')
+            job['posted_date'] = company_posting_details[2]
+            job['company_name'] = company_posting_details[0]
+            job['company_location'] = company_posting_details[1]
+            print(f'Company: {job["company_name"]} ({job["company_location"]})')
         
+        # TODO: if company name is in list of filters of companies to exclude, 
+
         # ...More about company:
         try:
             company_details_other_els = job_view.find_elements(By.CSS_SELECTOR, 'div > ul > li')
@@ -239,13 +262,15 @@ class LinkedInScraper:
                 icon_type = element.find_element(By.CSS_SELECTOR, 'li-icon').get_attribute('type')
                 if icon_type == 'company':
                     company_info_other = [item.strip() for item in element.text.split('·')]
-                    job['company other'] = company_info_other
+                    job['company_other'] = ', '.join(company_info_other)
                     # print('Company info - other: ', company_info_other)
         except selexceptions.NoSuchElementException:
             pass
 
         # ...More about job: 
         job_details_list = []
+        job['salary'] = None
+
         try:
             job_details_other_els = job_view.find_elements(By.CSS_SELECTOR, 'div > ul > li > span > span')
             sleep(.02)
@@ -259,13 +284,12 @@ class LinkedInScraper:
         if len(job_details_list) == 0:
             retry = True
         else:
-            job['salary'] = None
             # If the first item in job_details_list is money $0, remove from list, set as job salary 
             match = re.search(r"^\$\d+", job_details_list[0])
             if match is not None:
                 job['salary'] = job_details_list.pop(0)
 
-            fields_map = {0: 'workplace type', 1: 'employment type', 2: 'level'}   
+            fields_map = {0: 'workplace_type', 1: 'employment_type', 2: 'level'}   
             for i in range(len(job_details_list)):
                 if i <= 2:
                     job[fields_map[i]] = job_details_list[i]
@@ -288,10 +312,33 @@ class LinkedInScraper:
         
 
         # JOB DESCRIPTION
-        job_description_el = self.driver.find_element(By.CSS_SELECTOR, 'div.jobs-description')
-        self.sel.wait_until_available(job_description_el)
-        job['description'] = job_description_el.text
-    
-        jobs.append(job)
+        try:
+            job_description_el = self.driver.find_element(By.CSS_SELECTOR, 'div.jobs-description')
+            self.sel.wait_until_available(job_description_el, timeout=el_wait_timeout)
 
-        return retry
+        except selexceptions.TimeoutException or selexceptions.NoSuchElementException:
+            retry = True
+            # If not yet at max attempts, stop scraping and go to next id.
+            if attempt_num < self.max_attempts:
+                return retry, []
+            else:
+                # If at max attempts but company name is not blank, leave description blank. 
+                # Otherwise, stop scraping and go to next (failed to get info).
+                if job['company_name']:
+                    job['description'] = ''
+                else:
+                    return retry, []
+        
+        else:
+            job_card_classes = job_description_el.get_attribute("class")
+            is_truncated = job_card_classes.find('jobs-description--is-truncated')
+            if is_truncated != -1:
+                see_more_button = job_description_el.find_element(By.CSS_SELECTOR, 'footer button')
+                see_more_button.click()
+                sleep(0.25)
+            
+            job['description'] = job_description_el.text
+
+        job['job_board'] = 'LinkedIn'
+        
+        return retry, job
