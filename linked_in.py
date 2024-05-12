@@ -22,10 +22,10 @@ LI_JOB_PAGE_BASE_URL = 'https://www.linkedin.com/jobs/view/'
 DEFAULT_MAX_ATTEMPTS = 2
 
 
-class JobBoardScraper:
-    def __init__(self, driver_control: SeleniumDriver):
-        self.sel = driver_control
-        self.driver = driver_control.get_driver()
+# class JobBoardScraper:
+#     def __init__(self, driver_control: SeleniumDriver):
+#         self.sel = driver_control
+#         self.driver = driver_control.get_driver()
 
 
 class LinkedInScraper:
@@ -337,7 +337,14 @@ class LinkedInScraper:
                 see_more_button.click()
                 sleep(0.25)
             
-            job['description'] = job_description_el.text
+            description = job_description_el.text
+            
+            # Cleanup/enhance
+            description = re.sub(r'^About the job\\n | \\nSee less$', '', description)
+            section_headers = re.findall(r'\\n[A-Z][a-z]*(\s[A-Z][a-z]*)+:?\s*\\n', description)
+            for header in section_headers:
+            	description = re.sub(header, '<i>'+ header + '</i>', description)
+            job['description'] = description
 
         job['job_board'] = 'LinkedIn'
         
