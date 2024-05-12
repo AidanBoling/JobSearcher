@@ -1,8 +1,82 @@
 html,
 body {
-    height: 95vh
+    height: 95vh;
+    background-color: rgb(33, 33, 84);
+    background-image: var(--bs-gradient);
+    overflow-x: hidden;
 }
 
 main {
     margin-top: 5vh;
+}
+
+pre {
+    font-family: var(--bs-body-font-family);
+    font-size: var(--bs-body-font-size);
+    overflow-wrap: normal;
+}
+
+.table-container {
+    overflow-x: scroll;
+}
+
+header,
+table caption {
+    color: rgb(221, 226, 233);
+}
+
+.empty-state,
+table:empty {
+    display: none;
+}
+
+table:empty+.empty-state {
+    display: block;
+}
+
+td,
+th {
+    padding: .75rem 1rem !important;
+    min-width: 150px;
+}
+
+
+tbody th,
+tbody td {
+    min-height: max-content;
+    /* max-width: 450px; */
+}
+
+tr .name-post_title {
+    min-width: 350px;
+}
+
+tr .text-one-line {
+    min-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.link {
+    min-width: 175px;
+}
+
+.text-short {
+    min-width: 175px;
+}
+
+tr .text-long {
+    /* --max-lines: 4; */
+
+    min-width: 400px;
+    /* max-width: 400px; */
+    /* 
+    overflow-y: hidden;
+    text-overflow: ellipsis;
+
+    max-height: calc(1.5rem * var(--max-lines));
+    -webkit-box-orient: vertical;
+    display: block; */
+    /* display: -webkit-box; */
+    /* -webkit-line-clamp: var(--max-lines); */
 }

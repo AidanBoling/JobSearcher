@@ -1,10 +1,43 @@
 {% extends "base.html" %} 
 
-{% block page_title %}Home{% endblock %} 
+{% block page_title %}Home{% endblock %}
 
 {% block content %}
+
+
 <div>
-    <!-- <button class="btn btn-primary"></button> -->
     <a class="btn btn-primary" href="{{ url_for('run_job_search') }}" role="button">Run Search</a>
 </div>
+<br />
+   
+<div class="table-container">
+    <div class="empty-state">
+        <h1 id="posts-table-label">Job Posts</h1>
+        <p>No job posts here yet. Click the button to run a search manually.</p>
+    </div>
+    {% include 'posts_table.html' %}
+</div>
+
+
+<!-- TODO: Move this live region to a better location. -->
+<div role="status" aria-live="polite">
+    <!-- add content to hear it spoken -->
+</div>
+
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    // example LIVE REGION script -- for alert/status messages to be read by Voice Readers 
+    // var todoName = document.querySelector('[type="text"]').value;
+    function announceClicked() {
+        // const testButton = document.querySelector("#test-button");
+        // testButton.text = ''
+
+        let liveRegion = document.querySelector('[role="status"]');
+        liveRegion.textContent = `Button was clicked.`;
+        // add a timer, to wait for a few seconds... then clear.
+        // liveRegion.textContent = '';
+    }
+</script>
 {% endblock %}

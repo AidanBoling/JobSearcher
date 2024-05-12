@@ -1,0 +1,24 @@
+{% macro view_job_button(job) %}
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#viewDetailsModal-{{ job['id'] }}">Open full description</button>
+{% endmacro %}
+
+{% macro view_job_modal(job) %}
+<div id="viewDetailsModal-{{ job['id'] }}" class="modal" tabindex="-1" aria-labelledby="jobDetailsModalLabel-{{ job['id'] }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg modal-fullscreen-md-down">
+        <div class="modal-content">
+            <div class="modal-header p-4">
+                <h1 class="modal-title" id="jobDetailsModalLabel-{{ job['id'] }}">{{ job['post_title'] }}</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div style="white-space: pre-wrap;">
+                    {{ job['description']|safe }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}

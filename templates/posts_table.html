@@ -1,0 +1,57 @@
+{% from 'modals.html' import view_job_modal, view_job_button %}
+
+<table class="table table-dark table-hover caption-top rounded-2">
+    <caption>
+        <h1 id="posts-table-label">Job Posts Table</h1>
+        <div class="empty-state">
+            <p>No job posts found in db. Click the button to run a search manually.</p>
+        </div>
+    </caption>
+    <thead>
+        <tr class="table-active">
+            {% for field in display_fields %}
+            <th scope="col" class="{{ field['type'] }} name-{{ field['name'] }}">{{ field['label'] }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody class="table-group-divider">
+        {% for job in jobs %}
+        <tr>
+            <th scope="row" class="table-active {{ display_fields[0]['type'] }} name-{{ display_fields[0]['name'] }}">
+                <div>{{ job[display_fields[0]['name']] }}</div>
+            </th>
+            {% for field in display_fields[1::] %}
+            <td>
+                {% if field['name'] == 'description' %}
+
+                <div class="{{ field['type'] }} name-{{ field['name'] }}">
+                    {{ job[field['name']]|truncate(length=145) }}
+                </div>
+                <div>
+                    {{ view_job_button(job) }}
+                </div>
+
+                {% elif field['type'] == 'link' %}
+                <a target="_blank" href="{{ job[field['name']] }}"
+                    class="{{ field['type'] }} name-{{ field['name'] }}">View on {{ job['job_board'] }}
+                </a>
+                {% elif field['type'] == 'date' %}
+                <div class="{{ field['type'] }} name-{{ field['name'] }}">
+                    {{ job[field['name']].strftime('%B %d, %Y') if job[field['name']] }}
+                </div>
+                {% else %}
+                <div class="{{ field['type'] }} name-{{ field['name'] }}">{{ job[field['name']] }}</div>
+                {% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+{% for job in jobs %}
+
+{{ view_job_modal(job) }}
+
+{% endfor %}

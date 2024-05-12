@@ -4,5 +4,7 @@
 /.cache
 /.idea
 /venv
+instance
+
 ~
 readme.txt
