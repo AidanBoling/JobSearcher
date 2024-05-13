@@ -11,6 +11,8 @@ HEADLESS = True
 LIMIT_PAGES = 1
 MAX_ATTEMPTS_PER_ID = 1
 
+SEARCH_PHRASES = ['junior software engineer', 'software engineer']
+
 
 def run_search(db_control: JobDbControl=None):
     driver = SeleniumDriver(is_headless=HEADLESS)

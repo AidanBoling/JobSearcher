@@ -1,23 +1,56 @@
-html,
+/* html {
+
+    height: 100vh;
+    overflow: hidden;
+
+} */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    margin: 0 !important;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+/* body {
+    color: var(--foreground-text-default);
+    color: rgb(var(--foreground-rgb));
+    background: rgb(var(--background-start-rgb));
+    width: 100vw;
+    padding: 0;
+    margin: 0 !important;
+} */
+
 body {
-    height: 95vh;
-    background-color: rgb(33, 33, 84);
+    height: 100%;
+    background: rgb(33, 33, 84);
     background-image: var(--bs-gradient);
+    width: 100%;
+    padding: 0;
+    margin: 0 !important;
     overflow-x: hidden;
 }
 
 main {
-    margin-top: 5vh;
+    padding-top: 5vh;
+    height: 100%;
 }
 
-pre {
+/* pre {
     font-family: var(--bs-body-font-family);
     font-size: var(--bs-body-font-size);
     overflow-wrap: normal;
-}
+} */
 
 .table-container {
-    overflow-x: scroll;
+    overflow: scroll;
+    min-height: 60vh;
+    max-height: 80vh;
 }
 
 header,

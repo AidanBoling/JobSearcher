@@ -10,7 +10,6 @@ ROOT_DIR = Path(__file__).parent
 
 app = Flask(__name__)
 app.secret_key = 'a super secret key'
-# bootstrap = Bootstrap5(app)
 
 # # Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:////{ROOT_DIR / "instance/jobs.db"}'
@@ -26,10 +25,16 @@ def main():
     def home():
         return render_template('index.html', jobs=db_control.get_all(), display_fields=display_fields())
     
-    @app.get("/run-search")
+
+    @app.route("/settings")
+    def settings():
+        return render_template('settings.html')
+
+
+    @app.get("/settings/run-search")
     def run_job_search():
         search_and_save_jobs()
-        return redirect(url_for('home'))
+        return redirect(url_for('settings'))
 
 
 def search_and_save_jobs():
@@ -39,6 +44,7 @@ def search_and_save_jobs():
     
     if jobs:
         db_control.add_many(jobs)
+
 
 def display_fields():
     return [field for field in job_fields if not field['disabled']]
