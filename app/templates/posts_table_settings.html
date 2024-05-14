@@ -1,0 +1,19 @@
+<form action="{{ url_for( 'change_table_settings', setting='job_fields') }}" method="POST">
+    <ul class="list-group">
+        {% for field in options.job_fields %}
+        <li class="list-group-item">
+            {% if field.disabled %}
+            <input class="form-check-input me-1" type="checkbox" value="{{ field.name }}"
+                id="display-option-{{ field.name }}" name="display">
+            {% else %}
+            <input class="form-check-input me-1" type="checkbox" value="{{ field.name }}"
+                id="display-option-{{ field.name }}" name="display" checked>
+            {% endif %}
+            <label class="form-check-label stretched-link"
+                for="display-option-{{ field.name }}">{{ field.label }}</label>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <button class="btn btn-primary" type="submit">Save</button>
+</form>
