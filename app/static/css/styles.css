@@ -50,7 +50,7 @@ main {
 .table-container {
     overflow: scroll;
     overscroll-behavior: contain;
-    min-height: 60vh;
+    min-height: min-content;
     max-height: 80vh;
 }
 
@@ -59,14 +59,14 @@ table caption {
     color: rgb(221, 226, 233);
 }
 
-.empty-state,
+/* .empty-state,
 table:empty {
     display: none;
 }
 
 table:empty+.empty-state {
     display: block;
-}
+} */
 
 td,
 th {
