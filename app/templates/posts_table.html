@@ -1,4 +1,5 @@
 {% from 'modals.html' import view_job_modal, view_job_button %}
+{% set visible_fields = options.job_fields|rejectattr('hidden')|list %}
 
 <!-- TODO (maybe): Make rows clickable -- to open job details modal  -->
 <table class="table table-dark table-hover caption-top py-0 m-0">
@@ -7,7 +8,7 @@
     </caption>
     <thead>
         <tr class="table-active">
-            {% for field in display_fields %}
+            {% for field in visible_fields %}
             <th scope="col" class="{{ field['type'] }} name-{{ field['name'] }}">{{ field['label'] }}</th>
             {% endfor %}
         </tr>
@@ -15,10 +16,11 @@
     <tbody class="table-group-divider">
         {% for job in jobs %}
         <tr>
-            <th scope="row" class="table-active {{ display_fields[0]['type'] }} name-{{ display_fields[0]['name'] }}">
-                <div>{{ job[display_fields[0]['name']] }}</div>
+            <th scope="row" class="table-active {{ visible_fields[0]['type'] }} name-{{ visible_fields[0]['name'] }}">
+                <div>{{ job[visible_fields[0]['name']] }}</div>
             </th>
-            {% for field in display_fields[1::] %}
+            {% for field in visible_fields[1::] %}
+
             <td>
                 {% if field['name'] == 'description' %}
 

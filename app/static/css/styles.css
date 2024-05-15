@@ -49,6 +49,7 @@ main {
 
 .table-container {
     overflow: scroll;
+    overscroll-behavior: contain;
     min-height: 60vh;
     max-height: 80vh;
 }

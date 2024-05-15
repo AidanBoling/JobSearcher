@@ -1,19 +1,42 @@
-<form action="{{ url_for( 'change_table_settings', setting='job_fields') }}" method="POST">
-    <ul class="list-group">
-        {% for field in options.job_fields %}
-        <li class="list-group-item">
-            {% if field.disabled %}
-            <input class="form-check-input me-1" type="checkbox" value="{{ field.name }}"
-                id="display-option-{{ field.name }}" name="display">
-            {% else %}
-            <input class="form-check-input me-1" type="checkbox" value="{{ field.name }}"
-                id="display-option-{{ field.name }}" name="display" checked>
-            {% endif %}
-            <label class="form-check-label stretched-link"
-                for="display-option-{{ field.name }}">{{ field.label }}</label>
-        </li>
-        {% endfor %}
-    </ul>
+<form action="{{ url_for( 'change_table_settings', setting='job_fields') }}" method="POST" onsubmit="announceSave()">
+    {# CHECK: Need the onsubmit to announce save completed to live region? Or only need if not refreshing entire page when submitted?  #}
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-4 p-0">
+                <div class="dropdown">
+                    {# TODO: Check table settings form accessibility #}
+                    <button type="button" class="btn btn-outline-light btn-lg dropdown-toggle" data-bs-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false" data-bs-auto-close="outside">
+                        Show/hide columns
+                    </button>
 
-    <button class="btn btn-primary" type="submit">Save</button>
+                    <fieldset class="dropdown-menu px-5">
+                        <legend class="visually-hidden">Show/Hide Table Columns</legend>
+                        {% for field in options.job_fields %}
+                        <div class="form-check p-2">
+                            {% if field.hidden %}
+
+                            <input class="form-check-input me-1" type="checkbox" value="{{ field.name }}"
+                                id="display-option-{{ field.name }}" name="display">
+                            {% else %}
+                            <input class="form-check-input me-1" type="checkbox" value="{{ field.name }}"
+                                id="display-option-{{ field.name }}" name="display" checked>
+                            {% endif %}
+                            <label class="form-check-label"
+                                for="display-option-{{ field.name }}">{{ field.label }}</label>
+                        </div>
+                        {% endfor %}
+                    </fieldset>
+
+                </div>
+            </div>
+            <div class="col-4 p-0 d-flex justify-content-end">
+
+                <button class="settings-btn btn btn-primary btn-lg px-4" type="submit">Save</button>
+            </div>
+        </div>
+
+
+    </div>
+
 </form>

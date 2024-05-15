@@ -4,6 +4,10 @@
 
 {% block content %}
 
+<!-- TODO: Move this live region to a better location. -->
+<div role="status" aria-live="polite">
+    <!-- add content to hear it spoken -->
+</div>
 
 <h1 id="posts-table-label">Job Posts</h1>
 
@@ -16,13 +20,11 @@
 
 <br/>
 <!-- Table Settings -->
+<h2>Table Settings</h2>
 {% include 'posts_table_settings.html' %}
+<br/>
 
 
-<!-- TODO: Move this live region to a better location. -->
-<div role="status" aria-live="polite" >
-    <!-- add content to hear it spoken -->
-</div>
 
 {% endblock %}
 {% block scripts %}
@@ -30,14 +32,19 @@
 <script>
     // example LIVE REGION script -- for alert/status messages to be read by Voice Readers 
     // var todoName = document.querySelector('[type="text"]').value;
-    function announceClicked() {
+    
+    // const formBtn = document.querySelector(".settings-btn");
+
+    function announceSave() {
         // const testButton = document.querySelector("#test-button");
         // testButton.text = ''
 
-        let liveRegion = document.querySelector('[role="status"]');
-        liveRegion.textContent = `Button was clicked.`;
-        // add a timer, to wait for a few seconds... then clear.
-        // liveRegion.textContent = '';
+        const liveRegion = document.querySelector('[role="status"]');
+        liveRegion.textContent = `Settings were saved.`;
+        setTimeout(() => {liveRegion.textContent = ''}, 5000)
     }
+    
+    // formBtn.addEventListener("click", announceSave());
+
 </script>
 {% endblock %}

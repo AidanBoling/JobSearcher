@@ -31,8 +31,13 @@ def main():
     @app.route('/')
     def home():
         #later -> if table_settings.view == 'table', redirect to table-view. else, redirect to list view.
-        return render_template('index.html', jobs=db_control.get_all(), display_fields=display_fields(), options=table_settings)
+        return redirect(url_for('table_view'))
     
+
+    @app.route('/table-view')
+    def table_view():
+        return render_template('index.html', jobs=db_control.get_all(), options=table_settings)
+
 
     @app.post('/table-view/update/settings/<setting>')
     def change_table_settings(setting):
@@ -64,8 +69,8 @@ def search_and_save_jobs():
         db_control.add_many(jobs)
 
 
-def display_fields():
-    return [field for field in table_settings.job_fields if not field['disabled']]
+# def display_fields():
+#     return [field for field in table_settings.job_fields if not field['hidden']]
 
 
 def update_fields_displayed(data: dict):
@@ -74,9 +79,9 @@ def update_fields_displayed(data: dict):
     fields_to_display = data.getlist('display')                    
     for field in table_settings.job_fields:
         if field['name'] in fields_to_display:
-            field['disabled'] = False
+            field['hidden'] = False
         else:
-            field['disabled'] = True
+            field['hidden'] = True
     
     table_settings_controller.save_to_file(table_settings)
 
