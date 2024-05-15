@@ -1,5 +1,6 @@
 from dateparser import parse
 from models.job_posts import JobPost, db
+from sqlalchemy.exc import IntegrityError
 
 
 class JobDbControl:
@@ -30,9 +31,15 @@ class JobDbControl:
         #Create new entry and add to db
         new_job_post = JobPost(**job)
 
-        # TODO: add error handling...
-        self.db.session.add(new_job_post)
-        self.db.session.commit()
+        # TODO: Add more error handling...
+        try:
+            self.db.session.add(new_job_post)
+            self.db.session.commit()
+        except IntegrityError:
+            # TODO: add logging
+            # and make specific to NOT NULL constraint...
+            pass
+
         # print(new_post.as_dict())
 
         return new_job_post
@@ -42,9 +49,12 @@ class JobDbControl:
         # TODO: Catch sqlalchemy.exc.IntegrityError -- log jobs that went wrong, and what data was missing/incorrectly formatted.
         
         for job in jobs:
-            if job['posted_date'] and type('posted_date') is str:
-                job['posted_date'] = parse(job['posted_date'], settings={'RETURN_AS_TIMEZONE_AWARE': True})
-
+            try:
+                if type(job['posted_date']) is str:
+                    job['posted_date'] = parse(job['posted_date'], settings={'RETURN_AS_TIMEZONE_AWARE': True})
+            except KeyError:
+                pass
+        
             self.add_one(job)
         
     

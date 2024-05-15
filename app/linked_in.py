@@ -240,7 +240,7 @@ class LinkedInScraper:
             else:
                 job['company_name'] = ''
                 job['company_location'] = ''
-                job['posted_date'] = ''
+                # job['posted_date'] = ''
 
         else:
             company_posting_details = [item.strip() for item in company_posting_details_el.text.split('·')]
@@ -268,34 +268,45 @@ class LinkedInScraper:
             pass
 
         # ...More about job: 
+        job['salary'] = ''
         job_details_list = []
-        job['salary'] = None
-
+        
         try:
             job_details_other_els = job_view.find_elements(By.CSS_SELECTOR, 'div > ul > li > span > span')
             sleep(.02)
-        except selexceptions.NoSuchElementException:
+
+        except selexceptions.NoSuchElementException or selexceptions.StaleElementReferenceException:
             pass
         else:
-            job_details_list = [item.text.split('\n')[0] for item in job_details_other_els]
-            [job_details_list.remove('%') for _ in range(job_details_list.count('%'))]
-            print('Job details list: ', job_details_list)
+            job_details_list = self.get_job_details_list(job_details_other_els)
         
+
         if len(job_details_list) == 0:
             retry = True
+
         else:
-            # If the first item in job_details_list is money $0, remove from list, set as job salary 
+            # Search first item in list for salary -- If starts with '$', remove from list, set as job salary 
             match = re.search(r"^\$\d+", job_details_list[0])
             if match is not None:
                 job['salary'] = job_details_list.pop(0)
+            
+            options = {'workplace_type': ['On-site', 'Remote', 'Hybrid'],
+                       'employment_type': ['Full-time', 'Part-time', 'Contract', 'Volunteer', 'Internship', 'Other'],
+                       'level': ['Internship', 'Entry level', 'Associate', 'Mid-Senior level', 'Director', 'Executive']
+                       }
+            
+            for detail in ['workplace_type', 'employment_type', 'level']:
+                job[detail] = self.get_detail_from_list(job_details_list, options[detail])
 
-            fields_map = {0: 'workplace_type', 1: 'employment_type', 2: 'level'}   
-            for i in range(len(job_details_list)):
-                if i <= 2:
-                    job[fields_map[i]] = job_details_list[i]
-                    # print(f'{fields_map[i]}: {job_details_list[i]}')
 
-        if job['salary'] is None:
+            # fields_map = {0: 'workplace_type', 1: 'employment_type', 2: 'level'}   
+            # for i in range(len(job_details_list)):
+            #     if i <= 2:
+
+            #         job[fields_map[i]] = job_details_list[i]
+            #         # print(f'{fields_map[i]}: {job_details_list[i]}')
+
+        if not job['salary']:
             # Check for salary again, a different way
             try:
                 job_benefits_el = self.driver.find_element(By.CSS_SELECTOR, '#SALARY')
@@ -308,7 +319,7 @@ class LinkedInScraper:
                 if h3.text == 'Base salary':
                     job_salary_info_list = [item.strip() for item in salary_card.text.split('\n')]
                     job['salary'] = job_salary_info_list[-1]
-                    print('Job salary: ', job['salary'])
+                    # print('Job salary: ', job['salary'])
         
 
         # JOB DESCRIPTION
@@ -328,24 +339,47 @@ class LinkedInScraper:
                     job['description'] = ''
                 else:
                     return retry, []
-        
-        else:
-            job_card_classes = job_description_el.get_attribute("class")
-            is_truncated = job_card_classes.find('jobs-description--is-truncated')
-            if is_truncated != -1:
-                see_more_button = job_description_el.find_element(By.CSS_SELECTOR, 'footer button')
-                see_more_button.click()
-                sleep(0.25)
-            
-            description = job_description_el.text
-            
-            # Cleanup/enhance
-            description = re.sub(r'^About the job\\n | \\nSee less$', '', description)
-            section_headers = re.findall(r'\\n[A-Z][a-z]*(\s[A-Z][a-z]*)+:?\s*\\n', description)
-            for header in section_headers:
-            	description = re.sub(header, '<i>'+ header + '</i>', description)
-            job['description'] = description
+                
+        else: 
+            job['description'] = self.get_job_description(job_description_el)
+
 
         job['job_board'] = 'LinkedIn'
         
         return retry, job
+    
+
+    def get_job_details_list(self, elements_list):
+        job_details_list = []
+        
+        job_details_list = [item.text.split('\n')[0] for item in elements_list]
+        [job_details_list.remove('%') for _ in range(job_details_list.count('%'))]
+        print('Job details list: ', job_details_list)
+    
+        return job_details_list
+    
+
+    def get_detail_from_list(self, details: list, options_list: list):
+        for i, item in enumerate(details):
+            if item.strip() in options_list:
+                return details.pop(i)
+        return ''
+    
+
+    def get_job_description(self, description_el):
+        job_card_classes = description_el.get_attribute("class")
+        is_truncated = job_card_classes.find('jobs-description--is-truncated')
+        if is_truncated != -1:
+            see_more_button = description_el.find_element(By.CSS_SELECTOR, 'footer button')
+            see_more_button.click()
+            sleep(0.25)
+        
+        description = description_el.text
+        
+        # Cleanup
+        description = re.sub(r'(^(About the job)\n)|(\n(See less)$)', '', description)
+        # section_headers = re.findall(r'\n([A-Z][a-z]*)(\s[A-Z][a-z]*)?:?\s*\n', description)
+        # for header in section_headers:
+        #     description = re.sub(header, '<i>' + header + '</i>', description)
+        
+        return description

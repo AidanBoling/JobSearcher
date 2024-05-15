@@ -9,7 +9,7 @@ jobs_db = ROOT_DIR / "instance/jobs.db"
 
 HEADLESS = True
 LIMIT_PAGES = 1
-MAX_ATTEMPTS_PER_ID = 1
+MAX_ATTEMPTS_PER_ID = 2
 
 SEARCH_PHRASES = ['junior software engineer', 'software engineer']
 
