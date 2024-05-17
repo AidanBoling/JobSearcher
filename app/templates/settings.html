@@ -3,11 +3,55 @@
 {% block page_title %}Settings{% endblock %}
 
 {% block content %}
-<h1 id="posts-table-label">Settings</h1>
+{% from 'modals.html' import edit_settings_modal, edit_settings_button %}
 
+<h1>Settings</h1>
+<hr />
 <div>
     <a class="btn btn-primary" href="{{ url_for('run_job_search') }}" role="button">Run Search</a>
 </div>
 
 <br />
+<h2>Search Settings</h2>
+{{ edit_settings_button('search_settings') }}
+
+<ul class="mt-3">
+    <li class="mb-3">
+        <p class="fs-5 mb-1">Search Phrases:</p>
+        <div>
+            <ul>
+                {% for phrase in search_settings['search_phrases'] %}
+                <li>{{ phrase }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </li>
+    <li>
+        <p class="fs-5 mb-1">Exclude Posts by These Companies:</p>
+        <div>
+            <ul>
+                {% for company in search_settings['exclude_companies'] %}
+                <li>{{ company }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </li>
+</ul>
+
+
+{% call(data) edit_settings_modal('search_settings', formURL=url_for('update_search_settings'), title='Edit Search Settings', data=search_settings) %}
+{# TODO: Add input instructions (comma-separated lists, exact spelling, etc.)) #}
+<div class="my-3">
+    <label for="search_phrases" class="form-label">Search Terms/Phrases</label>
+    <input type="text" class="form-control" id="search_phrases" name="search_phrases"
+        value="{{ data['search_phrases']|join(', ') }}">
+</div>
+<div class="my-3">
+    {# TODO: Add input instructions (comma-separated list of names, exact spelling, etc.)) #}
+    <label for="exclude_companies" class="form-label">Exclude Companies</label>
+    <input type="text" class="form-control" id="exclude_companies" name="exclude_companies"
+        value="{{ data['exclude_companies']|join(', ') }}">
+</div>
+{% endcall %}
+
 {% endblock %}
