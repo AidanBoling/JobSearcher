@@ -1,4 +1,4 @@
-<form action="{{ url_for( 'change_table_settings', setting='job_fields') }}" method="POST" onsubmit="announceSave()">
+<form action="{{ url_for( 'update_table_settings', setting='job_fields') }}" method="POST" onsubmit="announceSave()">
     {# CHECK: Need the onsubmit to announce save completed to live region? Or only need if not refreshing entire page when submitted?  #}
     <div class="container">
         <div class="row justify-content-between">
@@ -30,8 +30,11 @@
 
                 </div>
             </div>
+            {# TODO: Add ability to change sort-by field(s) #}
+            {# TODO: Allow create/update custom regex to filter out titles #}
+            {# Later TODO: Add grouping #}
+            {# Later TODO: Allow reordering fields #}
             <div class="col-4 p-0 d-flex justify-content-end">
-
                 <button class="settings-btn btn btn-primary btn-lg px-4" type="submit">Save</button>
             </div>
         </div>

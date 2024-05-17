@@ -92,10 +92,7 @@ def update_fields_displayed(data: dict):
 def update_search_settings_obj(data: dict):
     global search_settings
 
-    # Search phrases
     search_settings.search_phrases = [phrase.strip() for phrase in data['search_phrases'].split(', ')]
-
-    # Exclude companies list
     search_settings.exclude_companies = [company.strip() for company in data['exclude_companies'].split(', ')]
 
     

@@ -4,6 +4,7 @@
 
 {% block content %}
 {% from 'modals.html' import edit_settings_modal, edit_settings_button %}
+{% from 'form.html' import text_input %}
 
 <h1>Settings</h1>
 <hr />
@@ -41,17 +42,9 @@
 
 {% call(data) edit_settings_modal('search_settings', formURL=url_for('update_search_settings'), title='Edit Search Settings', data=search_settings) %}
 {# TODO: Add input instructions (comma-separated lists, exact spelling, etc.)) #}
-<div class="my-3">
-    <label for="search_phrases" class="form-label">Search Terms/Phrases</label>
-    <input type="text" class="form-control" id="search_phrases" name="search_phrases"
-        value="{{ data['search_phrases']|join(', ') }}">
-</div>
-<div class="my-3">
-    {# TODO: Add input instructions (comma-separated list of names, exact spelling, etc.)) #}
-    <label for="exclude_companies" class="form-label">Exclude Companies</label>
-    <input type="text" class="form-control" id="exclude_companies" name="exclude_companies"
-        value="{{ data['exclude_companies']|join(', ') }}">
-</div>
+{{ text_input('Search Terms/Phrases', id='search_phrases', name='search_phrases', value=data['search_phrases']|join(', ')) }}
+{{ text_input('Exclude Companies', id='exclude_companies', name='exclude_companies', value=data['exclude_companies']|join(', ')) }}
+
 {% endcall %}
 
 {% endblock %}
