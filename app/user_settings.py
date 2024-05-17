@@ -10,6 +10,7 @@ CONFIG_FILE_PATH = ROOT_DIR / 'instance/user_config.yaml'
 @dataclass
 class SearchSettings:
     search_phrases: list
+    exclude_companies: list
 
 
 @dataclass
@@ -26,12 +27,16 @@ class SettingsControl:
         
         self.get_raw_config()
 
-
+    
     def get_raw_config(self):
         with open(CONFIG_FILE_PATH, 'r') as file:
             config = yaml.safe_load(file)
-        self.config = config   
-        
+        self.config = config  
+    
+
+    def get_section_config(self):
+        return self.config[self.section]
+
 
     def get_as_dataclass(self):
         with open(CONFIG_FILE_PATH, 'r') as file:

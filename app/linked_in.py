@@ -1,12 +1,14 @@
 import os
 import sys
+from time import sleep
+import random
+import re
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import selenium.common.exceptions as selexceptions
 from selenium_driver import SeleniumDriver
-from time import sleep
-import random
-import re
+from user_settings import SearchSettings, SettingsControl
+
 
 LINKEDIN_USERNAME = os.environ.get('LINKEDIN_USERNAME')
 LINKEDIN_PASSWORD = os.environ.get('LINKEDIN_PASSWORD')
@@ -22,10 +24,12 @@ LI_JOB_PAGE_BASE_URL = 'https://www.linkedin.com/jobs/view/'
 DEFAULT_MAX_ATTEMPTS = 2
 
 
+
 # class JobBoardScraper:
-#     def __init__(self, driver_control: SeleniumDriver):
+#     def __init__(self, driver_control: SeleniumDriver, settings: object):
 #         self.sel = driver_control
 #         self.driver = driver_control.get_driver()
+#         self.user_settings = 
 
 
 class LinkedInScraper:
@@ -39,7 +43,10 @@ class LinkedInScraper:
         self.result_pages_limit = limit_result_pages
         self.job_ids = []
         self.max_attempts = max_attempts
-        # self.retry_ids_list = []
+        self.excluded_ids = []
+
+        # search_settings_controller = SettingsControl(SearchSettings, 'search_settings')
+        self.user_settings = SettingsControl(SearchSettings, 'search_settings').get_section_config()
 
 
     def set_job_ids(self, ids: list):
@@ -183,6 +190,8 @@ class LinkedInScraper:
                         if not retry or n+1 >= self.max_attempts:
                             jobs.append(job)
                             self.job_ids.remove(id)
+                    if not job and not retry:
+                        self.job_ids.remove(id)
                 print('Jobs left to retry: ', self.job_ids)
             
             else:
@@ -244,14 +253,19 @@ class LinkedInScraper:
 
         else:
             company_posting_details = [item.strip() for item in company_posting_details_el.text.split('·')]
-            # print('company and post details: ', company_posting_details)
             
-            job['posted_date'] = company_posting_details[2]
             job['company_name'] = company_posting_details[0]
+            if self.is_excluded(job_id, job['company_name'], 'exclude_companies'):
+                print(f'Job excluded based on user filter: Company ({job["company_name"]})')
+                # If excluded, skip to next job id. This id will not be re-tried. 
+                return False, []
+            
             job['company_location'] = company_posting_details[1]
+            job['posted_date'] = company_posting_details[2]
             print(f'Company: {job["company_name"]} ({job["company_location"]})')
-        
-        # TODO: if company name is in list of filters of companies to exclude, 
+
+            
+        # [-] TODO: if company name is in list of filters of companies to exclude 
 
         # ...More about company:
         try:
@@ -383,3 +397,10 @@ class LinkedInScraper:
         #     description = re.sub(header, '<i>' + header + '</i>', description)
         
         return description
+    
+    def is_excluded(self, job_id, item, filter_name):
+        if self.user_settings[filter_name]: 
+            if item in self.user_settings[filter_name]:
+                self.excluded_ids.append(job_id)
+                return True
+        return False
