@@ -39,11 +39,41 @@
     </li>
 </ul>
 
+<br />
+
+<h2>Data Filters</h2>
+{{ edit_modal_button('Edit Filters', data_target='settings-dataFilters') }}
+
+<h3 class="mt-3 fs-4">Post Title Filters</h3>
+<ul class="mt-2">
+    <li class="mb-3">
+        <p class="fs-5 mb-1">Exclude Keywords:</p>
+        <div>
+            <ul>
+                {% for keyword in data_filters.post_title['exclude_keywords'] %}
+                <li>{{ keyword }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </li>
+    <li><span class="fs-5 mb-1">Regex: </span><code>{{ data_filters.post_title['regex'] }}</code></li>
+</ul>
+
 
 {% call(data) edit_modal(formURL=url_for('update_search_settings'), title='Edit Search Settings', id='settings-searchSettings', data=search_settings) %}
 {# TODO: Add input instructions (comma-separated lists, exact spelling, etc.)) #}
 {{ text_input('Search Terms/Phrases', id='search_phrases', name='search_phrases', value=data['search_phrases']|join(', ')) }}
 {{ text_input('Exclude Companies', id='exclude_companies', name='exclude_companies', value=data['exclude_companies']|join(', ')) }}
+{% endcall %}
+
+{% call(data) edit_modal(formURL=url_for('update_data_filters'), title='Edit Data Filters', id='settings-dataFilters', data=data_filters) %}
+{# TODO: Add input instructions (comma-separated lists, exact spelling, etc.)) #}
+
+<fieldset>
+    <legend>Post Title Filters</legend>
+    {{ text_input('Exclude Keywords', id='title_exclude_keywords', name='exclude_keywords', value=data.post_title['exclude_keywords']|join(', ')) }}
+    {{ text_input('Regex Filter - post title', id='title_regex', name='title_regex', value=data.post_title['regex']) }}
+</fieldset>
 
 {% endcall %}
 

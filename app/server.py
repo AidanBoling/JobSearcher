@@ -5,7 +5,7 @@ from job_db_control import JobDbControl
 import job_searcher 
 
 from data.table import job_fields
-from user_settings import SearchSettings, DataDisplay, SettingsControl
+from user_settings import SearchSettings, DataDisplay, DataFilters, SettingsControl
 
 ROOT_DIR = Path(__file__).parent
 
@@ -17,6 +17,9 @@ search_settings = search_settings_controller.get_as_dataclass()
 
 table_settings_controller = SettingsControl(DataDisplay, 'data_display')
 table_settings = table_settings_controller.get_as_dataclass()
+
+data_filters_controller = SettingsControl(DataFilters, 'data_filters')
+data_filters = data_filters_controller.get_as_dataclass()
 
 # # Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:////{ROOT_DIR / "instance/jobs.db"}'
@@ -51,7 +54,7 @@ def main():
 
     @app.get('/settings')
     def settings():
-        return render_template('settings.html', search_settings=search_settings)
+        return render_template('settings.html', search_settings=search_settings, data_filters=data_filters)
 
 
     # Later TODO: Add Celery, so can run search in background, and redirect immediately. 
@@ -68,7 +71,15 @@ def main():
             search_settings_controller.save_to_file(search_settings)                
         return redirect(url_for('settings'))
     
+
+    @app.post('/settings/update/data_filters')
+    def update_data_filters():
+        if request.form:
+            update_data_filters_obj(request.form)
+            data_filters_controller.save_to_file(data_filters)                
+        return redirect(url_for('settings'))
     
+
     @app.post('/data/update/job/<int:id>')
     def update_job(id):
         if request.form:
@@ -102,12 +113,20 @@ def update_fields_displayed(data: dict):
     table_settings_controller.save_to_file(table_settings)
 
 
+#TODO: Error handling
+
 def update_search_settings_obj(data: dict):
     global search_settings
 
     search_settings.search_phrases = [phrase.strip() for phrase in data['search_phrases'].split(', ')]
     search_settings.exclude_companies = [company.strip() for company in data['exclude_companies'].split(', ')]
 
+
+def update_data_filters_obj(data: dict):
+    global data_filters
+
+    data_filters.post_title.exclude_keywords = [phrase.strip().lower() for phrase in data['title_exclude_keywords'].split(', ')]
+    data_filters.post_title.regex = data['title_regex']
     
 main()
 

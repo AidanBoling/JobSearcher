@@ -1,6 +1,6 @@
 from pathlib import Path
 import yaml
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from dacite import from_dict
 
 ROOT_DIR = Path(__file__).parent
@@ -18,6 +18,18 @@ class DataDisplay:
     view: str
     job_fields: list
 # Note: Probably move "view" to another dataclass (like GeneralSettings, or something)
+
+
+@dataclass
+class TitleDataFilters:
+    exclude_keywords: list
+    regex: str
+
+
+@dataclass
+class DataFilters:
+    post_title: TitleDataFilters
+
 
 class SettingsControl:
     def __init__(self, data_class, section):
@@ -47,15 +59,28 @@ class SettingsControl:
         return settings_obj
 
 
-    def save_to_file(self, settings_object):
+    def save_to_file(self, settings_object: object):
         if not isinstance(settings_object, self.data_class):
             raise TypeError('Invalid argument -- does not match data_class attribute of instance')
 
-        settings = settings_object.__dict__
+        settings = asdict(settings_object)
         self.config[self.section] = settings
 
         with open(CONFIG_FILE_PATH, 'w') as file:
             yaml.dump(self.config, file)
+
+
+    # def test_save_to_file(self, settings_object: object):
+    #     if not isinstance(settings_object, self.data_class):
+    #         raise TypeError('Invalid argument -- does not match data_class attribute of instance')
+
+    #     print('Config before: ', self.config[self.section])
+    #     settings = asdict(settings_object)
+    #     # settings = {key: value.__dict__ if type(value) is object else value for (key, value) in settings.items()}
+    #     # print(type(settings['post_title']) is object)
+    #     self.config[self.section] = settings
+
+    #     print('Config after: ', self.config[self.section])
 
 
 
