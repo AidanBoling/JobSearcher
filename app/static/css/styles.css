@@ -52,28 +52,34 @@ table caption {
 }
 
 table {
+    --first-column-width: ;
     border-collapse: separate;
     border-spacing: 0;
 }
 
 /* Table -- frozen header and first column: */
 
-thead,
+.freeze thead,
 tr>th {
     position: sticky;
 }
 
-thead {
+.freeze thead {
     top: 0;
     z-index: 2;
 }
 
-tr>th {
+.freeze tr>th {
     left: 0;
     z-index: 1;
 }
 
-thead tr>th:first-child {
+.freeze tr:nth-child(1) {
+    left: 0;
+    z-index: 1;
+}
+
+.freeze thead tr>th:first-child {
     z-index: 3;
 }
 
