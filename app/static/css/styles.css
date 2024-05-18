@@ -1,10 +1,3 @@
-/* html {
-
-    height: 100vh;
-    overflow: hidden;
-
-} */
-
 * {
     box-sizing: border-box;
 }
@@ -41,11 +34,6 @@ main {
     height: 100%;
 }
 
-/* pre {
-    font-family: var(--bs-body-font-family);
-    font-size: var(--bs-body-font-size);
-    overflow-wrap: normal;
-} */
 
 .overscroll-contain {
     overscroll-behavior: contain;
@@ -63,14 +51,33 @@ table caption {
     color: rgb(221, 226, 233);
 }
 
-/* .empty-state,
-table:empty {
-    display: none;
+table {
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
-table:empty+.empty-state {
-    display: block;
-} */
+/* Table -- frozen header and first column: */
+
+thead,
+tr>th {
+    position: sticky;
+}
+
+thead {
+    top: 0;
+    z-index: 2;
+}
+
+tr>th {
+    left: 0;
+    z-index: 1;
+}
+
+thead tr>th:first-child {
+    z-index: 3;
+}
+
+/* -- */
 
 td,
 th {
@@ -78,6 +85,9 @@ th {
     min-width: 150px;
 }
 
+thead .border-bottom {
+    --bs-border-width: 4px
+}
 
 tbody th,
 tbody td {

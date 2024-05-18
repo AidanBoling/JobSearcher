@@ -2,24 +2,26 @@
 {% import 'form.html' as form %}
 {% set visible_fields = options.job_fields|rejectattr('hidden')|list %}
 
-{# TODO: Enable delete table items. Enable edit fields. #}
+{# TODO: Enable delete table items. #}
 
 {# TODO: Add columns for marking out "favorites", "read/seen", (maybe mark out "hide"...) #}
 {# TODO: make macro so that if/else logic in main columns can also be used for header column #}
 <!-- TODO (maybe): Make rows clickable -- to open job details modal  -->
 
-<table class="table table-dark table-hover caption-top py-0 m-0">
+<table class="table table-dark table-hover caption-top py-0 m-0 position-relative">
     <caption class="p-0">
         <h2 id="posts-table-label" class="visually-hidden">Job Posts Table</h2>
     </caption>
     <thead>
-        <tr class="table-active">
+        <tr class="table-active border-bottom border-secondary">
             {% for field in visible_fields %}
-            <th scope="col" class="{{ field['type'] }} name-{{ field['name'] }}">{{ field['label'] }}</th>
+            <th scope="col" class="border-bottom border-secondary {{ field['type'] }} name-{{ field['name'] }}">
+                {{ field['label'] }}
+            </th>
             {% endfor %}
         </tr>
     </thead>
-    <tbody class="table-group-divider">
+    <tbody>
         {% for job in jobs %}
         <tr>
             <th scope="row" class="table-active {{ visible_fields[0]['type'] }} name-{{ visible_fields[0]['name'] }}">
@@ -29,19 +31,17 @@
                     <div class="d-flex gap-3">
                         {{ view_job_button(job['id'], text='View', class="btn btn-primary btn-sm") }}
                         {{ edit_modal_button('Edit', data_target='job-{}'.format(job['id']), class='btn btn-primary btn-sm') }}
-                        {# Add delete button here. justify-self-end #}
+                        {# Add delete button here(?). justify-self-end #}
                     </div>
                 </div>
             </th>
             {% for field in visible_fields[1::] %}
-
             <td>
                 {% if field['name'] == 'description' %}
 
                 <div class="{{ field['type'] }} name-{{ field['name'] }}">
                     {{ job[field['name']]|truncate(length=145) }}
                 </div>
-
 
                 {% elif field['type'] == 'link' %}
                 <a target="_blank" href="{{ job[field['name']] }}"
