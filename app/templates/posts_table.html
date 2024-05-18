@@ -1,7 +1,13 @@
-{% from 'modals.html' import view_job_modal, view_job_button %}
+{% from 'modals.html' import view_job_modal, view_job_button, edit_modal, edit_modal_button %}
+{% import 'form.html' as form %}
 {% set visible_fields = options.job_fields|rejectattr('hidden')|list %}
 
+{# TODO: Enable delete table items. Enable edit fields. #}
+
+{# TODO: Add columns for marking out "favorites", "read/seen", (maybe mark out "hide"...) #}
+{# TODO: make macro so that if/else logic in main columns can also be used for header column #}
 <!-- TODO (maybe): Make rows clickable -- to open job details modal  -->
+
 <table class="table table-dark table-hover caption-top py-0 m-0">
     <caption class="p-0">
         <h2 id="posts-table-label" class="visually-hidden">Job Posts Table</h2>
@@ -17,7 +23,15 @@
         {% for job in jobs %}
         <tr>
             <th scope="row" class="table-active {{ visible_fields[0]['type'] }} name-{{ visible_fields[0]['name'] }}">
-                <div>{{ job[visible_fields[0]['name']] }}</div>
+                <div class="d-flex flex-column gap-2">
+                    <div>{{ job[visible_fields[0]['name']] }}</div>
+                    {# TODO: Check button placement accessibility #}
+                    <div class="d-flex gap-3">
+                        {{ view_job_button(job['id'], text='View', class="btn btn-primary btn-sm") }}
+                        {{ edit_modal_button('Edit', data_target='job-%s'.format(job['id']), class='btn btn-primary btn-sm') }}
+                        {# Add delete button here. justify-self-end #}
+                    </div>
+                </div>
             </th>
             {% for field in visible_fields[1::] %}
 
@@ -27,9 +41,7 @@
                 <div class="{{ field['type'] }} name-{{ field['name'] }}">
                     {{ job[field['name']]|truncate(length=145) }}
                 </div>
-                <div>
-                    {{ view_job_button(job) }}
-                </div>
+
 
                 {% elif field['type'] == 'link' %}
                 <a target="_blank" href="{{ job[field['name']] }}"
@@ -53,5 +65,21 @@
 {% for job in jobs %}
 
 {{ view_job_modal(job) }}
+
+{% call(data) edit_modal(formURL=url_for('update_job', id=job['id']), title='Edit Job', id='job-%s'.format(job['id']), data=job) %}
+{% for field in options.job_fields if field.name not in ['id', 'created', 'post_id', 'post_link'] %}
+
+{% if field.type == 'text-short' or field.type == 'text-one-line' %}
+{{ form.text_input(field.label, id=field.name, name=field.name, value=data[field.name]) }}
+{% elif field.type == 'text-long' %}
+
+{{ form.textarea(field.label, id=field.name, name=field.name, rows='10', value=data[field.name]) }}
+{% elif field.type == 'date' %}
+{{ form.date_input(field.label, id=field.name, name=field.name, value=data[field.name].strftime('%Y-%m-%d') if data[field.name]) }}
+{% endif %}
+
+{% endfor %}
+
+{% endcall %}
 
 {% endfor %}

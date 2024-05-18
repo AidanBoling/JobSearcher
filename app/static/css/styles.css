@@ -47,6 +47,10 @@ main {
     overflow-wrap: normal;
 } */
 
+.overscroll-contain {
+    overscroll-behavior: contain;
+}
+
 .table-container {
     overflow: scroll;
     overscroll-behavior: contain;
