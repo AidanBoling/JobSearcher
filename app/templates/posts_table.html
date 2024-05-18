@@ -28,7 +28,7 @@
                     {# TODO: Check button placement accessibility #}
                     <div class="d-flex gap-3">
                         {{ view_job_button(job['id'], text='View', class="btn btn-primary btn-sm") }}
-                        {{ edit_modal_button('Edit', data_target='job-%s'.format(job['id']), class='btn btn-primary btn-sm') }}
+                        {{ edit_modal_button('Edit', data_target='job-{}'.format(job['id']), class='btn btn-primary btn-sm') }}
                         {# Add delete button here. justify-self-end #}
                     </div>
                 </div>
@@ -66,7 +66,7 @@
 
 {{ view_job_modal(job) }}
 
-{% call(data) edit_modal(formURL=url_for('update_job', id=job['id']), title='Edit Job', id='job-%s'.format(job['id']), data=job) %}
+{% call(data) edit_modal(formURL=url_for('update_job', id=job['id']), title='Edit Job', id='job-{}'.format(job['id']), data=job) %}
 {% for field in options.job_fields if field.name not in ['id', 'created', 'post_id', 'post_link'] %}
 
 {% if field.type == 'text-short' or field.type == 'text-one-line' %}

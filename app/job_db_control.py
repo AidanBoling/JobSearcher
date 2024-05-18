@@ -9,7 +9,7 @@ class JobDbControl:
         self.db = db
 
 
-    def get_one(id):
+    def get_one(self, id):
         post = db.get_or_404(JobPost, id)
         return post
 
@@ -58,9 +58,44 @@ class JobDbControl:
             self.add_one(job)
         
     
-    
+    def update_one(self, id: int, updated_data: dict):
+        job = self.get_one(id)
+        
+        data = {key: value for (key, value) in updated_data.items() if key not in ['id', 'created', 'post_id', 'post_link', 'posted_date']}
+        
+        if updated_data['posted_date']:
+            # Date fixing -- probably not necessary, but implementing for now just in case keeping the time becomes relevant
+            
+            if job.posted_date:
+                # get time from original date, add to data[posted_date] string, then str_to_obj
+                date = updated_data['posted_date'].split(' ')[0]
+                time = job.posted_date.strftime('%H:%M:%S')
+                date_str = f'{date} {time}'
+            else:
+                date_str = updated_data['posted_date']
+
+            data['posted_date'] = self.str_date_to_obj(date_str)
+        
+            # Note: With current implementation, can't update posted_date to be empty value (e.g. if wanted to clear it for some reason)
+
+        print(data)
+        job.update_cols(data)
+        self.db.session.commit()
 
 
+    def delete_one(self, id):
+        job = self.get_one(id)
+        self.db.session.delete(job)
+        self.db.session.commit()
+
+
+    def str_date_to_obj(self, date):
+        try:
+            if type(date) is str:
+               return parse(date, settings={'RETURN_AS_TIMEZONE_AWARE': True})
+        except KeyError:
+            pass
+        
 
 
 # def filter_jobs(filters: dict = {}):

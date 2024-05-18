@@ -67,6 +67,19 @@ def main():
             update_search_settings_obj(request.form)
             search_settings_controller.save_to_file(search_settings)                
         return redirect(url_for('settings'))
+    
+    
+    @app.post('/data/update/job/<int:id>')
+    def update_job(id):
+        if request.form:
+            db_control.update_one(id, request.form)
+        return redirect(url_for('home'))
+    
+
+    @app.delete('/data/delete/job/<int:id>')
+    def delete_job(id):
+        db_control.update_one(id, request.form)
+        return redirect(url_for('home'))
 
 
 def search_and_save_jobs():
