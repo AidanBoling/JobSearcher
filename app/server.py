@@ -1,7 +1,7 @@
 from pathlib import Path
 from flask import Flask, render_template, request, abort, redirect, url_for
 from models.job_posts import db
-from job_db_control import JobDbControl
+from job_db_control import JobDbControl, FilterGroup, JobFilter
 import job_searcher 
 
 from data.table import job_fields
@@ -34,15 +34,36 @@ def main():
     @app.route('/')
     def home():
         #later -> if table_settings.view == 'table', redirect to table-view. else, redirect to list view.
-        return redirect(url_for('table_view'))
-    
-
-    @app.route('/table-view')
-    def table_view():
-        return render_template('index.html', jobs=db_control.get_all(), options=table_settings)
+        #later -> saved_view will be from user settings
+        return redirect(url_for('table_view', saved_view='default'))
 
 
-    @app.post('/table-view/update/settings/<setting>')
+    # @app.route('/table')
+    # def table_view():
+    #     return render_template('index.html', jobs=db_control.get_list(), options=table_settings)
+
+
+    @app.get('/table/views/<saved_view>')
+    def table_view(saved_view):
+        jobs=''
+        if saved_view == 'default':
+            jobs=db_control.get_list()
+        if saved_view == 'hidden':
+            pass
+        if saved_view == 'favorites':
+            pass
+        # Test view (temp):
+        if saved_view == 'test':
+            inner_filters = [JobFilter('employment_type', 'Full-time', '=='), JobFilter('level', 'Entry level', '==')]
+            inner_filter_group = FilterGroup('OR', inner_filters)
+
+            and_filters = [inner_filter_group, JobFilter('company_name', 'Patterned Learning Career', '!=')]
+            jobs = db_control.get_list(filter_group=FilterGroup('AND', and_filters))
+
+        return render_template('index.html', jobs=jobs, options=table_settings)
+        
+
+    @app.post('/table/update/settings/<setting>')
     def update_table_settings(setting):
         settings = list(table_settings.__dict__.keys())
         if request.form and setting in settings:
@@ -64,20 +85,24 @@ def main():
         return redirect(url_for('settings'))
     
 
-    @app.post('/settings/update/search_settings')
-    def update_search_settings():
+    @app.post('/settings/update/<section>')
+    def update_settings(section):
         if request.form:
-            update_search_settings_obj(request.form)
-            search_settings_controller.save_to_file(search_settings)                
+            if section == 'search_settings':
+                update_search_settings_obj(request.form)
+                search_settings_controller.save_to_file(search_settings)   
+            if section == 'data_filters':
+                update_data_filters_obj(request.form)
+                data_filters_controller.save_to_file(data_filters)   
         return redirect(url_for('settings'))
     
 
-    @app.post('/settings/update/data_filters')
-    def update_data_filters():
-        if request.form:
-            update_data_filters_obj(request.form)
-            data_filters_controller.save_to_file(data_filters)                
-        return redirect(url_for('settings'))
+    # @app.post('/settings/update/data_filters')
+    # def update_data_filters():
+    #     if request.form:
+    #         update_data_filters_obj(request.form)
+    #         data_filters_controller.save_to_file(data_filters)                
+    #     return redirect(url_for('settings'))
     
 
     @app.post('/data/update/job/<int:id>')
@@ -87,10 +112,10 @@ def main():
         return redirect(url_for('home'))
     
 
-    @app.delete('/data/delete/job/<int:id>')
-    def delete_job(id):
-        db_control.update_one(id, request.form)
-        return redirect(url_for('home'))
+    # @app.delete('/data/delete/job/<int:id>')
+    # def delete_job(id):
+    #     db_control.update_one(id, request.form)
+    #     return redirect(url_for('home'))
 
 
 def search_and_save_jobs():
@@ -133,3 +158,13 @@ main()
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+#     filters = [{'name': 'employment_type', 'value': 'Full-time', 'operator': '=='}]
+# def convert_filters(filters):
+#     converted = []
+#     for filter in filters:
+#         if type(filter) is list:
+#             JobFilter(filter['name'], filter['value'], filter['operator'])
+#     
+#     return converted

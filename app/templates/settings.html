@@ -60,13 +60,13 @@
 </ul>
 
 
-{% call(data) edit_modal(formURL=url_for('update_search_settings'), title='Edit Search Settings', id='settings-searchSettings', data=search_settings) %}
+{% call(data) edit_modal(formURL=url_for('update_settings', section='search_settings'), title='Edit Search Settings', id='settings-searchSettings', data=search_settings) %}
 {# TODO: Add input instructions (comma-separated lists, exact spelling, etc.)) #}
 {{ text_input('Search Terms/Phrases', id='search_phrases', name='search_phrases', value=data['search_phrases']|join(', ')) }}
 {{ text_input('Exclude Companies', id='exclude_companies', name='exclude_companies', value=data['exclude_companies']|join(', ')) }}
 {% endcall %}
 
-{% call(data) edit_modal(formURL=url_for('update_data_filters'), title='Edit Data Filters', id='settings-dataFilters', data=data_filters) %}
+{% call(data) edit_modal(formURL=url_for('update_settings', section='data_filters'), title='Edit Data Filters', id='settings-dataFilters', data=data_filters) %}
 {# TODO: Add input instructions (comma-separated lists, exact spelling, etc.)) #}
 
 <fieldset>

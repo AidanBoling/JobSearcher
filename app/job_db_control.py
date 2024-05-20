@@ -1,25 +1,83 @@
 from dateparser import parse
-from models.job_posts import JobPost, db
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql.expression import and_, or_, not_
+from sqlalchemy import true, false
+from models.job_posts import JobPost, db, column_map
+
+
+class JobFilter:
+    def __init__(self, key: str, value, operator: str):
+        self.map = column_map
+        self.key = key
+        self.col = self.map[key]
+        self.value = value
+        self.operator = operator
+
+    def get(self):
+        if self.operator == '==':
+            return self.col.__eq__(self.value)
+        elif self.operator == '!=':
+            return self.col.__ne__(self.value)
+        elif self.operator == '<=':
+            return self.col.__le__(self.value)
+        elif self.operator == '<':
+            return self.col.__lt__(self.value)
+    
+    #Later TODO: Error handling (e.g. throw exception(invalid operator, must be '==', '>=', etc...))
+
+    def __repr__(self):
+        return f'<JobFilter: {self.key} {self.operator} {self.value}>'
+
+
+class FilterGroup:
+    def __init__(self, operator, filters):
+        self.operator: str = operator
+        self.filters: list = filters
+        self.expressions = []
+        self.get_expressions_list()
+    
+
+    def get_expressions_list(self):
+        for filter in self.filters:
+            if isinstance(filter, JobFilter):
+                self.expressions.append(filter.get())
+            elif isinstance(filter, FilterGroup):
+                self.expressions.append(filter.op_expression())
+    
+
+    def op_expression(self): 
+        if self.operator == 'AND':
+            return and_(true(), *self.expressions)
+        if self.operator == 'OR':
+            return or_(false(), *self.expressions)
+       
 
 
 class JobDbControl:
 
-    def __init__(self, db: db):
+    def __init__(self, db):
         self.db = db
+        self.model = JobPost
+        self.col_map = column_map
 
 
     def get_one(self, id):
         post = db.get_or_404(JobPost, id)
         return post
-
-
-    def get_all(self):
-        # order_by_field
-        query = db.select(JobPost).order_by(JobPost.id)
-        all_posts = db.session.execute(query).scalars().all()
-        return all_posts
     
+
+    def get_list(self, filter_group: FilterGroup=None, sort_by: str ='id'):   
+
+        query = ''
+        if filter_group:
+            # filter_group = FilterGroup(outer_group_op, filters)
+            query = db.select(JobPost).where(filter_group.op_expression()).order_by(self.col_map[sort_by])
+        else:
+            query = db.select(JobPost).order_by(self.col_map[sort_by])
+        
+        jobs = db.session.execute(query).scalars().all()
+        return jobs
+
 
     def get_post_ids(self, job_board):
         query = self.db.select(JobPost.post_id).where(JobPost.job_board == job_board).order_by(JobPost.id)
@@ -98,6 +156,11 @@ class JobDbControl:
         
 
 
+
+
+#------- Trash (temp) -------
+
+
 # def filter_jobs(filters: dict = {}):
 #     # allowed_filters = ['id']
 
@@ -110,3 +173,63 @@ class JobDbControl:
 #     # return cafes
 
 
+
+# def filter_jobs(self, filters: dict ={}, sort_by: str ='id'):
+        
+    #     filter_data = {key: value for (key, value) in filters.items() if value}
+    #     query = db.select(JobPost).filter_by(**filter_data).order_by(self.col_map[sort_by])
+
+    #     jobs = db.session.execute(query).scalars().all()
+        
+    #     # if not filter_data or not jobs:
+    #     #     raise NotFound(description='No results found with the given parameters.')
+    #     return jobs
+    
+
+
+        # filters = [JobFilter('employment_type', 'Full-time', '=='), JobFilter('job_board', 'LinkedIn', '==')]
+        # # group_with_nested = FilterGroup([JobFilter(), filters], 'AND')   
+        
+        # operator = 'AND'
+        # top_filter_group = FilterGroup(filters, operator)
+        
+
+        # filter_data = {key: value for (key, value) in filters.items() if value}
+        # jobs = db.session.execute(query).scalars().all()
+        
+        
+        # filter_group = { 'AND': [nested_filter_group], ('job_board', 'LinkedIn')],
+        #     'OR': [],
+        #     'NOT': []
+        #     }
+
+        # nested_filter_group = {'OR': [('employment_type', 'Remote'), ('employment_type', 'Remote')]}
+        
+        
+
+        # def filter_group(method: str, filters: dict):
+        # #     filter_stmts = []
+
+        # #     for key, value in filters.items():
+        # #         filter_stmts.append(key == value)
+
+        #     if method == 'and':
+        #         args = [mapped[filter_key] == filter_value, ????????]
+        #         args = [filter, filter]
+        #         filter.get().join(', ')
+        #         stmt = select(JobPost).where(and_(mapped[filter_key] == filter_value, ????????))
+
+        #     return stmnt
+
+
+        # if not filter_data or not jobs:
+        #     raise NotFound(description='No results found with the given parameters.')
+        
+        # return jobs
+
+
+    # def get_all(self):
+    #     # order_by_field
+    #     query = db.select(JobPost).order_by(JobPost.id)
+    #     all_posts = db.session.execute(query).scalars().all()
+    #     return all_posts
