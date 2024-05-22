@@ -1,0 +1,50 @@
+<form action="{{ url_for( 'update_current_filter' ) }}" method="POST">
+    <div class="container p-0">
+        <div class="row">
+            <div class="filter-group col p-0 mb-2">
+                <div class="container">
+                    {# TODO: Show existing filters (for loop, macro, etc) #}
+
+                    <div class="filter row gx-5 my-2">
+                        <!--<fieldset>
+                    <legend>Filter Group</legend> -->
+
+                        {# Field #}
+                        <div class="col-4">
+                            <select name="field_name" id="field_name-1" class="form-select " aria-label="Field Name"
+                                onchange="getFilterSettings(this.id, this.options[this.selectedIndex].value)">
+                                <option value="" selected>Select field</option>
+
+                                {% set keys = filters.keys()|list %} #}
+                                {% for field in options.job_fields if field.name in keys %}
+
+                                <option value="{{ field.name }}">{{ field.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        {# Operator #}
+                        <div class="col-4">
+                            <select class="form-select d-none" name="operator" id="filter_operator-1"
+                                aria-label="Operator">
+                            </select>
+                        </div>
+
+                        {# Value (inserted/updated via JS)#}
+                        <div class="col-4" id="filter_value-1">
+
+                            <!-- <select class="form-select d-none" name="value" aria-label="Value">
+                        </select> -->
+
+                        </div>
+
+                        <!-- </fieldset> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <button class="settings-btn btn btn-primary btn-lg px-4" type="submit">Save</button>
+    </div>
+</form>
