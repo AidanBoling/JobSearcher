@@ -1,89 +1,64 @@
 from dateparser import parse
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql.expression import and_, or_, not_
-from sqlalchemy import true, false
 from models.job_posts import JobPost, db, column_map
-
-
-class JobFilter:
-    def __init__(self, key: str, value, operator: str):
-        self.map = column_map
-        self.key = key
-        self.col = self.map[key]
-        self.value = value
-        self.operator = operator
-
-    def get(self):
-        if self.operator == '==':
-            return self.col.__eq__(self.value)
-        elif self.operator == '!=':
-            return self.col.__ne__(self.value)
-        elif self.operator == '<=':
-            return self.col.__le__(self.value)
-        elif self.operator == '<':
-            return self.col.__lt__(self.value)
-    
-    #Later TODO: Error handling (e.g. throw exception(invalid operator, must be '==', '>=', etc...))
-
-    def __repr__(self):
-        return f'<JobFilter: {self.key} {self.operator} {self.value}>'
-
-
-class FilterGroup:
-    def __init__(self, operator, filters):
-        self.operator: str = operator
-        self.filters: list = filters
-        self.expressions = []
-        self.get_expressions_list()
-    
-
-    def get_expressions_list(self):
-        for filter in self.filters:
-            if isinstance(filter, JobFilter):
-                self.expressions.append(filter.get())
-            elif isinstance(filter, FilterGroup):
-                self.expressions.append(filter.op_expression())
-    
-
-    def op_expression(self): 
-        if self.operator == 'AND':
-            return and_(true(), *self.expressions)
-        if self.operator == 'OR':
-            return or_(false(), *self.expressions)
+from filters_db import DbFilterGroup
        
+DEFAULT_SORT = 'id'
 
 
-class JobDbControl:
 
-    def __init__(self, db):
+
+class DbControl:
+
+    def __init__(self, db, db_model, col_map):
         self.db = db
-        self.model = JobPost
-        self.col_map = column_map
-
+        self.model = db_model
+        self.col_map = col_map
+    
 
     def get_one(self, id):
-        post = db.get_or_404(JobPost, id)
-        return post
+        return db.get_or_404(self.model, id)
     
 
-    def get_list(self, filter_group: FilterGroup=None, sort_by: str ='id'):   
+
+
+class JobDbControl(DbControl):
+
+    def __init__(self, db):
+        super().__init__(db=db, db_model=JobPost, col_map=column_map)
+
+
+    def get_list(self, filter_group: DbFilterGroup=None, sort_by: str=DEFAULT_SORT):   
 
         query = ''
-        if filter_group:
-            # filter_group = FilterGroup(outer_group_op, filters)
-            query = db.select(JobPost).where(filter_group.op_expression()).order_by(self.col_map[sort_by])
+        if filter_group is not None:
+            query = db.select(self.model).where(filter_group.op_expression()).order_by(self.col_map[sort_by])
         else:
-            query = db.select(JobPost).order_by(self.col_map[sort_by])
+            query = db.select(self.model).order_by(self.col_map[sort_by])
         
         jobs = db.session.execute(query).scalars().all()
         return jobs
 
 
     def get_post_ids(self, job_board):
+        # Later TODO: Change this to use 'self.get_from_col(...)' instead
         query = self.db.select(JobPost.post_id).where(JobPost.job_board == job_board).order_by(JobPost.id)
         ids = self.db.session.execute(query).scalars().all()
         return ids
     
+
+    def get_from_col(self, column: str, unique: bool=False, filter_group: DbFilterGroup=None, sort_by: str=DEFAULT_SORT):
+        query = ''
+        if filter_group is None:
+            query = self.db.select(self.col_map[column]).order_by(self.col_map[sort_by])
+        else:
+            query = self.db.select(self.col_map[column]).where(filter_group.op_expression()).order_by(self.col_map[sort_by])
+        
+        if unique:
+            return self.db.session.execute(query).unique().scalars().all()
+        else:
+            return self.db.session.execute(query).scalars().all()
+
 
     def add_one(self, job: dict):
         #Create new entry and add to db
@@ -187,11 +162,11 @@ class JobDbControl:
     
 
 
-        # filters = [JobFilter('employment_type', 'Full-time', '=='), JobFilter('job_board', 'LinkedIn', '==')]
-        # # group_with_nested = FilterGroup([JobFilter(), filters], 'AND')   
+        # filters = [JobDbFilter('employment_type', 'Full-time', '=='), JobDbFilter('job_board', 'LinkedIn', '==')]
+        # # group_with_nested = DbFilterGroup([JobDbFilter(), filters], 'AND')   
         
         # operator = 'AND'
-        # top_filter_group = FilterGroup(filters, operator)
+        # top_filter_group = DbFilterGroup(filters, operator)
         
 
         # filter_data = {key: value for (key, value) in filters.items() if value}

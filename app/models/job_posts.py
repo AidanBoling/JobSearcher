@@ -32,6 +32,9 @@ class JobPost(TimestampMixin, db.Model):
     def __repr__(self):
         return f'<Job: {self.post_title} ({self.id})>'
 
+# Later TODO (maybe): set up list of job_boards db, make relational. Useful for marking duplicates??
+
+# Later TODO: Add "job type" and "location" columns
 
 column_map = {
     'id': JobPost.id,
@@ -51,8 +54,29 @@ column_map = {
     'company_other': JobPost.company_other
     }
 
+job_filters = {
+    'employment_type': {
+        'filter_type': 'list',
+        'values': []
+        },
+    'workplace_type': {
+        'filter_type': 'list',
+        'values': []
+        },
+    'level': {
+        'filter_type': 'list',
+        'values': []
+        },
+    'company_name': {
+        'filter_type': 'text',
+        'values': '',
+        'get_values': False
+        },
+    }
 
 
-# Later TODO (probably): set up list of job_boards db, make relational. Useful for marking duplicates??
 
-# Later TODO: Add "job type" and "location" columns
+# 'workplace_type': {
+#         'filter_type': 'list',
+#         'values': ['Remote', 'On-Site', 'Hybrid', 'Other']
+#         },

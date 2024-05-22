@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 from selenium_driver import SeleniumDriver
-from job_db_control import JobDbControl
+from db_control import JobDbControl
 from linked_in import LinkedInScraper
 from user_settings import SearchSettings, SettingsControl
 
