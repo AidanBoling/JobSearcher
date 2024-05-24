@@ -1,16 +1,20 @@
 from sqlalchemy.sql.expression import and_, or_
 from sqlalchemy import true, false
-from models.job_posts import column_map
+from models.job_posts import JobPost
+from models.base import Base
 
 
 class DbFilter:
-
-    def __init__(self, col_map: dict, key: str, value, operator: str):
-        self.col_map = col_map
-        self.col = self.col_map[key]
+    """
+    Transforms a filter from strings, ints, into a statement that can be used in filtered db queries.
+    """
+    def __init__(self, model: Base, key: str, value, operator: str):
+        self.model = model
+        self.col = model.get_column(model, key)
         self.key = key
         self.value = value
         self.operator = operator
+        
         self.op_map = {
             '==': self.col.__eq__,
             '!=': self.col.__ne__,
@@ -31,24 +35,28 @@ class DbFilter:
     def __repr__(self):
         return f'<DbFilter: {self.key} {self.operator} {self.value}>'
     
-
+    # Question: should be dataclass? Or perhaps just JobDBFilter as dataclass???
+    
 
 
 class JobDbFilter(DbFilter):
 
     def __init__(self, key: str, value, operator: str):
-        super().__init__(col_map=column_map, key=key, value=value, operator=operator)        
-    
+        super().__init__(model=JobPost, key=key, value=value, operator=operator) 
+
+
     def __repr__(self):
         return f'<JobDbFilter: {self.key} {self.operator} {self.value}>'
 
 
 
-
 class DbFilterGroup:
-
+    """
+    Creates group of filters and/or filter groups, connected by an operator (AND/OR), used 
+    in filtered queries to the db.
+    """
     def __init__(self, operator: str, filters: list):
-        self.operator = operator
+        self.operator = operator.upper()
         self.filters = filters
         self.expressions = []
         self.get_expressions_list()
@@ -67,3 +75,5 @@ class DbFilterGroup:
             return and_(true(), *self.expressions)
         if self.operator == 'OR':
             return or_(false(), *self.expressions)
+        
+    #Later TODO: Error handling (e.g. throw exception(invalid operator, must be 'AND' or 'OR'...))

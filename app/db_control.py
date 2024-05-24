@@ -1,19 +1,20 @@
 from dateparser import parse
 from sqlalchemy.exc import IntegrityError
-from models.job_posts import JobPost, db, column_map
+from models.job_posts import JobPost, db
 from filters_db import DbFilterGroup
+from models.base import Base
+
        
 DEFAULT_SORT = 'id'
 
 
 
-
 class DbControl:
 
-    def __init__(self, db, db_model, col_map):
+    def __init__(self, db, db_model: Base):
         self.db = db
         self.model = db_model
-        self.col_map = col_map
+        self.col_map = db_model.get_column_map(db_model)
     
 
     def get_one(self, id):
@@ -21,11 +22,10 @@ class DbControl:
     
 
 
-
 class JobDbControl(DbControl):
 
     def __init__(self, db):
-        super().__init__(db=db, db_model=JobPost, col_map=column_map)
+        super().__init__(db=db, db_model=JobPost)
 
 
     def get_list(self, filter_group: DbFilterGroup=None, sort_by: str=DEFAULT_SORT):   

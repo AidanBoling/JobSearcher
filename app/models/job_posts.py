@@ -36,23 +36,7 @@ class JobPost(TimestampMixin, db.Model):
 
 # Later TODO: Add "job type" and "location" columns
 
-column_map = {
-    'id': JobPost.id,
-    'created': JobPost.created,
-    'post_title': JobPost.post_title,
-    'company_name': JobPost.company_name,
-    'salary': JobPost.salary,
-    'workplace_type': JobPost.workplace_type,
-    'employment_type': JobPost.employment_type,
-    'level': JobPost.level,
-    'description': JobPost.description,
-    'job_board': JobPost.job_board,
-    'post_id': JobPost.post_id,
-    'post_link': JobPost.post_link,
-    'posted_date': JobPost.posted_date,
-    'company_location': JobPost.company_location,
-    'company_other': JobPost.company_other
-    }
+
 
 job_filters = {
     'employment_type': {
