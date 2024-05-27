@@ -29,7 +29,7 @@
 {% include 'posts_table_settings.html' %}
 <br />
 <h2>Filters</h2>
-{% include 'data_filters.html' %}
+{% include 'data_filters_form.html' %}
 <br />
 
 {% endif %}
@@ -41,13 +41,18 @@
 <script>
 
     const filterOptions = {{ filters.settings | tojson }}
+    const viewOptions = {{ options | tojson }}
 
-    function getFilterSettings(inputId, selectedOption) {
+
+    function getFilterOptions(inputId, inputName, selectedOption) {
+
         console.log('selected option: ', selectedOption)
         const filterNum = inputId.split('_')[1]
         //console.log('all_filters: ', all_filters)
         const filter = filterOptions[selectedOption]
         //console.log('selected_filter: ', filter)
+        const namePrefix = inputName.split('.').slice(0, -1).join('.')
+
 
         function getOptionsText(valuesLabelsList) {
             let options = ''
@@ -59,9 +64,11 @@
             return options
         }
 
-        function getInputText(type, value = '') {
-            return (`<input type="${type}" class="form-control" id="filter-value_text_1" name="value" value="${value}" aria-label="Value" />`)
+
+        function getInputText(type, id, namePrefix, value = '') {
+            return (`<input type="${type}" id="filter-value_${type}_${id}" aria-label="Value" class="form-control" name="${namePrefix}.value" value="${value}"  />`)
         }
+
 
         const filterRow = document.getElementById('filter-row_' + filterNum)
 
@@ -73,79 +80,139 @@
 
         // Field Values
 
-        // Set display:none for all '.filter-value' elements within filterRow
         const valueDiv = filterRow.querySelector('div.filter-value')
-
-        //for (let i = 0; i < valueDivs.length; i++) {
-        //    if (!valueDivs[i].classList.contains('d-none')) {
-        //        valueDivs[i].classList.add('d-none')
-        //    }
-        //}
-
-        // Get element matching filter's input type
-        //const valueDiv = filterRow.querySelector(`.filter-value.filter-${filter['input_type']}`)
 
         // Make modifications to value element
         if (filter['input_type'] === 'multi-select') {
 
             const valueOptions = getOptionsText(filter.values)
-            const valueSelectText = `<select class="form-select" id="filter-value_multi-select_${filterNum}" name="value" aria-label="Value">${valueOptions}</select>`
+            const valueSelectText = `<select class="form-select" name="${namePrefix}.value" id="filter-value_multi-select_${filterNum}" aria-label="Value">
+                                    ${valueOptions}
+                                    </select>`
             valueDiv.innerHTML = valueSelectText
-
-            //const valueSelect = valueDiv.querySelector('.form-select')
-            //const valueOptions = getOptionsText(filter.values)
-            //valueSelect.innerHTML = valueOptions
         }
         else {
-            //const valueInputEl = valueDiv.querySelector('.form-control')
             let value = ''
             if (filter.values) {
                 value = filter.values
-                //valueInputEl.setAttribute('value', filter.values)
             }
-            valueText = getInputText('text', value)
+            valueText = getInputText('text', filterNum, value)
             valueDiv.innerHTML = valueText
         }
 
         // Un-hide element
         valueDiv.classList.remove('d-none')
 
+    }
+
+    //{# const addRowUrl = {{ url_for('add_new_filter', unit = 'row') | tojson }} #}
 
 
-        // // ...Or, could get filter option data by fetch, and get the entire option list, or entire div maybe...
-        // element = getElementById('...') //...
+    function addFilterRow(element, elementId) {
 
-        // let data = new FormData()
-        // data.append('name', options_value)
-        // {# url = {{ url_for('filter_options') | tojson }} #}
+        const groupNum = elementId.split('_g')[1]
+        const groupDiv = element.closest('.filter-group')
 
-        // getHtml(url, selected_option).then(text => element.innerHTML = text)
+        const filterRows = groupDiv.querySelectorAll(`.filter-row.in-group-${Number.parseInt(groupNum)}`)
+        const filterNum = filterRows.length + 1
+        //console.log('filterNum: ', filterNum)
+
+        const groupOpElementName = groupDiv.querySelector('.group-operator select').name
+        const groupNamePrefix = groupOpElementName.split('.').slice(0, -1).join('.')
+        //console.log('groupNamePrefix: ', groupNamePrefix)
+
+        const filterGroups = groupDiv.querySelectorAll(`.filter-group.in-group-${Number.parseInt(groupNum)}`)
+        const groupItemIndex = filterRows.length + filterGroups.length
+        //console.log('groupItemIndex: ', groupItemIndex)
+
+        const buttonDiv = element.closest('.filter-button')
+        text = newRowEl(groupNum, filterNum, groupNamePrefix, groupItemIndex)
+        buttonDiv.insertAdjacentHTML('beforebegin', text)
     }
 
 
-    // TODO: Use fetch pattern to create a new filter input row when click an "Add filter" button
+    function newRowEl(groupNum, filterNum, groupNamePrefix, groupItemIndex) {
+        const idPost = `g${groupNum}-${filterNum}`
+        const namePrefix = `${groupNamePrefix}.${groupItemIndex}.filter`
 
-    function addFilterRow(el_id) {
-        const filterData = document.getElementById('filterData').getAttribute('value')
-        console.log(filterData)
+        const rowDivClass = 'gx-2 my-2'
+        const colsDivClass = 'col-4'
+        const operatorSelectClass = 'd-none'
 
-        const groupNum = inputId.split('_g')[1]
+        const jobFields = viewOptions.job_fields
+        const filterableFields = Object.keys(filterOptions)
 
+        let options = ''
+        jobFields.forEach((field) => {
+            if (filterableFields.includes(field.name)) {
+                options += `
+                        <option value=${field.name}>${field.label}</option>`
+            }
+        })
+
+        return (
+            `<div class="filter-row row in-group-${groupNum} ${rowDivClass}" id="filter-row_${idPost}">
+                <div class="${colsDivClass} filter-field">
+                    <select name="${namePrefix}.field_name" id="field-name_${idPost}"
+                        class="form-select" aria-label="Field Name"
+                        onchange="getFilterOptions(this.id, this.name, this.options[this.selectedIndex].value)">
+                        <option value="" selected>Select field</option>
+                        ${options}
+                    </select>
+                </div>
+                <div class="${colsDivClass} filter-operator">
+                    <select class="form-select ${operatorSelectClass}" name="${namePrefix}.operator" id="filter-operator_${idPost}"
+                        aria-label="Operator">
+                    </select>
+                </div>
+                <div class='${colsDivClass} filter-value d-none'>
+                </div>
+            </div>
+            `
+        )
     }
 
 
-    //{# const filterData = {{ filters.current | tojson }} #}
+    function oldAddFilterRow(element, elementId) {
 
-    //console.log(document.getElementById('filterData').getAttribute('value'))
+        const groupNum = elementId.split('_g')[1]
+
+        const parentDiv = element.parentElement
+
+        const filterRows = parentDiv.getElementsByClassName('filter-row')
+        const filterNum = filterRows.length()
+        console.log('filterNum: ', filterNum)
+
+        // filter num is the number of divs with class filter-row within parent div
+
+        // const filterNum = ''
+        // groupNamePrefix = ''
+        // groupItemIndex = ''
+
+        // {# getHtml(url, selected_option).then(text => element.innerHTML = text) #}
+
+
+        //let data = new FormData()
+        //data.append('group_number', groupNum)
+        //data.append('filter_number', filterNum)
+        //data.append('group_name_prefix', groupNamePrefix)
+        //data.append('group_item_index', groupItemIndex)
+        //data.append('name_prefix', newRowNamePrefix)
+
+        //getHtml(addRowUrl, data).then((text) => { console.log(text); return newRowEl.outerHTML = text })
+
+    }
+
 
     function getHtml(url, data) {
 
         request = {
             "method": "POST",
             "body": data,
+            "headers": { "Accept": "text/html" },
         }
 
-        return fetch(room_url, request)
+        return fetch(url, request)
             .then(response => response.text)
         // .then(text => element.innerHTML = text)
     }
