@@ -2,7 +2,7 @@ from pathlib import Path
 from flask import Flask, render_template, request, abort, redirect, url_for
 from models.job_posts import db, job_filters
 from db_control import JobDbControl, DbFilterGroup
-from filters_db import JobDbFilter
+from filters_db import JobDbFilter, DbFilter
 from filters_control import FiltersControl
 import job_searcher 
 
@@ -28,12 +28,23 @@ global_data_filters = global_data_filters_controller.get_as_dataclass()
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:////{ROOT_DIR / "instance/jobs.db"}'
 db.init_app(app)
 
+test_filter = {'group_op': 'AND',
+            'filters': [{'field': 'company_name', 'operator': 'ilike', 'values': 'Patterned Learning Career'}, 
+                        {'group_op': 'OR', 
+                        'filters': [{'field': 'employment_type', 'operator': 'any', 'values': ['Full-time']}, 
+                                    {'field': 'level', 'operator': 'any', 'values': ['Entry level']}]
+                        }
+                    ]}
+
 with app.app_context():
     db.create_all()
     db_control = JobDbControl(db)
 
     filters_control = FiltersControl(db_control, job_filters)
-    print(filters_control.frontend_filters)
+    # print(filters_control.frontend_filters)
+    filters_control.current_filters = test_filter
+
+
 
 
 def main():
@@ -52,21 +63,28 @@ def main():
     @app.get('/table/views/<saved_view>')
     def table_view(saved_view):
         jobs=''
+        
         if saved_view == 'default':
             jobs=db_control.get_list()
-        if saved_view == 'hidden':
+        elif saved_view == 'hidden':
             pass
-        if saved_view == 'favorites':
+        elif saved_view == 'favorites':
             pass
+
         # Test view (temp):
-        if saved_view == 'test':
+        elif saved_view == 'test':
             inner_filters = [JobDbFilter('employment_type', 'Full-time', '=='), JobDbFilter('level', 'Entry level', '==')]
             inner_filter_group = DbFilterGroup('OR', inner_filters)
 
             and_filters = [inner_filter_group, JobDbFilter('company_name', 'Patterned Learning Career', '!=')]
             jobs = db_control.get_list(filter_group=DbFilterGroup('AND', and_filters))
-
-        return render_template('index.html', jobs=jobs, options=table_settings, filters=filters_control.frontend_filters)
+        
+        filters={'settings': filters_control.frontend_filters, 
+                 'current': filters_control.current_filters}
+        # print(filters['current'])
+        # print(filters['settings'])
+        
+        return render_template('index.html', jobs=jobs, options=table_settings, filters=filters)
         
 
     @app.post('/table/update/settings/<setting>')
@@ -79,11 +97,11 @@ def main():
         return redirect(url_for('home'))
    
 
-    @app.post('/data/update/filter/')
-    def update_current_filter():
+    @app.post('/data/update/filter/<filter>')
+    def update_filter(filter):
         # settings = list(table_settings.__dict__.keys())
         if request.form:
-            update_fields_displayed(request.form)
+            update_view_data_filters(request.form, filter)
 
         return redirect(url_for('home'))
 
@@ -107,8 +125,6 @@ def main():
         search_and_save_jobs()
         return redirect(url_for('settings'))
  
-
-
 
     @app.post('/settings/update/<section>')
     def update_settings(section):
@@ -179,12 +195,134 @@ def update_global_data_filters_obj(data: dict):
     global_data_filters.post_title.regex = data['title_regex']
 
 
-def update_view_data_filters(data: dict):
+def update_view_data_filters(data: dict, filter):
     global filters_control
 
-    for filter in data:
-        print(filter)
-        # filters_control.current_filters.append(filter)
+    print(data)
+    
+    filter_group_dict = filter_group_dict_from_form(data)
+    print('\nf_group_dict: ', filter_group_dict)
+
+
+    # db_filter_group = filter_group_dict_to_db(filter_group_dict)
+    db_group = nested_filter_group_to_db(filter_group_dict, JobDbFilter)
+    print('\ndb_group: ', db_group)
+
+
+    # TODO: Save 
+
+    if not filter or filter == 'current':
+        pass
+
+
+def nested_filter_group_to_db(group: dict, dbFilter: DbFilter) -> DbFilterGroup:
+    """
+    Takes group of nested filters and filter groups in dictionary form and converts into nested DbFilters
+    and DbFilterGroups.
+    """
+    if group.get('filters'):
+        filters = []
+        # Check filters list for nested groups and filters. Convert as needed
+        for item in group['filters']:
+            
+            if isinstance(item, dbFilter) or isinstance(item, DbFilterGroup):
+                filters.append(item)
+
+            elif item.get('field_name'):
+                if item['operator'] in ['any', 'not_in']: 
+                    item['value'] = [item['value']]
+                # FIXME: added the above lines for testing; remove when fix the frontend input for select multiple (so returns an array)
+               
+                filter = dbFilter(item['field_name'], item['value'], item['operator'])
+                filters.append(filter)
+
+            else:
+                # If nested group, call same func to recursively drill down to inner-most group 
+                filter_group = nested_filter_group_to_db(item, dbFilter)
+                filters.append(filter_group)
+        
+        print('nested_filters: ', filters)
+        return DbFilterGroup(group['group_op'], filters)
+    
+    return group    
+
+
+def filter_group_dict_from_form(filter_data: dict):
+
+    def filters_from_form(filter_data: dict):
+        filters = {}
+        for filter_field in filter_data:
+            # Separate path from key, value for each item
+
+            path_list = filter_field.split('.')
+            key = path_list.pop(-1)
+            value = filter_data[filter_field]
+            
+            path = '.'.join(path_list)
+            
+            # Consolidate items into filters
+            if not filters.get(path):
+                filters[path] = {}
+            filters[path][key] = value
+
+        return filters
+
+
+    # Iterate items into nested filters/group dicts
+    def get_group(filter_data: dict):
+        group = filter_data.get('group')
+        if group:
+            filter_data.pop('group')
+        
+        g_filters = {}
+        for path, item in filter_data.items():
+            path_start, path = split_path(path)
+            g_filters.update({path: item})
+        
+        group['filters'] = get_group_filters(g_filters)
+
+        return group
+                            
+
+    def get_group_filters(filter_data: dict):
+        filters = {}
+
+        for path, item in filter_data.items():
+            
+            path_start, path = split_path(path)
+            if path_start not in ['filter', 'group']:
+                index = int(path_start)
+                filter = ''
+                
+                if path == 'filter':
+                    filter = item
+                else:
+                    filter = {path: item}
+
+                if not filters.get(index):
+                    filters[index] = filter
+                else:
+                    filters[index].update(filter)
+
+        filters = [item if isinstance(item, JobDbFilter) or item.get('field_name') else get_group(item) for key, item in filters.items()]
+        return filters
+    
+
+    def split_path(path):
+        # Pop off front segment from path, return segment and new path 
+        path_list = path.split('.')
+        # print('paths: ', path_list)
+        
+        path_start = path_list.pop(0)
+        path = '.'.join(path_list)
+        return path_start, path
+    
+
+    filters_dict = filters_from_form(filter_data)
+    print('\nfilters: ', filters_dict)
+    f_group = get_group(filters_dict)
+
+    return f_group
 
 
 
@@ -195,6 +333,7 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 
+
 #     filters = [{'name': 'employment_type', 'value': 'Full-time', 'operator': '=='}]
 # def convert_filters(filters):
 #     converted = []
@@ -203,3 +342,35 @@ if __name__ == '__main__':
 #             JobDbFilter(filter['name'], filter['value'], filter['operator'])
 #     
 #     return converted
+
+
+# def TEMP_test_set_current_fe_filter():
+#     filter = {'group_op': 'AND',
+#               'filters': [{'field': 'company_name', 'operator': 'ilike', 'values': 'Patterned Learning Career'}, 
+#                           {'group_op': 'OR', 
+#                            'filters': [{'field': 'employment_type', 'operator': 'any', 'values': ['Full-time']}, 
+#                                        {'field': 'level', 'operator': 'any', 'values': ['Entry level']}]
+#                             }
+#                         ]}
+    
+#     # inner_filters = [JobDbFilter('employment_type', 'Full-time', '=='), JobDbFilter('level', 'Entry level', '==')]
+#     # inner_filter_group = DbFilterGroup('OR', inner_filters)
+
+#     # and_filters = [inner_filter_group, JobDbFilter('company_name', 'Patterned Learning Career', '!=')]
+
+#     return filter
+
+
+# def dict_to_db_filters(filter_data: dict):
+#     # Turn filters into filter objects
+#     filters = {}
+#     for path, filter in filter_data.items():
+#         if filter.get('field_name'):
+            # if filter['operator'] in ['any', 'not_in']: 
+            #     filter['value'] = [filter['value']]
+            # # fixme: added the above lines for testing; remove when fix the frontend input for select multiple (so returns an array)
+#             filter = JobDbFilter(filter['field_name'], filter['value'], filter['operator'])
+        
+#         filters.update({path: filter})
+    
+#     return filters

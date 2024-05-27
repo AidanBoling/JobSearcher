@@ -22,8 +22,9 @@ class DbFilter:
             '<': self.col.__lt__,
             '>=': self.col.__ge__,
             '>': self.col.__gt__,
-            'any': self.col.any_,
-            'not_in': self.col.not_in
+            'any': self.col.in_,
+            'not_in': self.col.not_in,
+            'ilike': self.col.ilike
             }
         
 
@@ -33,7 +34,7 @@ class DbFilter:
 
 
     def __repr__(self):
-        return f'<DbFilter: {self.key} {self.operator} {self.value}>'
+        return f'<DbFilter: "{self.key}" {self.operator} "{self.value}">'
     
     # Question: should be dataclass? Or perhaps just JobDBFilter as dataclass???
     
@@ -46,14 +47,14 @@ class JobDbFilter(DbFilter):
 
 
     def __repr__(self):
-        return f'<JobDbFilter: {self.key} {self.operator} {self.value}>'
+        return f'<JobDbFilter: "{self.key}" {self.operator} "{self.value}">'
 
 
 
 class DbFilterGroup:
     """
-    Creates group of filters and/or filter groups, connected by an operator (AND/OR), used 
-    in filtered queries to the db.
+    Creates group of filters and/or filter groups, connected by an operator (AND/OR), 
+    that can be used in filtered queries to the db.
     """
     def __init__(self, operator: str, filters: list):
         self.operator = operator.upper()
@@ -68,7 +69,7 @@ class DbFilterGroup:
                 self.expressions.append(filter.get())
             elif isinstance(filter, DbFilterGroup):
                 self.expressions.append(filter.op_expression())
-    
+            
 
     def op_expression(self): 
         if self.operator == 'AND':
@@ -77,3 +78,6 @@ class DbFilterGroup:
             return or_(false(), *self.expressions)
         
     #Later TODO: Error handling (e.g. throw exception(invalid operator, must be 'AND' or 'OR'...))
+
+    def __repr__(self):
+        return f'<DbGroup: "{self.operator}": {self.filters} >'
