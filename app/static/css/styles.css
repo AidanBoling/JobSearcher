@@ -134,3 +134,16 @@ tr .text-long {
     /* display: -webkit-box; */
     /* -webkit-line-clamp: var(--max-lines); */
 }
+
+.filter-group {
+    border-color: rgba(245, 245, 245, 0.7) !important;
+    border-width: 1px !important;
+    border-style: solid;
+}
+
+.filter-group.group-inner {
+    /* border-color: whitesmoke !important; */
+    /* border-width: 1px !important;
+    border-style: solid; */
+    background-color: rgba(245, 245, 245, 0.25);
+}

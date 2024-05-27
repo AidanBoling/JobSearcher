@@ -40,17 +40,14 @@
 
 <script>
 
-    const all_filters = {{ filters | tojson }}
+    const filterOptions = {{ filters.settings | tojson }}
 
     function getFilterSettings(inputId, selectedOption) {
         console.log('selected option: ', selectedOption)
-        const filterNum = inputId.split('-')[1]
-        console.log('Filter number: ', filterNum)
-
-        console.log('all_filters: ', all_filters)
-
-        const filter = all_filters[selectedOption]
-        console.log('selected_filter: ', filter)
+        const filterNum = inputId.split('_')[1]
+        //console.log('all_filters: ', all_filters)
+        const filter = filterOptions[selectedOption]
+        //console.log('selected_filter: ', filter)
 
         function getOptionsText(valuesLabelsList) {
             let options = ''
@@ -59,32 +56,59 @@
                 if (i === 0) { selected = 'selected ' }
                 options += `<option ${selected}value="${valueLabel[0]}">${valueLabel[1]}</option>`
             })
-
             return options
         }
 
-        const operatorOptions = getOptionsText(filter['op_list'])
+        function getInputText(type, value = '') {
+            return (`<input type="${type}" class="form-control" id="filter-value_text_1" name="value" value="${value}" aria-label="Value" />`)
+        }
 
-        const operatorSelect = document.getElementById('filter_operator-' + filterNum)
+        const filterRow = document.getElementById('filter-row_' + filterNum)
+
+        // Operator options
+        const operatorOptions = getOptionsText(filter['op_list'])
+        const operatorSelect = filterRow.querySelector('.filter-operator .form-select')
         operatorSelect.innerHTML = operatorOptions
         operatorSelect.classList.remove('d-none')
 
+        // Field Values
 
-        // Repeat for field values... (set field according to input_type)
-        const valueDiv = document.getElementById('filter_value-' + filterNum)
-        // if (valueElement) { valueElement.remove() }
+        // Set display:none for all '.filter-value' elements within filterRow
+        const valueDiv = filterRow.querySelector('div.filter-value')
 
+        //for (let i = 0; i < valueDivs.length; i++) {
+        //    if (!valueDivs[i].classList.contains('d-none')) {
+        //        valueDivs[i].classList.add('d-none')
+        //    }
+        //}
+
+        // Get element matching filter's input type
+        //const valueDiv = filterRow.querySelector(`.filter-value.filter-${filter['input_type']}`)
+
+        // Make modifications to value element
         if (filter['input_type'] === 'multi-select') {
-            const valueOptions = getOptionsText(filter.values)
-            const valueElementHTML = `<select class="form-select" name="value" id="filter_value-${filterNum}" aria-label="Value">${valueOptions}</select>`
-            valueDiv.innerHTML(valueElementHTML)
-        }
-        // else if (filter['input_type'] === 'text') {
-        // 
-        // }
-        // else if (filter['input_type'] === 'date') { }
-        // else if (filter['input_type'] === 'number') { }
 
+            const valueOptions = getOptionsText(filter.values)
+            const valueSelectText = `<select class="form-select" id="filter-value_multi-select_${filterNum}" name="value" aria-label="Value">${valueOptions}</select>`
+            valueDiv.innerHTML = valueSelectText
+
+            //const valueSelect = valueDiv.querySelector('.form-select')
+            //const valueOptions = getOptionsText(filter.values)
+            //valueSelect.innerHTML = valueOptions
+        }
+        else {
+            //const valueInputEl = valueDiv.querySelector('.form-control')
+            let value = ''
+            if (filter.values) {
+                value = filter.values
+                //valueInputEl.setAttribute('value', filter.values)
+            }
+            valueText = getInputText('text', value)
+            valueDiv.innerHTML = valueText
+        }
+
+        // Un-hide element
+        valueDiv.classList.remove('d-none')
 
 
 
@@ -95,10 +119,26 @@
         // data.append('name', options_value)
         // {# url = {{ url_for('filter_options') | tojson }} #}
 
-        // get_html(url, selected_option).then(text => element.innerHTML = text)
+        // getHtml(url, selected_option).then(text => element.innerHTML = text)
     }
 
-    function get_html(url, data) {
+
+    // TODO: Use fetch pattern to create a new filter input row when click an "Add filter" button
+
+    function addFilterRow(el_id) {
+        const filterData = document.getElementById('filterData').getAttribute('value')
+        console.log(filterData)
+
+        const groupNum = inputId.split('_g')[1]
+
+    }
+
+
+    //{# const filterData = {{ filters.current | tojson }} #}
+
+    //console.log(document.getElementById('filterData').getAttribute('value'))
+
+    function getHtml(url, data) {
 
         request = {
             "method": "POST",
@@ -110,7 +150,6 @@
         // .then(text => element.innerHTML = text)
     }
 
-    // TODO: Use fetch pattern to create a new filter input row when click an "Add filter" button
 
 
     // example LIVE REGION script -- for alert/status messages to be read by Voice Readers 

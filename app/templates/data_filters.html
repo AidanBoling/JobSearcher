@@ -1,50 +1,192 @@
-<form action="{{ url_for( 'update_current_filter' ) }}" method="POST">
-    <div class="container p-0">
-        <div class="row">
-            <div class="filter-group col p-0 mb-2">
-                <div class="container">
-                    {# TODO: Show existing filters (for loop, macro, etc) #}
+{% macro filter_group(number, filter_options, job_fields, name_prefix='group', filters_current={'group_op': 'AND', 'filters': []}, class='p-0 m-2 rounded-1') %}
+<div class="row">
+    <!--<fieldset>
+            <legend>Filter Group</legend> -->
+    <div class="filter-group col {{ class }}" id="filter-group_{{ number }}">
+        <div class="container">
 
-                    <div class="filter row gx-5 my-2">
-                        <!--<fieldset>
-                    <legend>Filter Group</legend> -->
+            {% set gnum = number %}
+            {% set fnum = 0 %}
 
-                        {# Field #}
-                        <div class="col-4">
-                            <select name="field_name" id="field_name-1" class="form-select " aria-label="Field Name"
-                                onchange="getFilterSettings(this.id, this.options[this.selectedIndex].value)">
-                                <option value="" selected>Select field</option>
+            {# Later TODO: Check the 'AND'/'OR' select input for group_op is hidden field *if* filters_current|length < 2 #}
+            {% set group_class = '' %}
+            {% if filters_current['filters']|length < 2 %}
+            {% set group_class = 'd-none' %}
+            {% endif %}
 
-                                {% set keys = filters.keys()|list %} #}
-                                {% for field in options.job_fields if field.name in keys %}
+            {{ filter_select(div_class='group-operator', name='{}.group_op'.format(name_prefix), id_post='g{}-{}'.format(g_number, number),
+            aria_label='Filter Group Operator', options=[('AND', 'AND'), ('OR', 'OR')], selected_option=filters_current['group_op'], class=group_class) }}
 
-                                <option value="{{ field.name }}">{{ field.label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+            {% for f in filters_current['filters'] %}
+            {% set keys = f.keys()|list %}
 
-                        {# Operator #}
-                        <div class="col-4">
-                            <select class="form-select d-none" name="operator" id="filter_operator-1"
-                                aria-label="Operator">
-                            </select>
-                        </div>
+            {% if 'group_op' in keys %}
+            {% set gnum = gnum + 1 %}
+            {{ filter_group(number=gnum, filter_options=filter_options, job_fields=job_fields, name_prefix='{}.{}.group'.format(name_prefix, loop.index0), filters_current=f, class='group-inner p-0 m-4 rounded-1') }}
 
-                        {# Value (inserted/updated via JS)#}
-                        <div class="col-4" id="filter_value-1">
+            {% else %}
+            {% set fnum = fnum + 1 %}
 
-                            <!-- <select class="form-select d-none" name="value" aria-label="Value">
-                        </select> -->
+            {{ filter_row(g_number=number, number=fnum, options=filter_options, job_fields=job_fields, name_prefix='{}.{}.filter'.format(name_prefix, loop.index0), filter_current=f) }}
+            {% endif %}
 
-                        </div>
+            {% endfor %}
 
-                        <!-- </fieldset> -->
-                    </div>
-                </div>
-            </div>
+
+            {# TODO: 'Add new filter' button and ability #}
+            {# TODO: Add new filter group button and ability #}
+
+            {# <button class="settings-btn btn btn-primary btn-lg px-4" id='add-filter_g{{number}}'
+                onclick="addFilterRow(this.id)">Add Filter</button> #}
+
+            {# <button class="settings-btn btn btn-primary btn-lg px-4" onclick="addFilterGroup()">Add Group</button> #}
+
+
+
         </div>
+    </div>
+    <!-- </fieldset> -->
+</div>
+
+{% endmacro %}
+
+{% macro filter_row(g_number, number, options, job_fields, name_prefix, filter_current={}, class='gx-5 my-2') %}
+{% set id_post = 'g{}-{}'.format(g_number, number) %}
+
+<div class="filter-row row {{ class }}" id="filter-row_{{ id_post }}">
+    {# Field #}
+    <div class="col-4">
+        <select name="{{name_prefix }}.field_name" id="field-name_{{ id_post }}" class="form-select"
+            aria-label="Field Name" onchange="getFilterSettings(this.id, this.options[this.selectedIndex].value)">
+
+            {% if not filter_current %}
+            <option value="" selected>Select field</option>
+            {% endif %}
+
+            {% set keys = options.keys()|list %} #}
+            {% for field in job_fields if field.name in keys %}
+
+            {% if filter_current and field.name == filter_current['field'] %}
+            <option value="{{ field.name }}" selected>{{ field.label }}</option>
+
+            {% else %}
+            <option value="{{ field.name }}">{{ field.label }}</option>
+            {% endif %}
+
+            {% endfor %}
+        </select>
+    </div>
+
+
+    {# Operator and Value #}
+    {% if filter_current %}
+    {# Operator #}
+    {{ filter_select(div_class='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
+    aria_label='Operator', options=options[filter_current['field']]['op_list'],
+    selected_option=filter_current['operator']) }}
+
+    {# Value #}
+    {% if options[filter_current['field']]['input_type'] == 'multi-select' %}
+
+    {{ filter_select_multi(div_class='filter-value', name='{}.value'.format(name_prefix), id_post=id_post,
+    aria_label='Value', options=options[filter_current['field']]['values'],
+    selected_options=filter_current['values']) }}
+
+    {% else %}
+    {{ filter_input(div_class='filter-value', type='text', name='{}.value'.format(name_prefix), id_post=id_post,
+    aria_label='Value', value=filter_current['values']) }}
+
+    {% endif %}
+
+    {% else %}
+
+    {# Operator #}
+    {{ filter_select(div_class='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
+    aria_label='Operator', class='d-none') }}
+
+    {# Value #}
+    {{ filter_select(div_class='filter-value', name='{}.value'.format(name_prefix), id_post=id_post,
+    aria_label='Value', class='d-none') }}
+
+    {% endif %}
+
+    {# Later TODO: Add remove filter button #}
+</div>
+{% endmacro %}
+
+{% macro filter_select(div_class, name, id_post, aria_label, class='', options=[], selected_option='') %}
+<div class="col-4 {{ div_class }}">
+    <select class="form-select {{ class }}" name="{{ name }}" id="{{ div_class }}_{{ id_post }}"
+        aria-label="{{ aria_label }}">
+        {% if options %}
+
+        {% for option in options %}
+        {% if option[0] == selected_option %}
+        <option value="{{ option[0] }}" selected>{{ option[1] }}</option>
+        {% else %}
+        <option value="{{ option[0] }}">{{ option[1] }}</option>
+        {% endif %}
+        {% endfor %}
+
+        {% endif %}
+    </select>
+</div>
+{% endmacro %}
+
+{% macro filter_select_multi(div_class, name, id_post, aria_label, class='', options=[], selected_options=[]) %}
+<div class="col-4 {{ div_class }}">
+    <select class="form-select {{ class }}" name="{{ name }}" id="{{ div_class }}_{{ id_post }}"
+        aria-label="{{ aria_label }}">
+        {% if options %}
+
+        {% for option in options %}
+        {% if option[0] in selected_options %}
+        <option value="{{ option[0] }}" selected>{{ option[1] }}</option>
+        {% else %}
+        <option value="{{ option[0] }}">{{ option[1] }}</option>
+        {% endif %}
+        {% endfor %}
+
+        {% endif %}
+    </select>
+</div>
+{% endmacro %}
+
+
+{% macro filter_input(div_class, type, name, id_post, aria_label, class='', value='') %}
+<div class="col-4 {{ div_class }}">
+    <input type="{{ type }}" id="{{ div_class }}_{{ type }}_{{ id_post }}" aria-label="{{ aria_label }}"
+        class="form-control {{ class }}" name="{{ name }}" {% if value %}value="{{ value }}" {% endif %} />
+</div>
+{% endmacro %}
+
+
+<form action="{{ url_for( 'update_filter', filter='current' ) }}" method="POST">
+    {# TODO: Check accessibility of labeling for this setup #}
+
+    <div class="container p-0">
+        {{ filter_group(number=1, filter_options=filters.settings, job_fields=options.job_fields, filters_current=filters.current) }}
+
     </div>
     <div>
         <button class="settings-btn btn btn-primary btn-lg px-4" type="submit">Save</button>
+        {# <button class="settings-btn btn btn-primary btn-lg px-4" onclick="submitForm()">Save</button> #}
+
     </div>
 </form>
+
+
+
+
+
+<!-- <div class="col-4 filter-value filter-text d-none">
+    <label for="filter-value_text_1" class="form-label"></label> 
+    <input type="text" class="form-control" id="filter-value_text_1" name="value" value=""
+        aria-label="Value" />
+</div>-->
+
+<!--<div class="col-4 filter-value filter-date d-none">
+    <label for="filter-value_date_1" class="form-label"></label>
+    <input type="date" class="form-control" id="filter-value_date_1" name="value" value=""
+        aria-label="Value" />
+</div>-->
