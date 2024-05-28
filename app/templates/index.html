@@ -66,7 +66,7 @@
 
 
         function getInputText(type, id, namePrefix, value = '') {
-            return (`<input type="${type}" id="filter-value_${type}_${id}" aria-label="Value" class="form-control" name="${namePrefix}.value" value="${value}"  />`)
+            return (`<input type="${type}" id="filter-value_${type}_${id}" aria-label="Value" class="form-control" name="${namePrefix}.values" value="${value}"  />`)
         }
 
 
@@ -86,7 +86,7 @@
         if (filter['input_type'] === 'multi-select') {
 
             const valueOptions = getOptionsText(filter.values)
-            const valueSelectText = `<select class="form-select" name="${namePrefix}.value" id="filter-value_multi-select_${filterNum}" aria-label="Value">
+            const valueSelectText = `<select class="form-select" name="${namePrefix}.values" id="filter-value_multi-select_${filterNum}" aria-label="Value">
                                     ${valueOptions}
                                     </select>`
             valueDiv.innerHTML = valueSelectText
@@ -153,7 +153,7 @@
         return (
             `<div class="filter-row row in-group-${groupNum} ${rowDivClass}" id="filter-row_${idPost}">
                 <div class="${colsDivClass} filter-field">
-                    <select name="${namePrefix}.field_name" id="field-name_${idPost}"
+                    <select name="${namePrefix}.field" id="field-name_${idPost}"
                         class="form-select" aria-label="Field Name"
                         onchange="getFilterOptions(this.id, this.name, this.options[this.selectedIndex].value)">
                         <option value="" selected>Select field</option>

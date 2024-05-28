@@ -105,14 +105,6 @@ def main():
 
         return redirect(url_for('home'))
 
-    # @app.post('/data/filter')
-    # def filter_options():
-    #     field = request.form['name']
-    #     filter = filters_control.frontend_filters[field]
-    #     return render_template('data_filters.html')
-    
-
-
 
     @app.get('/settings')
     def settings():
@@ -209,7 +201,7 @@ def update_view_data_filters(data: dict, filter):
     print('\ndb_group: ', db_group)
 
 
-    # TODO: Save 
+    # TODO: Save filters
 
     if not filter or filter == 'current':
         pass
@@ -228,12 +220,12 @@ def nested_filter_group_to_db(group: dict, dbFilter: DbFilter) -> DbFilterGroup:
             if isinstance(item, dbFilter) or isinstance(item, DbFilterGroup):
                 filters.append(item)
 
-            elif item.get('field_name'):
+            elif item.get('field'):
                 if item['operator'] in ['any', 'not_in']: 
-                    item['value'] = [item['value']]
+                    item['values'] = [item['values']]
                 # FIXME: added the above lines for testing; remove when fix the frontend input for select multiple (so returns an array)
                
-                filter = dbFilter(item['field_name'], item['value'], item['operator'])
+                filter = dbFilter(item['field'], item['values'], item['operator'])
                 filters.append(filter)
 
             else:
@@ -304,7 +296,7 @@ def filter_group_dict_from_form(filter_data: dict):
                 else:
                     filters[index].update(filter)
 
-        filters = [item if isinstance(item, JobDbFilter) or item.get('field_name') else get_group(item) for key, item in filters.items()]
+        filters = [item if isinstance(item, JobDbFilter) or item.get('field') else get_group(item) for key, item in filters.items()]
         return filters
     
 
@@ -334,12 +326,12 @@ if __name__ == '__main__':
 
 
 
-#     filters = [{'name': 'employment_type', 'value': 'Full-time', 'operator': '=='}]
+#     filters = [{'name': 'employment_type', 'values': 'Full-time', 'operator': '=='}]
 # def convert_filters(filters):
 #     converted = []
 #     for filter in filters:
 #         if type(filter) is list:
-#             JobDbFilter(filter['name'], filter['value'], filter['operator'])
+#             JobDbFilter(filter['name'], filter['values'], filter['operator'])
 #     
 #     return converted
 
@@ -365,11 +357,11 @@ if __name__ == '__main__':
 #     # Turn filters into filter objects
 #     filters = {}
 #     for path, filter in filter_data.items():
-#         if filter.get('field_name'):
+#         if filter.get('field'):
             # if filter['operator'] in ['any', 'not_in']: 
-            #     filter['value'] = [filter['value']]
+            #     filter['values'] = [filter['values']]
             # # fixme: added the above lines for testing; remove when fix the frontend input for select multiple (so returns an array)
-#             filter = JobDbFilter(filter['field_name'], filter['value'], filter['operator'])
+#             filter = JobDbFilter(filter['field'], filter['values'], filter['operator'])
         
 #         filters.update({path: filter})
     

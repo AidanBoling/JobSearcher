@@ -125,17 +125,18 @@
 {% set id_post = 'g{}-{}'.format(g_number, number) %}
 
 <div class="filter-row row {{ class_row }}" id="filter-row_{{ id_post }}">
+    {{ group_op_element }}
+
     {# Field #}
     <div class="col-4 filter-field">
-        <select name="{{name_prefix }}.field_name" id="field-name_{{ id_post }}" class="form-select"
-            aria-label="Field Name"
+        <select name="{{name_prefix }}.field" id="field-name_{{ id_post }}" class="form-select" aria-label="Field Name"
             onchange="getFilterOptions(this.id, this.name, this.options[this.selectedIndex].value)">
 
             {% if not filter_current %}
             <option value="" selected>Select field</option>
             {% endif %}
 
-            {% set keys = f_options.keys()|list %} #}
+            {% set keys = f_options.keys()|list %}
             {% for field in job_fields if field.name in keys %}
 
             {% if filter_current and field.name == filter_current['field'] %}
@@ -160,12 +161,12 @@
     {# Value #}
     {% if f_options[filter_current['field']]['input_type'] == 'multi-select' %}
 
-    {{ filter_select_multi(item='filter-value', name='{}.value'.format(name_prefix), id_post=id_post,
-    aria_label='Value', div_class='col', options=f_options[filter_current['field']]['values'],
+    {{ filter_select_multi(item='filter-value', name='{}.values'.format(name_prefix), id_post=id_post,
+    aria_label='Values', div_class='col', options=f_options[filter_current['field']]['values'],
     selected_options=filter_current['values']) }}
 
     {% else %}
-    {{ filter_input(item='filter-value', type='text', name='{}.value'.format(name_prefix), id_post=id_post,
+    {{ filter_input(item='filter-value', type='text', name='{}.values'.format(name_prefix), id_post=id_post,
     aria_label='Value', div_class='col', value=filter_current['values']) }}
 
     {% endif %}
@@ -177,7 +178,7 @@
     aria_label='Operator', div_class='col-2', class='d-none') }}
 
     {# Value #}
-    {{ filter_select(item='filter-value', name='{}.value'.format(name_prefix), id_post=id_post,
+    {{ filter_select(item='filter-value', name='{}.values'.format(name_prefix), id_post=id_post,
     aria_label='Value', div_class='col', class='d-none') }}
 
     {% endif %}
