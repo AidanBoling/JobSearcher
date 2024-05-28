@@ -1,41 +1,109 @@
-{% macro filter_group(number, filter_options, job_fields, name_prefix='group', filters_current={'group_op': 'AND', 'filters': []}, class='m-2 rounded-1') %}
-<div class="row">
+{% macro group_op_element(is_group_level, select_class_row, div_class_inner, div_class_outer, current_group_op, name_prefix, id_post, is_empty=false, is_echo=false, div_style='width: 100px;') %}
+
+{% if is_group_level %}
+<div class="{{div_class_outer}}">
+    <div class="row">
+        <div class="{{ div_class_inner }}">
+            {% if is_empty %}
+            <div class="{{ div_class_inner }} group-op-empty">
+                <div style="{{ div_style }}"></div>
+            </div>
+            {% elif is_echo %}
+            <div class="{{ div_class_inner }} group-op-echo">
+                <div style="{{ div_style }}">{{ current_group_op|title }}</div>
+            </div>
+            {% else %}
+            {{ filter_select(item='group-operator', name='{}.group_op'.format(name_prefix), id_post=id_post,
+                aria_label='Filter Group Operator', div_class=select_class_row, options=[('AND', 'And'), ('OR', 'Or')], selected_option=current_group_op, style=div_style) }}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{%else%}
+
+{% if is_empty %}
+<div class="{{ div_class_inner }} group-op-empty">
+    <div style="{{ div_style }}"></div>
+</div>
+{% elif is_echo %}
+<div class="{{ div_class_inner }} group-op-echo">
+    <div style="{{ div_style }}">{{ current_group_op|title }}</div>
+</div>
+{% else %}
+{{ filter_select(item='group-operator', name='{}.group_op'.format(name_prefix), id_post=id_post,
+                aria_label='Filter Group Operator', div_class=div_class_inner, options=[('AND', 'And'), ('OR', 'Or')], selected_option=current_group_op, class='d-inline-block', style=div_style) }}
+{% endif %}
+
+{% endif %}
+{% endmacro %}
+
+
+{% macro filter_group(number, filter_options, job_fields, outer_group_op_el='', i=1, name_prefix='group', filters_current={'group_op': 'AND', 'filters': []}, class_row='', class_col_outer='rounded-1', class_col_inner='my-2') %}
+<div class="row {{ class_row }}">
+    {{ outer_group_op_el|safe }}
+
     <!--<fieldset>
             <legend>Filter Group</legend> -->
-    <div class="filter-group in-group-{{ number - 1 }} col {{ class }}" id="filter-group_{{ number }}">
-        <div class="row p-2">
+    <div class="filter-group in-group-{{ number - 1 }} col {{ class_col_outer }}" id="filter-group_{{ number }}">
+        <div class="row">
             {# Later TODO: Check the 'AND'/'OR' select input for group_op is hidden field *if* filters_current|length < 2 #}
-            {% set group_op_class = 'd-inline-block' %}
+
+            {% set ns = namespace() %}
+
+            {# {% set group_div_class = 'col-auto d-inline {}'.format(class_col_inner) %} #}
+
             {% if filters_current['filters']|length < 2 %}
-            {% set group_class = group_op_class + ' d-none' %}
+            {{group_op_element(is_group_level=false, select_class_row='py-2', div_class_inner='d-none {}'.format(class_col_inner), div_class_outer='col-auto d-inline {}'.format(class_col_outer), current_group_op=filters_current['group_op'], name_prefix=name_prefix, id_post='g{}-{}'.format(g_number, number)) }}
             {% endif %}
 
-            {{ filter_select(item='group-operator', name='{}.group_op'.format(name_prefix), id_post='g{}-{}'.format(g_number, number),
-            aria_label='Filter Group Operator', div_class='col-auto d-inline my-2', options=[('AND', 'AND'), ('OR', 'OR')], selected_option=filters_current['group_op'], class=group_op_class, style='width: 100px;') }}
 
-            <div class="col">
+            <div class="col {{ class_col_inner }}">
                 {% set ns = namespace() %}
                 {% set ns.gnum = number %}
                 {% set ns.fnum = 0 %}
 
-
                 {% for f in filters_current['filters'] %}
-                {% set keys = f.keys()|list %}
 
+                {% set ns.group_op_is_empty = false %}
+                {% set ns.group_op_is_echo = false %}
+                {% set ns.is_group_level = false %}
+                {# {% set ns.group_op_el_loop = group_op_element %} #}
+                {% if loop.index < 2 %}
+                {% set ns.group_op_is_empty = true %}
+                {# {% set ns.group_op_el_loop = '<div class="{}" style="{}"></div>'.format(group_div_class, group_div_style) %} #}
+                {% elif loop.index > 2 %}
+                {% set ns.group_op_is_echo = true %}
+                {# {% set ns.group_op_el_loop = '<div class="{} group-op-echo" style="{}">{}</div>'.format(group_div_class, group_div_style, filters_current['group_op']) %} #}
+                {% endif %}
+
+                {% set keys = f.keys()|list %}
                 {% if 'group_op' in keys %}
+
                 {% set ns.gnum = ns.gnum + 1 %}
-                {{ filter_group(number=ns.gnum, filter_options=filter_options, job_fields=job_fields, name_prefix='{}.{}.group'.format(name_prefix, loop.index0), filters_current=f, class='group-inner m-3 ms-0 rounded-1') }}
+                {% set ns.is_group_level = true %}
+                {% set group_op_class_outer = 'col-auto {}'.format(class_col_outer) %}
+                {% set group_op_class_inner = 'col-auto d-inline {}'.format(class_col_inner) %}
+                {% set group_op_row_class = 'py-2' %}
+                {% set group_op_el = group_op_element(is_group_level=ns.is_group_level, select_class_row=group_op_row_class, div_class_inner=group_op_class_inner, div_class_outer=group_op_class_outer, current_group_op=filters_current['group_op'], name_prefix=name_prefix, id_post='g{}-{}'.format(g_number, number), is_empty=ns.group_op_is_empty, is_echo=ns.group_op_is_echo, div_style='width: 100px;') %}
+
+                {{ filter_group(number=ns.gnum, filter_options=filter_options, job_fields=job_fields, outer_group_op_el=group_op_el, i=loop.index, name_prefix='{}.{}.group'.format(name_prefix, loop.index0), filters_current=f, class_row='py-2', class_col_outer='group-inner rounded-1') }}
 
                 {% else %}
                 {% set ns.fnum = ns.fnum + 1 %}
-                {{ filter_row(g_number=number, number=ns.fnum, f_options=filter_options, job_fields=job_fields, name_prefix='{}.{}.filter'.format(name_prefix, loop.index0), filter_current=f, class='gx-2 my-2 in-group-{}'.format(number))
+                {% set group_op_class_outer = 'col {}'.format(class_col_outer) %}
+                {% set group_op_class_inner = 'col-auto d-inline' %}
+                {% set group_op_row_class = '' %}
+                {% set group_op_el = group_op_element(is_group_level=ns.is_group_level, select_class_row=group_op_row_class, div_class_inner=group_op_class_inner, div_class_outer=group_op_class_outer, current_group_op=filters_current['group_op'], name_prefix=name_prefix, id_post='g{}-{}'.format(g_number, number), is_empty=ns.group_op_is_empty, is_echo=ns.group_op_is_echo, div_style='width: 100px;') %}
+
+                {{ filter_row(g_number=number, number=ns.fnum, f_options=filter_options, job_fields=job_fields, group_op_element=group_op_el, name_prefix='{}.{}.filter'.format(name_prefix, loop.index0), filter_current=f, class_row='gx-2 py-2 in-group-{}'.format(number))
                 }}
+
                 {% endif %}
 
                 {% endfor %}
 
 
-                {# TODO: 'Add new filter' button and ability #}
                 {# TODO: Add new filter group button and ability #}
                 <div class="filter-button row">
                     <div class="col mb-2 d-inline">
@@ -45,20 +113,18 @@
                     </div>
                     {# <button class="settings-btn btn btn-primary btn-lg px-4" onclick="addFilterGroup()">Add Group</button> #}
                 </div>
-
-
             </div>
         </div>
     </div>
     <!-- </fieldset> -->
 </div>
-
 {% endmacro %}
 
-{% macro filter_row(g_number, number, f_options, job_fields, name_prefix, filter_current={}, class='gx-5 my-2') %}
+
+{% macro filter_row(g_number, number, f_options, job_fields, group_op_element, name_prefix, filter_current={}, class_row='gx-5 my-2') %}
 {% set id_post = 'g{}-{}'.format(g_number, number) %}
 
-<div class="filter-row row {{ class }}" id="filter-row_{{ id_post }}">
+<div class="filter-row row {{ class_row }}" id="filter-row_{{ id_post }}">
     {# Field #}
     <div class="col-4 filter-field">
         <select name="{{name_prefix }}.field_name" id="field-name_{{ id_post }}" class="form-select"
@@ -88,19 +154,19 @@
     {% if filter_current %}
     {# Operator #}
     {{ filter_select(item='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
-    aria_label='Operator', options=f_options[filter_current['field']]['op_list'],
+    aria_label='Operator', div_class='col-2', options=f_options[filter_current['field']]['op_list'],
     selected_option=filter_current['operator']) }}
 
     {# Value #}
     {% if f_options[filter_current['field']]['input_type'] == 'multi-select' %}
 
     {{ filter_select_multi(item='filter-value', name='{}.value'.format(name_prefix), id_post=id_post,
-    aria_label='Value', options=f_options[filter_current['field']]['values'],
+    aria_label='Value', div_class='col', options=f_options[filter_current['field']]['values'],
     selected_options=filter_current['values']) }}
 
     {% else %}
     {{ filter_input(item='filter-value', type='text', name='{}.value'.format(name_prefix), id_post=id_post,
-    aria_label='Value', value=filter_current['values']) }}
+    aria_label='Value', div_class='col', value=filter_current['values']) }}
 
     {% endif %}
 
@@ -108,17 +174,18 @@
 
     {# Operator #}
     {{ filter_select(item='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
-    aria_label='Operator', div_class='col-4', class='d-none') }}
+    aria_label='Operator', div_class='col-2', class='d-none') }}
 
     {# Value #}
     {{ filter_select(item='filter-value', name='{}.value'.format(name_prefix), id_post=id_post,
-    aria_label='Value', div_class='col-4', class='d-none') }}
+    aria_label='Value', div_class='col', class='d-none') }}
 
     {% endif %}
 
     {# Later TODO: Add remove filter button #}
 </div>
 {% endmacro %}
+
 
 {% macro filter_select(item, name, id_post, aria_label, div_class='col-4', class='', options=[], selected_option='', style='') %}
 <div class="{{ div_class }} {{ item }}">
@@ -138,6 +205,7 @@
     </select>
 </div>
 {% endmacro %}
+
 
 {% macro filter_select_multi(item, name, id_post, aria_label, div_class='col-4', class='', options=[], selected_options=[]) %}
 <div class="{{ div_class }} {{ item }}">
