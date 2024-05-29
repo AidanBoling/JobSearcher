@@ -53,7 +53,6 @@
         //console.log('selected_filter: ', filter)
         const namePrefix = inputName.split('.').slice(0, -1).join('.')
 
-
         function getOptionsText(valuesLabelsList) {
             let options = ''
             valuesLabelsList.forEach((valueLabel, i) => {
@@ -96,7 +95,7 @@
             if (filter.values) {
                 value = filter.values
             }
-            valueText = getInputText('text', filterNum, value)
+            valueText = getInputText('text', filterNum, namePrefix, value)
             valueDiv.innerHTML = valueText
         }
 

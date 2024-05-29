@@ -14,21 +14,37 @@ class SearchSettings:
 
 
 @dataclass
-class DataDisplay:
-    view: str
+class DataDisplayTable:
     job_fields: list
-# Note: Probably move "view" to another dataclass (like GeneralSettings, or something)
 
 
 @dataclass
-class TitleDataFilters:
+class DataDisplaySettings:
+    default_display_type: str
+    default_view: str
+
+
+@dataclass
+class DataDisplay:
+    table: DataDisplayTable
+    settings: DataDisplaySettings
+
+
+@dataclass
+class DataFiltersTitle:
     exclude_keywords: list
     regex: str
 
 
 @dataclass
-class DataFilters:
-    post_title: TitleDataFilters
+class DataFilters:    # global data filters
+    post_title: DataFiltersTitle
+
+
+@dataclass
+class SavedViews:
+    names: list[str]
+    job_filters: dict
 
 
 class SettingsControl:

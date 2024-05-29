@@ -24,7 +24,8 @@ class DbFilter:
             '>': self.col.__gt__,
             'any': self.col.in_,
             'not_in': self.col.not_in,
-            'ilike': self.col.ilike
+            'ilike': self.col.ilike,
+            'not_ilike': self.col.not_ilike
             }
         
 

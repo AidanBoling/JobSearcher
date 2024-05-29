@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from db_control import DbControl
+# from db_control import DbControl
 
 TYPES = {
     'list': {
@@ -36,6 +36,7 @@ LABELS = {
 
 
 
+
 @dataclass
 class FrontendFilter:
     """
@@ -58,69 +59,12 @@ class FrontendFilter:
         for op in self.operators:
             op_label = LABELS[op]
             self.op_list.append((op, op_label))
-        # self.values = values
-        # self.optionsHTML = self.options_text()
-        # self.valuesHTML = 
-
-        # Put together HTML for options and values from here??? 
-        # In filter_control, prep relevant bits for each filter via dict??
 
 
     def __repr__(self):
         return f'<FFilter: column="{self.name}", type="{self.type}">'
     
 
-    # def options_text(self):
-    #     selected = ''
-    #     options = ''
-    #     for i, item in enumerate(self.op_list):
-    #         if i == 0:
-    #             selected = 'selected '
-    #         options += f'<option {selected}value="{item[0]}">{item[1]}</option>'
-        
-    #     return options
-    
-
-    # def get_col_unique_values(self):
-    #     if not self.values and self.type != 'text' and self.get_values:
-    #         unique_vals = self.db_control.get_from_col(self.name, unique=True)
-
-    #         self.values = sorted(unique_vals, key=str.lower)
-    #         if '' in self.values:
-    #             self.values.remove('')
-    #             self.values.append('')
-    #         print(f'Unique values for {self.name}: ', self.values)
 
 
 
-# @dataclass
-# class FrontendFilter:
-
-#     def __init__(self, db_control: DbControl, column_name: str, filter_type: str, values=None, get_values:bool=True):
-#         self.db_control = db_control
-#         self.name = column_name
-#         self.type = filter_type
-#         self.operators = TYPES[self.type]['operators']
-#         self.op_labels = LABELS
-#         self.input_type = TYPES[self.type]['form_input_type']
-#         self.get_values = get_values
-#         self.values = values
-
-#         self.get_col_unique_values()
-#         # Put together HTML for options and values from here??? 
-#         # In filter_control, prep relevant bits for each filter via dict??
-
-
-#     def __repr__(self):
-#         return f'<FFilter: column="{self.name}", type="{self.type}">'
-    
-
-#     def get_col_unique_values(self):
-#         if not self.values and self.type != 'text' and self.get_values:
-#             unique_vals = self.db_control.get_from_col(self.name, unique=True)
-
-#             self.values = sorted(unique_vals, key=str.lower)
-#             if '' in self.values:
-#                 self.values.remove('')
-#                 self.values.append('')
-#             print(f'Unique values for {self.name}: ', self.values)
