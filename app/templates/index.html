@@ -35,6 +35,9 @@
 {% endif %}
 
 {% endblock %}
+
+
+
 {% block scripts %}
 {{ super() }}
 
@@ -44,14 +47,70 @@
     const viewOptions = {{ options | tojson }}
 
 
+    // OnChange and OnClick Actions
+
+    // -- onClick (Buttons):
+
+    function addFilter(type, element, elementId) {
+
+        const { groupDiv, groupIdPost, itemsInGroup, groupNum } = getGroupElInfo(element)
+
+        const groupOpElementName = groupDiv.querySelector('.group-operator select').name
+        const groupNamePrefix = groupOpElementName.split('.').slice(0, -1).join('.')
+        console.log('groupNamePrefix: ', groupNamePrefix)
+
+        const indexGroupItem = itemsInGroup
+
+        if (indexGroupItem === 1) {
+            // Delete hidden operator field element (will be replaced in row/group creation step)
+            const hiddenGroupOpEl = groupDiv.querySelector('.group-operator')
+
+            //console.log('Removing hidden group operator.')
+            hiddenGroupOpEl.remove()
+        }
+
+        const groupOperatorEl = getRowGroupOpElement(indexGroupItem, groupNamePrefix, groupDiv, { idPost: groupIdPost })
+
+        let text = ''
+        if (type === 'row') {
+            const filterRows = groupDiv.querySelectorAll(`.filter-row.in-group-${groupIdPost}`)
+            const rowNumber = filterRows.length + 1
+            const rowIdPost = `g${groupIdPost}-${rowNumber}`
+            console.log('rowIdPost: ', rowIdPost)
+
+            text = newFilterRowEl(groupOperatorEl, groupNum, rowIdPost, groupNamePrefix, groupIdPost, indexGroupItem)
+        }
+        else if (type === 'group') {
+            const filterGroups = groupDiv.querySelectorAll(`.in-group-${groupIdPost} .filter-group`)
+            const nestedGroupNumber = filterGroups.length + 1
+            const newIdPost = `${groupIdPost}-${nestedGroupNumber}`
+            console.log('new group idPost', newIdPost)
+
+            const previousGroupIdPost = groupIdPost
+            const previousGroupNamePrefix = groupNamePrefix
+
+            text = newFilterGroupEl(groupOperatorEl, nestedGroupNumber, indexGroupItem, newIdPost, previousGroupIdPost, previousGroupNamePrefix)
+        }
+
+        const buttonDiv = element.closest('.filter-button')
+        buttonDiv.insertAdjacentHTML('beforebegin', text)
+    }
+
+
+    //function deleteFilter(btnElement, filterType) {
+    // ...
+    //}
+
+
+    // -- onChange:
+
     function getFilterOptions(inputId, inputName, selectedOption) {
 
-        console.log('selected option: ', selectedOption)
-        const filterNum = inputId.split('_')[1]
-        //console.log('all_filters: ', all_filters)
+        //console.log('selected option: ', selectedOption)
+        const idPost = inputId.split('_')[1]
         const filter = filterOptions[selectedOption]
-        //console.log('selected_filter: ', filter)
         const namePrefix = inputName.split('.').slice(0, -1).join('.')
+
 
         function getOptionsText(valuesLabelsList) {
             let options = ''
@@ -69,23 +128,21 @@
         }
 
 
-        const filterRow = document.getElementById('filter-row_' + filterNum)
+        const filterRow = document.getElementById('filter-row_' + idPost)
 
-        // Operator options
+        // Operator Options
         const operatorOptions = getOptionsText(filter['op_list'])
         const operatorSelect = filterRow.querySelector('.filter-operator .form-select')
+
         operatorSelect.innerHTML = operatorOptions
         operatorSelect.classList.remove('d-none')
 
         // Field Values
-
         const valueDiv = filterRow.querySelector('div.filter-value')
-
-        // Make modifications to value element
         if (filter['input_type'] === 'multi-select') {
 
             const valueOptions = getOptionsText(filter.values)
-            const valueSelectText = `<select class="form-select" name="${namePrefix}.values" id="filter-value_multi-select_${filterNum}" aria-label="Value">
+            const valueSelectText = `<select class="form-select" name="${namePrefix}.values" id="filter-value_multi-select_${idPost}" aria-label="Value">
                                     ${valueOptions}
                                     </select>`
             valueDiv.innerHTML = valueSelectText
@@ -95,48 +152,78 @@
             if (filter.values) {
                 value = filter.values
             }
-            valueText = getInputText('text', filterNum, namePrefix, value)
+            valueText = getInputText('text', idPost, namePrefix, value)
             valueDiv.innerHTML = valueText
         }
 
         // Un-hide element
         valueDiv.classList.remove('d-none')
-
     }
 
-    //{# const addRowUrl = {{ url_for('add_new_filter', unit = 'row') | tojson }} #}
 
+    function updateOpEchos(element, selectedVal) {
 
-    function addFilterRow(element, elementId) {
-
-        const groupNum = elementId.split('_g')[1]
         const groupDiv = element.closest('.filter-group')
-
-        const filterRows = groupDiv.querySelectorAll(`.filter-row.in-group-${Number.parseInt(groupNum)}`)
-        const filterNum = filterRows.length + 1
-        //console.log('filterNum: ', filterNum)
-
-        const groupOpElementName = groupDiv.querySelector('.group-operator select').name
-        const groupNamePrefix = groupOpElementName.split('.').slice(0, -1).join('.')
-        //console.log('groupNamePrefix: ', groupNamePrefix)
-
-        const filterGroups = groupDiv.querySelectorAll(`.filter-group.in-group-${Number.parseInt(groupNum)}`)
-        const groupItemIndex = filterRows.length + filterGroups.length
-        //console.log('groupItemIndex: ', groupItemIndex)
-
-        const buttonDiv = element.closest('.filter-button')
-        text = newRowEl(groupNum, filterNum, groupNamePrefix, groupItemIndex)
-        buttonDiv.insertAdjacentHTML('beforebegin', text)
+        const echoEls = groupDiv.querySelectorAll('.group-op-echo .op-text')
+        // Note, could maybe replace below if can get selected option's text directly from onClick event (instead of selectedVal)
+        const text = selectedVal[0].toUpperCase() + selectedVal.slice(1).toLowerCase()
+        if (echoEls) {
+            echoEls.forEach(el => { el.innerText = text })
+        }
     }
 
 
-    function newRowEl(groupNum, filterNum, groupNamePrefix, groupItemIndex) {
-        const idPost = `g${groupNum}-${filterNum}`
-        const namePrefix = `${groupNamePrefix}.${groupItemIndex}.filter`
+    // Filter Components
 
-        const rowDivClass = 'gx-2 my-2'
+    function newFilterGroupEl(outerGroupOpEl, groupNumber, indexGroupItem, idPost, previousGroupIdPost, previousGroupNamePrefix) {
+        const namePrefix = `${previousGroupNamePrefix}.${indexGroupItem}.group`
+
+        const groupOpEl = groupOpElementHtml(namePrefix, idPost, { divClass: 'd-none' })
+        const newFilterBtn = filterButtonElement('row', 'Add Filter', idPost)
+        const newGroupBtn = filterButtonElement('group', 'Add Filter Group', idPost)
+
+        // "Outside" group
+        const groupOuterColWrapper = (innerContent, classDivCols, classDivInner = 'row outer-row') => (`
+                    <div class="col g-col-outer row-cap ${classDivCols}">
+                        <div class="row">
+                            <div class="col g-col-inner row-cap ${classDivCols}">
+                                <div class="${classDivInner}">
+                                    ${innerContent}
+                                </div>
+                            </div>
+                        </div>
+                    </div>`)
+
+        const deleteBtn = deleteFilterBtnEl(classOuter = 'row outer-row', filterType = 'group')
+
+        return `<div class="group-inner outer-row row in-group-${previousGroupIdPost}">
+                    ${groupOuterColWrapper(outerGroupOpEl, 'row-start')}
+                    <div class="filter-group in-group-${previousGroupIdPost} col g-col-outer"
+                        id="filter-group_${idPost}">
+                        ${groupOpEl}
+                        <div class="row">
+                            <div class="col g-col-inner">
+                                <div class="filter-button row">
+                                ${newFilterBtn}
+                                ${newGroupBtn}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ${groupOuterColWrapper(deleteBtn, 'row-end')}
+                </div>`
+    }
+
+
+    function newFilterRowEl(groupOperatorEl, groupNum, idPost, groupNamePrefix, groupIdPost, indexGroupItem) {
+        const namePrefix = `${groupNamePrefix}.${indexGroupItem}.filter`
+
+        const rowDivClass = ''
         const colsDivClass = 'col-4'
+        const fieldDivClass = 'col-4 filter-field'
+        const operatorDivClass = 'col-2 filter-operator'
         const operatorSelectClass = 'd-none'
+        const valueDivClass = 'col filter-value'
 
         const jobFields = viewOptions.job_fields
         const filterableFields = Object.keys(filterOptions)
@@ -149,9 +236,12 @@
             }
         })
 
+        const deleteButton = deleteFilterBtnEl(classOuter = 'col-auto d-inline', filterType = 'row')
+
         return (
-            `<div class="filter-row row in-group-${groupNum} ${rowDivClass}" id="filter-row_${idPost}">
-                <div class="${colsDivClass} filter-field">
+            `<div class="filter-row row outer-row in-group-${groupIdPost} ${rowDivClass}" id="filter-row_${idPost}">
+                ${groupOperatorEl}
+                <div class="${fieldDivClass}">
                     <select name="${namePrefix}.field" id="field-name_${idPost}"
                         class="form-select" aria-label="Field Name"
                         onchange="getFilterOptions(this.id, this.name, this.options[this.selectedIndex].value)">
@@ -159,49 +249,130 @@
                         ${options}
                     </select>
                 </div>
-                <div class="${colsDivClass} filter-operator">
+                <div class="${operatorDivClass}">
                     <select class="form-select ${operatorSelectClass}" name="${namePrefix}.operator" id="filter-operator_${idPost}"
                         aria-label="Operator">
                     </select>
                 </div>
-                <div class='${colsDivClass} filter-value d-none'>
-                </div>
+                <div class='${valueDivClass}'></div>
+                ${deleteButton}
             </div>
             `
         )
     }
 
 
-    function oldAddFilterRow(element, elementId) {
+    function groupOpElementHtml(namePrefix, idPost, { itemClass = '', innerText = 'Where', divClass = '' }) {
+        const divStyle = 'width: 100px;'
+        const ariaLabel = 'Filter Group Operator'
+        let innerElement = ''
 
-        const groupNum = elementId.split('_g')[1]
+        if (!itemClass) { itemClass = 'group-operator' }
 
-        const parentDiv = element.parentElement
+        if (itemClass === 'group-operator') {
+            innerElement = `<select class="form-select" name="${namePrefix}.group_op" id="group-operator_${idPost}"
+                        aria-label="${ariaLabel}" style="${divStyle}" onchange="updateOpEchos(this, this.options[this.selectedIndex].value)">
+                            <option value="AND" selected>And</option>
+                            <option value="OR">Or</option>
+                        </select>`
+        }
+        else {
+            innerElement = `<div class="op-text" style="${divStyle}">${innerText}</div>`
+        }
 
-        const filterRows = parentDiv.getElementsByClassName('filter-row')
-        const filterNum = filterRows.length()
-        console.log('filterNum: ', filterNum)
-
-        // filter num is the number of divs with class filter-row within parent div
-
-        // const filterNum = ''
-        // groupNamePrefix = ''
-        // groupItemIndex = ''
-
-        // {# getHtml(url, selected_option).then(text => element.innerHTML = text) #}
-
-
-        //let data = new FormData()
-        //data.append('group_number', groupNum)
-        //data.append('filter_number', filterNum)
-        //data.append('group_name_prefix', groupNamePrefix)
-        //data.append('group_item_index', groupItemIndex)
-        //data.append('name_prefix', newRowNamePrefix)
-
-        //getHtml(addRowUrl, data).then((text) => { console.log(text); return newRowEl.outerHTML = text })
+        return (`<div class="col-auto d-inline ${itemClass} ${divClass}">
+                    ${innerElement}
+                </div>`)
 
     }
 
+
+    function deleteFilterBtnEl(outerClass, filterType) {
+
+        return `<div class="${outerClass}">
+                    <div class="remove-button">
+                        <button type="button" onclick="deleteFilter(this, '${filterType}')">Remove</button>
+                    </div>
+                </div>
+        `
+    }
+
+
+    function filterButtonElement(type, label, groupIdPost) {
+
+        btnClass = 'settings-btn btn btn-primary'
+
+        return `<div class="col">
+                    <button type="button" class="${btnClass}" id='add-filter_g${groupIdPost}'
+                        onclick="addFilter('${type}', this, this.id)">${label}</button>
+                </div>`
+    }
+
+
+    // Filter Helpers
+
+    function getGroupElInfo(element) {
+
+        const groupDiv = element.closest('.filter-group')
+
+        const idPost = groupDiv.id.split('_').pop()
+        console.log('groupIdPost: ', idPost)
+
+        const totalGroupItems = groupDiv.querySelectorAll(`.outer-row.in-group-${idPost}`).length
+        console.log('infoFunc indexGroupItem: ', totalGroupItems)
+
+        const groupNumList = idPost.split('-')
+        const groupNumber = groupNumList.pop()
+        console.log('groupNum: ', groupNumber)
+
+        return {
+            groupDiv: groupDiv,
+            groupIdPost: idPost,
+            itemsInGroup: totalGroupItems,
+            groupNum: groupNumber,
+        }
+    }
+
+
+    function getRowGroupOpElement(indexGroupItem, namePrefix, groupDiv, { idPost = '', divClassInner = '' }) {
+
+        if (!idPost) {
+            idPost = groupDiv.id.split('_').pop()
+            console.log('idPost for groupOp from groupDiv: ', idPost)
+        }
+
+        const jobFields = viewOptions.job_fields
+        const filterableFields = Object.keys(filterOptions)
+
+        console.log('indexGroupItem (groupOp): ', indexGroupItem)
+
+        let elVars = {
+            itemClass: 'group-operator',
+            innerText: 'Where',
+            divClass: divClassInner
+        }
+
+        if (indexGroupItem < 1) {
+            elVars.itemClass = 'group-op-first'
+        }
+        else if (indexGroupItem > 1) {
+            elVars.itemClass = 'group-op-echo'
+
+            // FIXME: "Echo" op does not seem to be picking up the selected option correctly
+            const groupOpOptions = groupDiv.querySelectorAll('.group-operator option')
+            groupOpOptions.forEach((option, index) => {
+                if (option.hasAttribute('selected')) {
+                    elVars.innerText = option.innerText
+                }
+            })
+        }
+
+        return groupOpElementHtml(namePrefix, idPost, elVars)
+    }
+
+
+
+    // Other Helpers
 
     function getHtml(url, data) {
 
@@ -234,4 +405,32 @@
     // formBtn.addEventListener("click", announceSave());
 
 </script>
+
 {% endblock %}
+
+
+{# 
+ //const groupDiv = element.closest('.filter-group')
+
+        //let groupIdPost = groupDiv.id.split('_').pop()
+        //console.log('groupIdPost: ', groupIdPost)
+
+        //const groupNumList = groupIdPost.split('-')
+        //let groupNum = groupNumList.pop()
+        //console.log('groupNum: ', groupNum)
+        //let prevGroupNum = groupNumList.length > 0 ? groupNumList.pop() : 0
+
+        //const groupDiv = element.closest('.filter-group')
+
+
+                //const outerGroupNumber = groupNumList.length > 0 ? groupNumList.pop() : 0
+
+        //const indexGroupItem = filterRows.length + filterGroups.length
+        //console.log('indexGroupItem: ', indexGroupItem)
+
+                    //const groupOpElHtml = hiddenGroupOpEl.classList.remove('d-none').outerHtml
+            //console.log('hidden groupop html: ', groupOpElHtml)
+            //groupOperatorEl = groupOpElHtml
+
+            
+ #}

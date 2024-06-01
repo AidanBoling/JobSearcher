@@ -4,12 +4,12 @@
 <form action="{{ url_for( 'update_filter', filter=views.current ) }}" method="POST">
     {# TODO: Check accessibility of labeling for this setup #}
 
-    <div class="container my-2">
-        {{ filter_group(number=1, filter_options=filters.settings, job_fields=options.job_fields, filters_current=filters.current) }}
+    <div class="container-fluid">
+        {{ filter_group(filter_options=filters.settings, job_fields=options.job_fields, filters_current=filters.current) }}
 
     </div>
     <div>
-        <button class="settings-btn btn btn-primary btn-lg px-4" type="submit">Save</button>
+        <button class="settings-btn btn btn-primary btn-lg px-4 mt-2" type="submit">Save</button>
         {# <button class="settings-btn btn btn-primary btn-lg px-4" onclick="submitForm()">Save</button> #}
 
     </div>

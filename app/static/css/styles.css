@@ -21,8 +21,9 @@ html {
 
 body {
     height: 100%;
-    background: rgb(33, 33, 84);
-    background-image: var(--bs-gradient);
+    background: linear-gradient(to bottom, #282660 0%, #251a54 100%);
+    /* background: rgb(33, 33, 84);
+    background-image: var(--bs-gradient); */
     width: 100%;
     padding: 0;
     margin: 0 !important;
@@ -141,9 +142,67 @@ tr .text-long {
     border-style: solid;
 }
 
-.filter-group.group-inner {
+.g-col-outer {
+    border-radius: var(--bs-border-radius-sm) !important
+}
+
+.group-inner .filter-group {
     /* border-color: whitesmoke !important; */
     /* border-width: 1px !important;
     border-style: solid; */
     background-color: rgba(245, 245, 245, 0.25);
+}
+
+/* .group-inner .g-col-inner {
+
+} */
+
+/* .group-inner .row.outer-row {
+
+} */
+
+
+
+.row.outer-row {
+    --padding-y: .5rem !important;
+    --bs-gutter-x: 0.5rem;
+
+    padding-top: var(--padding-y);
+    padding-bottom: var(--padding-y);
+
+    margin-top: calc(-1* var(--bs-gutter-y)) !important;
+    margin-right: calc(-.5* var(--bs-gutter-x)) !important;
+    margin-left: calc(-.5* var(--bs-gutter-x)) !important;
+}
+
+.filter-group .g-col-inner {
+    --margin-y: .5rem !important;
+    margin-top: var(--margin-y);
+    margin-bottom: var(--margin-y)
+}
+
+.filter-button.row .col {
+    --margin-y: .5rem !important;
+    margin-top: var(--margin-y);
+    margin-bottom: var(--margin-y);
+
+    display: inline;
+
+}
+
+.row-cap.g-col-outer,
+.row-cap.g-col-inner {
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
+
+.row-cap.g-col-inner {
+    display: inline !important;
+}
+
+.row-cap.g-col-inner>* {
+    --padding-y: .5rem !important;
+    padding-top: var(--padding-y);
+    padding-bottom: var(--padding-y);
+
 }

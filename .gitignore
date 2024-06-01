@@ -21,3 +21,8 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+
+open_ai.py
+config.py
+**/index copy.html
