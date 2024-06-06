@@ -1,0 +1,19 @@
+{% macro table_cell_content(field, job) %}
+{% if field['name'] == 'description' %}
+
+<div class="{{ field['type'] }} name-{{ field['name'] }}">
+    {{ job[field['name']]|truncate(length=145) }}
+</div>
+
+{% elif field['type'] == 'link' %}
+<a target="_blank" href="{{ job[field['name']] }}" class="{{ field['type'] }} name-{{ field['name'] }}">View on
+    {{ job['job_board'] }}
+</a>
+{% elif field['type'] == 'date' %}
+<div class="{{ field['type'] }} name-{{ field['name'] }}">
+    {{ job[field['name']].strftime('%B %d, %Y') if job[field['name']] }}
+</div>
+{% else %}
+<div class="{{ field['type'] }} name-{{ field['name'] }}">{{ job[field['name']] }}</div>
+{% endif %}
+{% endmacro %}

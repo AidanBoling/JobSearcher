@@ -1,26 +1,57 @@
 {% extends "base.html" %}
 
-{% block page_title %}Home{% endblock %}
+{% block page_title %}View Job Posts{% endblock %}
 
 {% block content %}
 
-<!-- TODO: Move this live region to a better location. -->
+<!-- Later TODO: Move this live region to a better location. -->
 <div role="status" aria-live="polite">
     <!-- add content to hear it spoken -->
 </div>
 
-<h1 id="posts-table-label">Job Posts</h1>
-{% if not jobs %}
-<div class="border border-black border-2 rounded-2 container-md p-5">
-    <p>No jobs here yet. Go to settings to set up options and run a search manually.</p>
-</div>
+<h1 id="posts-table-label" class="pt-2">Job Posts</h1>
 
-{% else %}
-<div class="table-container border border-black border-2 rounded-2 vh-75 container-md p-0">
-    <!-- <div class="empty-state">
-        <p>No job posts here yet. Click the button to run a search manually.</p>
-    </div> -->
-    {% include 'posts_table.html' %}
+<div class="dataview-frame">
+    <div class="d-flex mb-2 flex-row justify-content-between view-border" id="data-view-controls">
+
+        <div class="d-flex flex-row">
+            <label class="me-2 align-self-center fs-5" id="views-label">View </label>
+            <div class="dropdown" id="saved-views-dropdown" data-inclusive-menu aria-labelledby="views-label">
+                <button class="dropdown-toggle btn btn-outline-light soft rounded-1 d-flex flex-row align-items-center"
+                    data-inclusive-menu-opens="views-menu">
+                    <span class="justify-self-center">{{ views.current|capitalize }}</span>
+                    <!-- <span aria-hidden="true">&#x25be;</span> -->
+                </button>
+                <div id="views-menu" class="list-group shadow">
+                    {# <div id="views-menu" class="list-group" data-inclusive-menu-from="left"> #}
+                    {% for view in views.names %}
+                    <button class="list-group-item list-group-item-action"
+                        {% if view == views.current %}aria-checked="true" {% endif %}>{{ view|capitalize }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex"><span class="align-self-end" aria-live=”polite” role=”region”>{{jobs|length}} Jobs</span>
+        </div>
+
+        {# block view_format_settings #}
+        {# Button (from child tempate): Table Settings #}
+        {# endblock #}
+        {# Button - Filters #}
+
+    </div>
+
+    <div id="dataview-table">
+        {% include 'posts_table.html' %}
+
+        {# {% block dataview %}
+        {% endblock %} #}
+    </div>
+
+    {# <div id="dataview-list">
+    </div> #}
+
 </div>
 
 <br />
@@ -32,10 +63,9 @@
 {% include 'data_filters_form.html' %}
 <br />
 
-{% endif %}
+
 
 {% endblock %}
-
 
 
 {% block scripts %}
@@ -45,14 +75,88 @@
 
 <script>
 
+    const get_view_url = {{ url_for('change_view') | tojson }}
+    const views = {{ views| tojson }}
+
+    // Menu button instantiation
+    const viewsButton = document.querySelector('[data-inclusive-menu-opens="views-menu"]')
+    const viewsMenuButton = new MenuButton(viewsButton, { checkable: 'one' })
+
+    const changeViewForm = document.getElementById('change-view-form')
+    const dataviewTable = document.querySelector('#dataview-table')
+    const dataviewList = document.querySelector('#dataview-list')
+
+    // Listen to choose event
+    viewsMenuButton.on('choose', function (choice) {
+        const viewSelected = choice.innerText.trim()
+        viewsButton.innerText = viewSelected
+
+        function updateView(viewName) {
+            const view = viewName.toLowerCase();
+
+            if (!views.names.includes(view)) {
+                console.log('Selected view name not found.');
+                return;
+            }
+
+            let data = new FormData()
+            data.append("view", view)
+            request = {
+                'method': 'POST',
+                'body': data,
+            }
+
+            fetch(get_view_url, request)
+                .then(response => {
+                    return response.text();
+                })
+                .then(html => {
+                    //updateHistory(view, html);
+
+                    if (views.layouts[view] && views.layouts[view] === 'list') {
+                        return dataviewList.innerHTML = html
+                    }
+                    return dataviewTable.innerHTML = html
+                    //else if (viewsLayout === 'list') { dataviewList.innerHTML = html }
+                })
+        }
+
+        // TODO: Fix this so shows the correct path.
+        // TODO: Implement popstate, so that browser back/forward will work
+        function updateHistory(view, data) {
+            console.log('Updating history...')
+            const pathname = 'views/' + view
+            history.pushState(data, "", pathname);
+        }
+
+        updateView(viewSelected)
+        console.log('You chose "' + choice.innerText + '"')
+    })
+
+
+    // Put focus on first input of modal
+
+    const editModals = document.querySelectorAll('.edit-modal')
+
+    editModals.forEach(modal => {
+        modal.addEventListener('shown.bs.modal', (e) => {
+            const myInput = e.target.querySelector('.edit-modal input')
+            myInput.focus()
+        })
+    }
+    )
+
+
     // example LIVE REGION script -- for alert/status messages to be read by Voice Readers 
     // var todoName = document.querySelector('[type="text"]').value;
-    // const formBtn = document.querySelector(".settings-btn");
+
+    function sendToLiveRegion(message) {
+        const liveRegion = document.querySelector('[role="status"]');
+        liveRegion.textContent = message;
+        setTimeout(() => { liveRegion.textContent = '' }, 5000)
+    }
 
     function announceSave() {
-        // const testButton = document.querySelector("#test-button");
-        // testButton.text = ''
-
         const liveRegion = document.querySelector('[role="status"]');
         liveRegion.textContent = `Settings were saved.`;
         setTimeout(() => { liveRegion.textContent = '' }, 5000)
@@ -63,3 +167,53 @@
 </script>
 
 {% endblock %}
+
+
+{# ----- Trash (TEMP) ---- #}
+
+
+{# View format: [Table, List] #}
+
+{# <div class="dropdown">
+        <button type="button" class="btn btn-outline-light btn-lg dropdown-toggle" data-bs-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false" data-bs-auto-close="outside">
+            Change view
+        </button>
+
+        <div class="dropdown-menu">
+            <form id="change-view-form" class="container">
+                <div class="row justify-content-between">
+                    <div class="col-4 p-0">
+                        <fieldset class="px-5 mt-1">
+                            <legend class="visually-hidden">Select a saved view</legend> #}
+{# {% for view in views.names %} #}
+{# <div class="form-check p-2">
+                                <input class="form-check-input me-1" type="radio" value="{{ view }}"
+                                    id="view-option-{{ view }}" name="view"
+                                    {% if view == views.current %}checked{% endif %}>
+                                <label class="form-check-label"
+                                    for="view-option-{{ view }}">{{ view|capitalize }}</label>
+                            </div> #}
+{# {% endfor %} #}
+{# </fieldset>
+                    </div>
+                </div>
+                <button class="settings-btn btn btn-primary px-4" type="submit">Go to View</button>
+            </form>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">Create New View</a>
+        </div>
+    </div> #}
+
+{# <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Current view: {{ views.current|capitalize }}
+        </button>
+        <ul class="dropdown-menu"> #}
+{# {% for view in views.names %}
+            <li><a href="{{ url_for('get_view', view=view) }}"
+                    class="dropdown-item {% if view == views.current %}active{% endif %}"
+                    {% if view == views.current %}aria-current="true" {% endif %}>{{ view|capitalize }}</a></li>
+            {% endfor %} #}
+{# </ul>
+    </div> #}

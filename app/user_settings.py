@@ -20,7 +20,7 @@ class DataDisplayTable:
 
 @dataclass
 class DataDisplaySettings:
-    default_display_type: str
+    default_display_layout: str
     default_view: str
 
 
@@ -45,6 +45,7 @@ class DataFilters:    # global data filters
 class SavedViews:
     names: list[str]
     job_filters: dict
+    layout: dict
 
 
 class SettingsControl:

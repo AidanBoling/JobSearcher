@@ -1,12 +1,10 @@
 from pathlib import Path
 from flask import Flask, render_template, request, abort, redirect, url_for
 from models.job_posts import db
-from db_control import JobDbControl, DbFilterGroup
-from filters_db import JobDbFilter
+from db_control import JobDbControl
 from filters_control import JobFiltersControl
 import job_searcher 
 
-# from data.table import job_fields
 from user_settings import SearchSettings, DataDisplay, DataFilters, SettingsControl, SavedViews
 
 ROOT_DIR = Path(__file__).parent
@@ -38,63 +36,60 @@ with app.app_context():
     filters_control = JobFiltersControl(db_control, saved_views.job_filters)
 
 
+# [x] TODO: Be able to navigate to saved views from Jobs page.
+# TODO: Be able to create new view.
+
 def main():
-    @app.route('/')
-    def home():
-        #later -> if table_settings.view == 'table', redirect to table-view. else, redirect to list view.
-        default_view=display_settings.settings.default_view
-        default_view_type=display_settings.settings.default_display_type
-        if default_view_type == 'table':
-            return redirect(url_for('table_view', view=default_view))
-        else:
-            return redirect(url_for('table_view', view=default_view))
+    @app.route('/',)
+    def dataview():
+        view = display_settings.settings.default_view
+        view_layout = display_settings.settings.default_display_layout
+        # if request.method == 'POST' and request.form['view']:
+            # view = request.form['view']
 
-
-    @app.get('/table/views/<view>')
-    def table_view(view):
-        jobs=''
-        # if error...
-        #     # Q: make this a redirect (to table_view, view='default') instead?
-        #     view_filters = saved_views.filters.default
-
-        if view == 'default':
-            jobs=db_control.get_list()
-        elif view == 'hidden':
-            pass
-        elif view == 'favorites':
-            pass
-
-        # Test view (temp):
-        elif view == 'test':
-            # inner_filters = [JobDbFilter('employment_type', 'Full-time', '=='), JobDbFilter('level', 'Entry level', '==')]
-            # inner_filter_group = DbFilterGroup('OR', inner_filters)
-            # and_filters = [inner_filter_group, JobDbFilter('company_name', 'Patterned Learning Career', '!=')]
-            # jobs = db_control.get_list(filter_group=DbFilterGroup('AND', and_filters))
-            inner_filters = [JobDbFilter('employment_type', ['Full-time'], 'any'), JobDbFilter('level', ['Entry level'], 'any')]
-            inner_filter_group = DbFilterGroup('OR', inner_filters)
-
-            and_filters = [inner_filter_group, JobDbFilter('company_name', 'Patterned Learning Career', 'not_ilike')]
-            
-            filter_group = DbFilterGroup('AND', and_filters)
-            print('manual filter_group: ', filter_group)
+        layout_endpoint = 'table_layout'
+        if view_layout == 'list':
+            layout_endpoint = 'table_layout' # later: Update this
         
-        filters_control.set_current(view)
-        filter_group = filters_control.current_filters_db
+        return redirect(url_for(layout_endpoint, view=view))
 
-        if filter_group:
-            jobs = db_control.get_list(filter_group=filter_group)
-        else:
-            jobs = db_control.get_list()
 
+    @app.post('/view')
+    def change_view():
+        view = 'default'
+        view_layout=display_settings.settings.default_display_layout
         filters={'settings': filters_control.frontend_filters,
                  'current': filters_control.current_filters}
         
-        views={'current': view, 'all': saved_views.names}
-        # print(filters['current'])
-        # print(filters['settings'])
+        if request.form:
+            # print('request form: ', request.form['view'])
+            view = request.form['view'].lower().strip()
         
-        return render_template('index.html', jobs=jobs, options=table_settings, views=views, filters=filters)
+        if view == 'default' or view not in saved_views.names:
+            view = display_settings.settings.default_view
         
+        elif saved_views.layout.get(view):
+            view_layout = saved_views.layout[view]
+
+        if view_layout == 'list':
+            pass        # later: Update this
+
+        return render_template('posts_table.html', jobs=get_data_for_view(view), options=table_settings, filters=filters)
+        # return redirect(url_for(layout_endpoint, view=view))
+
+
+    @app.get('/table/views/<view>')
+    def table_layout(view):
+        # if error...
+        #     # Q: make this a redirect (to table_layout, view='default') instead?
+        #     view_filters = saved_views.filters.default
+        
+        filters={'settings': filters_control.frontend_filters,
+                 'current': filters_control.current_filters}
+
+        views={'current': view, 'names': saved_views.names, 'layouts': saved_views.layout }
+        return render_template('index.html', jobs=get_data_for_view(view), options=table_settings, views=views, filters=filters)
+
 
     @app.post('/table/update/settings/<setting>')
     def update_table_settings(setting):
@@ -103,16 +98,15 @@ def main():
             if setting == 'job_fields':
                 update_fields_displayed(request.form)
 
-        return redirect(url_for('home'))
+        return redirect(url_for('dataview'))
    
-    @app.post('/data/update/filter/<filter>')
-    def update_filter(filter):
-        # settings = list(table_settings.__dict__.keys())
-        if request.form:
-            update_view_data_filters(request.form, filter)
 
-        # TODO: redirect to the view it was on
-        return redirect(url_for('home'))
+    @app.post('/data/update/filter/<view>')
+    def update_filter(view):
+        if request.form:
+            update_view_data_filters(request.form, view)
+
+        return redirect(request.referrer)
 
 
     @app.get('/settings')
@@ -151,13 +145,26 @@ def main():
     def update_job(id):
         if request.form:
             db_control.update_one(id, request.form)
-        return redirect(url_for('home'))
+        return redirect(url_for('dataview'))
     
 
     # @app.delete('/data/delete/job/<int:id>')
     # def delete_job(id):
     #     db_control.update_one(id, request.form)
-    #     return redirect(url_for('home'))
+    #     return redirect(url_for('dataview'))
+
+
+    # @app.post('/form/get_rows')
+    # def get_rows():
+    #     view='default'
+    #     # views={'current': view, 'all': saved_views.names}
+
+    #     if request.form:
+    #         print('request form: ', request.form['view'])
+    #         view = request.form['view'].lower().strip()
+    #     jobs = get_data_for_view(view)
+
+    #     return render_template('table_row.html', jobs=jobs, options=table_settings)
 
 
 def search_and_save_jobs():
@@ -196,26 +203,40 @@ def update_global_data_filters_obj(data: dict):
     global_data_filters.post_title.regex = data['title_regex']
 
 
-def update_view_data_filters(data: dict, filter):
+def update_view_data_filters(data: dict, view):
     global filters_control
 
     # print(data)
     
     filter_group_dict = filters_control.form_response_to_dict(data)
-    print(f'\nUpdating filters for view "{filter}": ', filter_group_dict)
+    print(f'\nUpdating filters for view "{view}": ', filter_group_dict)
     
-    if not filter or filter == 'current':
+    if not view or view == 'current':
         filters_control.current_filters = filter_group_dict
     else:
-        # Update and save view
-        saved_views.job_filters[filter] = filter_group_dict
+        # Update and save view 
+        saved_views.job_filters[view] = filter_group_dict
         saved_views_controller.save_to_file(saved_views)
 
         # Update filters_control
         filters_control.view_filters = saved_views.job_filters
-        filters_control.update_view_db_filter_group(filter)
+        filters_control.update_view_db_filter_group(view)
 
     # Later TODO (maybe): Allow save view filters separate from "saving" filters -- e.g. update filters temporarily, and user can decide if keep changes
+
+
+def get_data_for_view(view):
+    jobs=''
+
+    filters_control.set_current(view)
+    filter_group = filters_control.current_filters_db
+
+    if filter_group:
+        jobs = db_control.get_list(filter_group=filter_group)
+    else:
+        jobs = db_control.get_list()
+    
+    return jobs
 
 
 main()
@@ -223,3 +244,30 @@ main()
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+# ----- Trash (TEMP) ---------
+
+
+
+        # if view == 'default':
+        #     jobs=db_control.get_list()
+        # elif view == 'hidden':
+        #     pass
+        # elif view == 'favorites':
+        #     pass
+
+        # Test view (temp):
+        # elif view == 'test':
+            # inner_filters = [JobDbFilter('employment_type', 'Full-time', '=='), JobDbFilter('level', 'Entry level', '==')]
+            # inner_filter_group = DbFilterGroup('OR', inner_filters)
+            # and_filters = [inner_filter_group, JobDbFilter('company_name', 'Patterned Learning Career', '!=')]
+            # jobs = db_control.get_list(filter_group=DbFilterGroup('AND', and_filters))
+            # inner_filters = [JobDbFilter('employment_type', ['Full-time'], 'any'), JobDbFilter('level', ['Entry level'], 'any')]
+            # inner_filter_group = DbFilterGroup('OR', inner_filters)
+
+            # and_filters = [inner_filter_group, JobDbFilter('company_name', 'Patterned Learning Career', 'not_ilike')]
+            
+            # filter_group = DbFilterGroup('AND', and_filters)
+            # print('manual filter_group: ', filter_group)

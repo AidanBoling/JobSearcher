@@ -35,10 +35,85 @@ main {
     height: 100%;
 }
 
-
 .overscroll-contain {
     overscroll-behavior: contain;
 }
+
+.btn {}
+
+.btn-outline-light.soft {
+    --hover-color: #e5edfff0;
+    --bs-btn-hover-bg: var(--hover-color);
+    --bs-btn-hover-border-color: var(--hover-color);
+    --bs-btn-active-bg: #f8f9fad0;
+    --bs-btn-active-border-color: #f8f9fae0;
+
+    transition: color .10s ease-in-out, background-color .10s ease-in-out, border-color .10s ease-in-out, box-shadow .10s ease-in-out;
+}
+
+.btn-outline-light.soft:hover {
+    --bs-btn-font-weight: 500;
+}
+
+.dataview-frame {
+    padding: 1.75rem;
+    background: #131618b0;
+}
+
+.view-border {
+    /* border-color: #181b1ec0 !important; */
+    border-color: #0e0f12c0 !important;
+}
+
+/* VIEW CONTROLS */
+
+#data-view-controls {
+    /* background: #212529c0; */
+    background: #101316c6;
+    /* border-bottom-width: .4rem !important; */
+}
+
+#data-view-controls>* {
+    padding: 1rem;
+}
+
+/* Saved Views Dropdown */
+
+#saved-views-dropdown {
+    max-width: 250px;
+    min-width: 120px;
+}
+
+#saved-views-dropdown>* {
+    width: 100%
+}
+
+#saved-views-dropdown .list-group {
+    position: absolute;
+    z-index: 10;
+}
+
+#saved-views-dropdown .dropdown-toggle::after {
+    margin-inline-start: auto;
+}
+
+#saved-views-dropdown>button {
+    padding-left: calc(var(--bs-btn-padding-x) + .25rem) !important;
+}
+
+#views-menu>button[aria-checked="true"] {
+    --bs-list-group-active-bg: #48459f;
+    color: var(--bs-list-group-active-color);
+    background-color: var(--bs-list-group-active-bg);
+    border-color: var(--bs-list-group-active-bg);
+}
+
+
+/* TABLE */
+
+/* #dataview-main .view-border {
+    border-top-width: .4rem !important;
+} */
 
 .table-container {
     overflow: scroll;
@@ -56,6 +131,14 @@ table {
     --first-column-width: ;
     border-collapse: separate;
     border-spacing: 0;
+    z-index: -5;
+}
+
+.table-dark {
+    --bs-table-bg: #212529de;
+    --bs-table-border-color: #4d5154f0;
+    --bs-table-active-bg: #373b3ef0;
+    --bs-table-hover-bg: #323539f0;
 }
 
 /* Table -- frozen header and first column: */
@@ -135,6 +218,8 @@ tr .text-long {
     /* display: -webkit-box; */
     /* -webkit-line-clamp: var(--max-lines); */
 }
+
+/* FILTER VIEW/EDIT */
 
 .filter-group {
     border-color: rgba(245, 245, 245, 0.7) !important;

@@ -31,7 +31,7 @@ class JobDbControl(DbControl):
     def get_list(self, filter_group: DbFilterGroup=None, sort_by: str=DEFAULT_SORT):   
 
         query = ''
-        if filter_group is not None:
+        if filter_group is not None and filter_group:
             query = db.select(self.model).where(filter_group.op_expression()).order_by(self.col_map[sort_by])
         else:
             query = db.select(self.model).order_by(self.col_map[sort_by])
