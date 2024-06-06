@@ -76,7 +76,7 @@
         </div>
     </div>
     <!-- </fieldset> -->
-    {% if number > 1 %}
+    {% if prev_group_number > 0 %}
     {{ group_outer_column_wrapper(inner_content=deleteFilterBtn('group'), class_div_cols='row-end') }}
     {% endif %}
 </div>
@@ -194,7 +194,9 @@
 
 {% macro deleteFilterBtn(filter_type) %}
 <div class="remove-button">
-    <button type="button" onclick="deleteFilter(this, '{{ filter_type }}')">Remove</button>
+    <button class="btn btn-outline-light btn-light-soft btn-icon" type="button"
+        onclick="deleteFilter(this, '{{ filter_type }}')"><i class="bi bi-trash3" aria-hidden="true"></i>
+        <span class="visually-hidden">Remove</span></button>
 </div>
 {% endmacro %}
 
@@ -221,7 +223,7 @@
 {% endmacro %}
 
 
-{# TODO: Fix multi-select to actually be multi-select #}
+{# TODO: Fix multi-select to actually be multi-select --> checkboxes #}
 {% macro filter_select_multi(item, name, id_post, aria_label, div_class='col-4', class='', options=[], selected_options=[]) %}
 <div class="{{ div_class }} {{ item }}">
     <select class="form-select {{ class }}" name="{{ name }}" id="{{ item }}_{{ id_post }}"
