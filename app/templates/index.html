@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from 'modals.html' import dataview_settings_modal %}
+{% from 'general_components.html' import iconBtnContent %}
 
 {% block page_title %}View Job Posts{% endblock %}
 
@@ -37,6 +39,17 @@
         </div>
 
         {# block view_format_settings #}
+        <div class="btn-group" role="group" aria-label="View Settings">
+            <button class="btn btn-outline-light btn-light-soft btn-icon" type="button" data-bs-toggle="modal"
+                data-bs-target="#settingsModal-filters">
+                {{ iconBtnContent('bi bi-funnel', 'Filters', icon_style='font-size: 1.2rem;') }}
+            </button>
+            <div class="vr"></div>
+            <button class="btn btn-outline-light btn-light-soft btn-icon" type="button" data-bs-toggle="modal"
+                data-bs-target="#settingsModal-tableSettings">
+                {{ iconBtnContent('bi bi-gear', 'Settings', icon_style='font-size: 1.2rem;') }}
+            </button>
+        </div>
         {# Button (from child tempate): Table Settings #}
         {# endblock #}
         {# Button - Filters #}
@@ -55,15 +68,39 @@
 
 </div>
 
-<br />
+{# <br /> #}
 <!-- Table Settings -->
-<h2>Table Settings</h2>
-{% include 'posts_table_settings.html' %}
-<br />
-<h2>Filters</h2>
-{% include 'data_filters_form.html' %}
-<br />
+{# <h2>Table Settings</h2>
+<br /> #}
+{# <h2>Filters</h2>
 
+<br /> #}
+
+{% call dataview_settings_modal(title='Filters', id_post='filters') %}
+<div class="modal-body p-4">
+    <div class="mx-4">
+        {% include 'data_filters_form.html' %}
+    </div>
+</div>
+<div class="modal-footer">
+    {# Later TODO: Add button to clear/reset all filters #}
+    <button class="settings-btn btn btn-primary" type="submit" form="data-filters-form">Save</button>
+    <button type="button" class="btn btn-secondary me-4" data-bs-dismiss="modal">Close</button>
+</div>
+{% endcall %}
+
+
+{% call dataview_settings_modal(title='Table Settings', id_post='tableSettings') %}
+<div class="modal-body p-4">
+    <div class="mx-4">
+        {% include 'posts_table_settings.html' %}
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="settings-btn btn btn-primary" type="submit" form="table-settings-form">Save</button>
+    <button type="button" class="btn btn-secondary me-4" data-bs-dismiss="modal">Close</button>
+</div>
+{% endcall %}
 
 
 {% endblock %}

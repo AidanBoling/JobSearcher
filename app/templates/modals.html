@@ -1,6 +1,6 @@
-{% macro view_job_button(job_id, text='View details', class='btn btn-primary') %}
+{% macro view_job_button(job_id, label='View details', class='btn btn-primary') %}
 <button type="button" class="{{ class }}" data-bs-toggle="modal"
-    data-bs-target="#viewDetailsModal-job-{{ job_id }}">{{ text }}</button>
+    data-bs-target="#viewDetailsModal-job-{{ job_id }}">{{ label }}</button>
 {% endmacro %}
 
 {% macro view_job_modal(job) %}
@@ -56,4 +56,20 @@
         </div>
     </div>
 </form>
+{% endmacro %}
+
+
+{% macro dataview_settings_modal(title,  id_post) %}
+<div id="settingsModal-{{ id_post }}" class="modal" tabindex="-1" aria-labelledby="settingsModalLabel-{{ id_post }}"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg modal-fullscreen-lg-down">
+        <div class="modal-content">
+            <div class="modal-header p-4">
+                <h1 class="modal-title ms-4" id="settingsModalLabel-{{ id_post }}">{{ title }}</h1>
+                <button type="button" class="btn-close me-4" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            {{ caller() }}
+        </div>
+    </div>
+</div>
 {% endmacro %}
