@@ -1,0 +1,4 @@
+{% macro iconBtnContent(icon_class, text, text_is_hidden=false, icon_style='', spacer_style='width: .25rem;') %}
+    <i class="{{ icon_class }}" aria-hidden="true" style="{{ icon_style }}"></i><span class="spacer" style="display: inline-block; {{ spacer_style }}"></span>
+    <span {% if text_is_hidden %}class="visually-hidden"{% endif %}> {{ text }}</span></button>
+{% endmacro %}

@@ -115,6 +115,10 @@ main {
     --bs-btn-font-weight: 450;
 }
 
+
+/* DATAVIEW SECTION */
+
+
 .dataview-frame {
     padding: 1.75rem;
     background: #131618b0;
@@ -126,7 +130,7 @@ main {
 }
 
 
-/* VIEW CONTROLS */
+/* DATAVIEW -- View Controls */
 
 #data-view-controls {
     /* background: #212529c0; */
@@ -170,11 +174,12 @@ main {
 }
 
 
-/* TABLE */
+/* DATAVIEW -- TABLE */
 
 /* #dataview-main .view-border {
     border-top-width: .4rem !important;
 } */
+
 
 .table-container {
     overflow: scroll;
@@ -195,49 +200,67 @@ table {
     z-index: -5;
 }
 
+/* :root {
+    --table-bg-rgb: 33, 37, 41;
+    --table-bg-dark-rgb: 23, 27, 31;
+
+    --table-bg-lighter-rgb: 43, 47, 51;
+    --table-bg-lightest-rbg: 73, 77, 81;
+
+    --table-active-rgb: 55, 59, 62;
+    --table-active-lighter-rgb: 65, 69, 72;
+} */
+
 .table-dark {
-    --bs-table-bg: #212529de;
+    --table-bg-rgb: 33, 37, 41;
+    --table-bg-lighter-rgb: 43, 47, 51;
+    --table-bg-lightest-rbg: 73, 77, 81;
+
+    --table-active-rgb: 55, 59, 62;
+    --table-active-lighter-rgb: 65, 69, 72;
+
+    --bs-table-bg: rgba(var(--table-bg-rgb), .9);
+
     --bs-table-border-color: #4d5154f0;
-    --bs-table-active-bg: #373b3ef0;
-    --bs-table-hover-bg: #323539f0;
+    --bs-table-active-bg: rgba(var(--table-active-rgb), 0.94);
+    /* --bs-table-hover-bg: #323539f0; */
+    --bs-table-hover-bg: rgba(var(--table-bg-lighter-rgb), .9);
 }
 
-/* Table -- frozen header and first column: */
-
-.freeze thead,
-tr>th {
-    position: sticky;
+.table-dark tr:hover .table-active {
+    --bs-table-hover-bg: rgba(var(--table-active-lighter-rgb), 0.941);
 }
 
-.freeze thead {
-    top: 0;
-    z-index: 2;
-}
+.table-dark .item-actions .btn-dark {
+    /* --btn-bg: #545d64f0; */
+    /* --btn-bg: #212529; */
+    --btn-color: #c7ceff;
+    --btn-bg: rgba(var(--table-bg-rgb), .4);
+    --btn-hover-bg: rgba(var(--table-bg-rgb), .9);
 
-.freeze tr>th {
-    left: 0;
-    z-index: 1;
-}
+    --bs-btn-color: var(--btn-color);
+    --bs-btn-hover-color: var(--btn-color);
+    --bs-btn-active-color: var(--btn-color);
 
-.freeze tr:nth-child(1) {
-    left: 0;
-    z-index: 1;
-}
+    --bs-btn-bg: var(--btn-bg);
+    --bs-btn-border-color: transparent;
+    --bs-btn-active-border-color: transparent;
+    --bs-btn-hover-border-color: transparent;
 
-.freeze thead tr>th:first-child {
-    z-index: 3;
+    --bs-btn-active-bg: var(--btn-hover-bg);
+    --bs-btn-hover-bg: var(--btn-hover-bg);
 }
 
 /* -- */
+
+thead .border-bottom {
+    --bs-border-width: 4px
+}
 
 td,
 th {
     padding: .75rem 1rem !important;
     min-width: 150px;
-}
-
-thead .border-bottom {
-    --bs-border-width: 4px
 }
 
 tbody th,
@@ -279,6 +302,34 @@ tr .text-long {
     /* display: -webkit-box; */
     /* -webkit-line-clamp: var(--max-lines); */
 }
+
+
+/* Table -- frozen header and first column: */
+
+.freeze thead,
+tr>th {
+    position: sticky;
+}
+
+.freeze thead {
+    top: 0;
+    z-index: 2;
+}
+
+.freeze tr>th {
+    left: 0;
+    z-index: 1;
+}
+
+.freeze tr:nth-child(1) {
+    left: 0;
+    z-index: 1;
+}
+
+.freeze thead tr>th:first-child {
+    z-index: 3;
+}
+
 
 /* FILTER VIEW/EDIT */
 
