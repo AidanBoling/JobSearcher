@@ -1,10 +1,10 @@
 {% from 'data_filters.html' import filter_group %}
 
-<form action="{{ url_for( 'update_filter', view=views.current ) }}" method="POST" id="data-filters-form">
+<form action="{{ url_for( 'update_filter', view=views.current.name ) }}" method="POST" id="data-filters-form">
     {# TODO: Check accessibility of labeling for this setup #}
 
     <div class="container-fluid">
-        {{ filter_group(filter_options=filters.settings, job_fields=options.job_fields, filters_current=filters.current) }}
+        {{ filter_group(filter_options=filter_options, job_fields=options.job_fields, filters_current=views.current.filters.saved) }}
 
     </div>
 

@@ -17,7 +17,7 @@ class SearchSettings:
 class DataDisplayTable:
     job_fields: list
 
-
+# Q: Change DataDisplay to DataDisplayDefaults? Then move DataDisplaySettings into DataDisplayDefaults?
 @dataclass
 class DataDisplaySettings:
     default_display_layout: str
@@ -26,6 +26,7 @@ class DataDisplaySettings:
 
 @dataclass
 class DataDisplay:
+    list: dict      # Later TODO: Update this to a dataclass (like table) once have list view
     table: DataDisplayTable
     settings: DataDisplaySettings
 
@@ -46,6 +47,8 @@ class SavedViews:
     names: list[str]
     job_filters: dict
     layout: dict
+    layout_options: dict
+
 
 
 class SettingsControl:

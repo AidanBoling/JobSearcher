@@ -1,4 +1,4 @@
-const filterOptions = '{{ filters.settings | tojson }}'
+const filterOptions = '{{ filter_options | tojson }}'
 const viewOptions = '{{ options | tojson }}'
 
 

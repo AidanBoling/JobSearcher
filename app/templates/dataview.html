@@ -1,0 +1,10 @@
+{% if views.current.layout == 'list' %}
+<div id="dataview-list">
+</div>
+
+{% else %}
+<div id="dataview-table">
+    {% include 'posts_table.html' %}
+</div>
+
+{% endif %}

@@ -22,14 +22,15 @@
                 <button
                     class="dropdown-toggle btn btn-outline-light btn-light-soft rounded-1 d-flex flex-row align-items-center"
                     data-inclusive-menu-opens="views-menu">
-                    <span class="justify-self-center">{{ views.current|capitalize }}</span>
+                    <span class="justify-self-center">{{ views.current.name|capitalize }}</span>
                     <!-- <span aria-hidden="true">&#x25be;</span> -->
                 </button>
                 <div id="views-menu" class="list-group shadow">
                     {# <div id="views-menu" class="list-group" data-inclusive-menu-from="left"> #}
                     {% for view in views.names %}
                     <button class="list-group-item list-group-item-action"
-                        {% if view == views.current %}aria-checked="true" {% endif %}>{{ view|capitalize }}</button>
+                        {% if view == views.current.name %}aria-checked="true"
+                        {% endif %}>{{ view|capitalize }}</button>
                     {% endfor %}
                 </div>
             </div>
@@ -56,15 +57,9 @@
 
     </div>
 
-    <div id="dataview-table">
-        {% include 'posts_table.html' %}
-
-        {# {% block dataview %}
-        {% endblock %} #}
+    <div id="dataview-main">
+        {% include 'dataview.html' %}
     </div>
-
-    {# <div id="dataview-list">
-    </div> #}
 
 </div>
 
@@ -75,6 +70,8 @@
 {# <h2>Filters</h2>
 
 <br /> #}
+
+
 
 {% call dataview_settings_modal(title='Filters', id_post='filters') %}
 <div class="modal-body p-4">
@@ -113,14 +110,18 @@
 
 <script>
 
+    // VIEW NAVIGATION
+
     const get_view_url = {{ url_for('change_view') | tojson }}
-    const views = {{ views| tojson }}
+    const views = {{ views | tojson }}
 
     // Menu button instantiation
     const viewsButton = document.querySelector('[data-inclusive-menu-opens="views-menu"]')
     const viewsMenuButton = new MenuButton(viewsButton, { checkable: 'one' })
 
     const changeViewForm = document.getElementById('change-view-form')
+    const dataviewSection = document.querySelector('#dataview-main')
+
     const dataviewTable = document.querySelector('#dataview-table')
     const dataviewList = document.querySelector('#dataview-list')
 
@@ -149,21 +150,17 @@
                     return response.text();
                 })
                 .then(html => {
-                    //updateHistory(view, html);
-
-                    if (views.layouts[view] && views.layouts[view] === 'list') {
-                        return dataviewList.innerHTML = html
-                    }
-                    return dataviewTable.innerHTML = html
-                    //else if (viewsLayout === 'list') { dataviewList.innerHTML = html }
+                    updateHistory(html, view);
+                    return dataviewSection.innerHTML = html
                 })
         }
 
         // TODO: Fix this so shows the correct path.
         // TODO: Implement popstate, so that browser back/forward will work
-        function updateHistory(view, data) {
+        function updateHistory(data, view) {
             console.log('Updating history...')
-            const pathname = 'views/' + view
+            const pathname = view
+            //history.replaceState()
             history.pushState(data, "", pathname);
         }
 
@@ -171,9 +168,25 @@
         console.log('You chose "' + choice.innerText + '"')
     })
 
+    // Handle forward/back buttons
+    window.addEventListener("popstate", (event) => {
+        // If a state has been provided, we have a "simulated" page
+        // and we update the current page.
+        if (event.state) {
+            // Simulate the loading of the previous page
+            dataviewSection.innerHTML = event.state
+        }
+    });
+
+    // Set initial state on browser page load
+    const initialState = dataviewSection.innerHTML
+    history.replaceState(initialState, "", document.location.href);
+
+
+
+    // OTHER
 
     // Put focus on first input of modal
-
     const editModals = document.querySelectorAll('.edit-modal')
 
     editModals.forEach(modal => {
@@ -228,7 +241,7 @@
 {# <div class="form-check p-2">
                                 <input class="form-check-input me-1" type="radio" value="{{ view }}"
                                     id="view-option-{{ view }}" name="view"
-                                    {% if view == views.current %}checked{% endif %}>
+                                    {% if view == views.current.name %}checked{% endif %}>
                                 <label class="form-check-label"
                                     for="view-option-{{ view }}">{{ view|capitalize }}</label>
                             </div> #}
@@ -245,13 +258,13 @@
 
 {# <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Current view: {{ views.current|capitalize }}
+            Current view: {{ views.current.name|capitalize }}
         </button>
         <ul class="dropdown-menu"> #}
 {# {% for view in views.names %}
             <li><a href="{{ url_for('get_view', view=view) }}"
-                    class="dropdown-item {% if view == views.current %}active{% endif %}"
-                    {% if view == views.current %}aria-current="true" {% endif %}>{{ view|capitalize }}</a></li>
+                    class="dropdown-item {% if view == views.current.name %}active{% endif %}"
+                    {% if view == views.current.name %}aria-current="true" {% endif %}>{{ view|capitalize }}</a></li>
             {% endfor %} #}
 {# </ul>
     </div> #}
