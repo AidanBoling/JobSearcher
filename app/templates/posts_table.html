@@ -1,6 +1,3 @@
-{# {% extends "index.html" %} #}
-{# {% block page_title %}Jobs: Table{% endblock %} #}
-
 {% from 'modals.html' import view_job_modal, view_job_button, edit_modal, edit_modal_button %}
 {% from 'table_macros.html' import table_cell_content %}
 {% import 'form.html' as form %}
@@ -16,8 +13,6 @@
 
 {# Later TODO (maybe): Make rows clickable -- to open job details modal #}
 
-
-{# {% block dataview %} #}
 
 <div class="view-border border border-3 container-md p-0">
 
@@ -98,4 +93,3 @@
     {% endif %}
 
 </div>
-{# {% endblock %} #}
