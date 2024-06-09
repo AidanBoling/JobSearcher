@@ -17,6 +17,7 @@ class SearchSettings:
 class DataDisplayTable:
     job_fields: list
 
+
 # Q: Change DataDisplay to DataDisplayDefaults? Then move DataDisplaySettings into DataDisplayDefaults?
 @dataclass
 class DataDisplaySettings:
@@ -42,12 +43,28 @@ class DataFilters:    # global data filters
     post_title: DataFiltersTitle
 
 
+# @dataclass
+# class SavedView:
+#     name: str
+#     job_filters: dict
+#     layout: dict
+#     layout_options: dict
+
+
 @dataclass
 class SavedViews:
     names: list[str]
-    job_filters: dict
-    layout: dict
-    layout_options: dict
+    views: dict
+    
+    # def __post_init__(self):
+    #     self.filters = {view.name: view.job_filters for view in self.views}
+    #     self.views = {view['name']: view for view in self.views}
+
+    def all_filters(self):
+        return {view_name: view['job_filters'] for view_name, view in self.views.items()}
+
+    def all_layouts(self):
+        return {view_name: view['layout'] for view_name, view in self.views.items()}
 
 
 

@@ -17,7 +17,7 @@ search_settings = search_settings_controller.get_as_dataclass()
 
 display_settings_controller = SettingsControl(DataDisplay, 'data_display')
 display_settings = display_settings_controller.get_as_dataclass()
-table_settings = display_settings.table
+default_table_settings = display_settings.table
 
 global_data_filters_controller = SettingsControl(DataFilters, 'global_data_filters')
 global_data_filters = global_data_filters_controller.get_as_dataclass()
@@ -28,7 +28,7 @@ saved_views = saved_views_controller.get_as_dataclass()
 
 current_view = {'name': display_settings.settings.default_view,
                 'layout': display_settings.settings.default_display_layout,
-                'layout_options': table_settings,
+                'layout_options': default_table_settings,
                 'filters': {'saved': '', 'current': ''}
                 }
 
@@ -40,7 +40,9 @@ with app.app_context():
     db.create_all()
     db_control = JobDbControl(db)
 
-    filters_control = JobFiltersControl(db_control, saved_views.job_filters)
+    all_view_filters = saved_views.all_filters()
+
+    filters_control = JobFiltersControl(db_control, all_view_filters)
     filters_control.set_current(current_view['name'])
 
     current_view['filters']['saved'] = filters_control.current_filters
@@ -76,7 +78,7 @@ def main():
     def get_view(view):
         # if error...
         #     # Q: make this a redirect (to table_layout, view='default') instead?
-        #     view_filters = saved_views.filters.default
+        #     view_filters = saved_views.filters.default (all_view_filters.default)
         
         set_current(view)
 
@@ -85,24 +87,38 @@ def main():
         return render_template('index.html', jobs=jobs, options=options, views=views, filters=filters, filter_options=filter_options)
 
 
-    @app.post('/table/update/settings/<setting>')
-    def update_table_settings(setting):
-        settings = list(table_settings.__dict__.keys())
-        if request.form and setting in settings:
-            if setting == 'job_fields':
-                update_fields_displayed(request.form)
+    @app.post('/views/<view>/update/settings/<section>/<setting>')
+    def update_view_settings(view, section, setting):
+        if view in saved_views.names and request.form:
+            if section == 'layout':
+                update_view_layout_settings(view, setting, request.form)
 
-        return redirect(url_for('dataview'))
+
+        return redirect(request.referrer)
    
 
-    @app.post('/data/update/filter/<view>')
-    def update_filter(view):
+    @app.post('/views/<view>/update/filters')
+    def update_filters(view):
         if request.form:
             update_view_data_filters(request.form, view)
 
         return redirect(request.referrer)
+    
+    
+    @app.post('/data/update/job/<int:id>')
+    def update_job(id):
+        if request.form:
+            db_control.update_one(id, request.form)
+        return redirect(url_for('dataview'))
+    
+
+    # @app.delete('/data/delete/job/<int:id>')
+    # def delete_job(id):
+    #     db_control.update_one(id, request.form)
+    #     return redirect(url_for('dataview'))
 
 
+    # APP SETTINGS
     @app.get('/settings')
     def settings():
         return render_template('settings.html', search_settings=search_settings, global_data_filters=global_data_filters)
@@ -114,6 +130,16 @@ def main():
         search_and_save_jobs()
         return redirect(url_for('settings'))
  
+
+    @app.post('/settings/update/defaults/<setting>')
+    def update_view_defaults(setting):
+        if request.form and setting in settings:
+            settings = list(default_table_settings.__dict__.keys())
+
+            if setting == 'table_job_fields':
+                update_default_table_fields_displayed(request.form)
+        return redirect(url_for('settings'))
+
 
     @app.post('/settings/update/<section>')
     def update_settings(section):
@@ -135,30 +161,7 @@ def main():
     #     return redirect(url_for('settings'))
     
 
-    @app.post('/data/update/job/<int:id>')
-    def update_job(id):
-        if request.form:
-            db_control.update_one(id, request.form)
-        return redirect(url_for('dataview'))
     
-
-    # @app.delete('/data/delete/job/<int:id>')
-    # def delete_job(id):
-    #     db_control.update_one(id, request.form)
-    #     return redirect(url_for('dataview'))
-
-
-    # @app.post('/form/get_rows')
-    # def get_rows():
-    #     view='default'
-    #     # views={'current': view, 'all': saved_views.names}
-
-    #     if request.form:
-    #         print('request form: ', request.form['view'])
-    #         view = request.form['view'].lower().strip()
-    #     jobs = get_data_for_view(view)
-
-    #     return render_template('table_row.html', jobs=jobs, options=table_settings)
 
 
 def search_and_save_jobs():
@@ -168,16 +171,10 @@ def search_and_save_jobs():
         db_control.add_many(jobs)
 
 
-def update_fields_displayed(data: dict):
-    global table_settings
+def update_default_table_fields_displayed(data: dict):
+    global default_table_settings
     
-    fields_to_display = data.getlist('display')                   
-    for field in table_settings.job_fields:
-        if field['name'] in fields_to_display:
-            field['hidden'] = False
-        else:
-            field['hidden'] = True
-    
+    default_table_settings = update_table_settings(default_table_settings, data)    
     display_settings_controller.save_to_file(display_settings)
 
 
@@ -197,7 +194,7 @@ def update_global_data_filters_obj(data: dict):
     global_data_filters.post_title.regex = data['title_regex']
 
 
-def update_view_data_filters(data: dict, view):
+def update_view_data_filters(data: dict, view: str):
     global filters_control
 
     # print(data)
@@ -209,14 +206,55 @@ def update_view_data_filters(data: dict, view):
         filters_control.current_filters = filter_group_dict
     else:
         # Update and save view 
-        saved_views.job_filters[view] = filter_group_dict
+        saved_views.views[view]['job_filters'] = filter_group_dict
         saved_views_controller.save_to_file(saved_views)
 
         # Update filters_control
-        filters_control.view_filters = saved_views.job_filters
+        filters_control.view_filters = saved_views.views[view]['job_filters']
         filters_control.update_view_db_filter_group(view)
 
     # Later TODO (maybe): Allow save view filters separate from "saving" filters -- e.g. update filters temporarily, and user can decide if keep changes
+
+
+def update_table_settings(layout_options: dict, data: dict):
+    # For job_fields
+    fields_to_display = data.getlist('display')                
+    for field in layout_options.job_fields:
+        if field['name'] in fields_to_display:
+            field['hidden'] = False
+        else:
+            field['hidden'] = True
+    
+    return layout_options
+
+
+def update_list_settings(layout_options: dict, data: dict):
+    pass
+
+
+def update_view_layout_settings(view: str, setting: str, data: dict):
+    global saved_views
+
+    saved_view = saved_views.views[view]
+    if setting == 'layout_selection':
+        saved_view['layout'] = setting
+
+    if setting == 'layout_options':
+
+        if saved_view['layout'] == 'table':
+            if not saved_view.get('layout_options'):
+                saved_view['layout_options'] = default_table_settings
+            
+            saved_view['layout_options'] = update_table_settings(saved_view['layout_options'], data)
+        
+        else:
+            if not saved_view.get('layout_options'):
+                saved_view['layout_options'] = display_settings.list
+            
+            update_list_settings(saved_view['layout_options'], data)
+
+    saved_views.views[view] = saved_view
+    saved_views_controller.save_to_file(saved_views)
 
 
 def set_current(view):
@@ -224,12 +262,13 @@ def set_current(view):
 
     filters_control.set_current(view)
     
+    saved_view = saved_views.views[view]
     current_view['name'] = view
-    current_view['layout'] = saved_views.layout[view]
-    
+    current_view['layout'] = saved_view['layout']
+
     # If saved_view has custom overrides to global layout, use that. Otherwise, use global default.
-    if saved_views.layout_options and saved_views.layout_options.get(view):
-        current_view['layout_options'] = saved_views.layout_options[view]
+    if saved_view.get('layout_options'):
+        current_view['layout_options'] = saved_view['layout_options']
     else:
         if current_view['layout'] == 'list':
             current_view['layout_options'] = display_settings.list
@@ -264,9 +303,10 @@ def get_template_variables(view):
 
     views={'current': current_view, 
         'names': saved_views.names, 
-        'layouts': saved_views.layout}
+        'layouts': saved_views.all_layouts()}
     
     options = current_view['layout_options']
+
     # Later TODO (maybe): Combine layout_options and filter_options into options
 
     return jobs, options, views, filters, filter_options
@@ -282,15 +322,6 @@ if __name__ == '__main__':
 
 
 # ----- Trash (TEMP) ---------
-
-
-
-        # if view == 'default':
-        #     jobs=db_control.get_list()
-        # elif view == 'hidden':
-        #     pass
-        # elif view == 'favorites':
-        #     pass
 
         # Test view (temp):
         # elif view == 'test':

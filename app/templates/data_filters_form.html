@@ -1,6 +1,6 @@
 {% from 'data_filters.html' import filter_group %}
 
-<form action="{{ url_for( 'update_filter', view=views.current.name ) }}" method="POST" id="data-filters-form">
+<form action="{{ url_for( 'update_filters', view=views.current.name ) }}" method="POST" id="data-filters-form">
     {# TODO: Check accessibility of labeling for this setup #}
 
     <div class="container-fluid">
