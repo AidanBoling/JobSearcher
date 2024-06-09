@@ -185,6 +185,7 @@ def update_global_data_filters_obj(data: dict):
 def get_job_data(view):
     jobs=''
 
+    view = views_ctrl.check_view(view)
     filter_group = views_ctrl.filters_control.db_filter_groups[view]
     
     if filter_group:
@@ -204,7 +205,8 @@ def get_template_variables(view):
 
     views={'current': views_ctrl.current_view, 
         'names': views_ctrl.saved_views.names,
-        'layouts': views_ctrl.saved_views.all_layouts()}
+        'layouts': views_ctrl.get_all_layouts()}
+    #TODO: Check if actually use views.layouts
     
     options = views_ctrl.current_view['layout_options']
 

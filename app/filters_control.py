@@ -65,6 +65,11 @@ class FiltersConverter:
         print(self.db_filter_groups)
 
 
+    def update_filters(self, all_filters):
+        self.view_filters = all_filters
+        self.get_view_db_filter_groups()
+
+
     def get_view_db_filter_groups(self):
         for view in self.view_filters.keys():
             self.update_view_db_filter_group(view)
