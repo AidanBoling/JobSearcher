@@ -4,8 +4,6 @@ from db_control import DbControl, DbFilterGroup
 from filters_db import JobDbFilter, DbFilter
 from models.job_posts import job_filters as available_job_filters
 
-
-
 class FrontendFilterOptionsList:
 
     def __init__(self, db_control: DbControl, fe_filter_settings: dict):
@@ -39,13 +37,14 @@ class FrontendFilterOptionsList:
         sorted_values = sorted(unique_vals, key=str.lower)
         if '' in sorted_values:
             sorted_values.remove('')
-            # sorted_values.append('')
         # print(f'Unique values for {column}: ', sorted_values)
         return sorted_values
-    
 
 
-class FiltersControl:
+
+# TODO: Rename to FiltersConverter
+
+class FiltersConverter:
 
     def __init__(self, db_control: DbControl, db_filter_class: DbFilter, fe_filter_settings: dict, saved_view_filters: dict):
         # self.fe_settings = fe_filter_settings #options
@@ -55,31 +54,15 @@ class FiltersControl:
         self.global_filters = []
         
         self.view_filters: dict = saved_view_filters
-        self.view_db_filter_groups: dict = {}
-        
-        self.current_filters: dict = {}
-        self.current_filters_db: DbFilterGroup
-
+        self.db_filter_groups: dict = {}
 
         list = FrontendFilterOptionsList(db_control, fe_filter_settings)
         self.frontend_filters = list.filters 
 
+        # self.get_view_filters()
         self.get_view_db_filter_groups()
         
-        print(self.view_db_filter_groups)
-
-
-    def set_current(self, view: str):
-        # TODO: Proper error handling
-        if not view in self.view_filters.keys():
-            print('View doesn\'t exist -- using default')
-            view = 'default'
-
-        self.current_filters = self.view_filters[view]
-        self.current_filters_db = self.view_db_filter_groups[view]
-
-        # print('current_filters: ', self.current_filters)
-        # print('current_filter_db_group: ', self.current_filters_db)
+        print(self.db_filter_groups)
 
 
     def get_view_db_filter_groups(self):
@@ -89,7 +72,7 @@ class FiltersControl:
 
     def update_view_db_filter_group(self, view: str):
         view_group = self.nested_filter_group_to_db(self.view_filters[view], self.db_filter)
-        self.view_db_filter_groups.update({view: view_group})
+        self.db_filter_groups.update({view: view_group})
 
 
     def nested_filter_group_to_db(self, group: dict, dbFilter: DbFilter) -> DbFilterGroup:
@@ -204,8 +187,7 @@ class FiltersControl:
     
 
 
-class JobFiltersControl(FiltersControl):
+class JobFiltersConverter(FiltersConverter):
 
     def __init__(self, db_control: DbControl, saved_view_filters: dict):
         super().__init__(db_control=db_control, db_filter_class=JobDbFilter, fe_filter_settings=available_job_filters, saved_view_filters=saved_view_filters)
-
