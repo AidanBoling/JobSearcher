@@ -451,7 +451,11 @@
 
         return `<div class="${outerClass}">
                     <div class="remove-button">
-                        <button type="button" onclick="deleteFilter(this, '${filterType}')">Remove</button>
+                        <button class="btn btn-outline-light btn-light-soft btn-icon" type="button"
+                        onclick="deleteFilter(this, '${filterType}')">
+                            <i class="bi bi-trash3" aria-hidden="true"></i>
+                            <span class="visually-hidden">Remove</span>
+                        </button>
                     </div>
                 </div>
         `
