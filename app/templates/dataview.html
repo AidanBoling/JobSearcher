@@ -3,18 +3,18 @@
 {% if views.current.layout == 'list' %}
 <div id="dataview-list">
 </div>
-
+{# 
 {% call dataview_settings_modal(title='List Settings', id_post='layoutSettings') %}
-<div class="modal-body p-4">
-    <div class="mx-4">
-        {% include 'dataview_list_settings.html' %}
+<div class="modal-body">
+    <div class="modal-body-bg p-4">
+        {% include 'dataview_form_list.html' %}
     </div>
 </div>
 <div class="modal-footer">
     <button class="settings-btn btn btn-primary" type="submit" form="list-settings-form">Save</button>
     <button type="button" class="btn btn-secondary me-4" data-bs-dismiss="modal">Close</button>
 </div>
-{% endcall %}
+{% endcall %} #}
 
 
 {% else %}
@@ -22,31 +22,113 @@
     {% include 'posts_table.html' %}
 </div>
 
-{% call dataview_settings_modal(title='Table Settings', id_post='layoutSettings') %}
-<div class="modal-body p-4">
-    <div class="mx-4">
-        {% include 'dataview_table_settings.html' %}
+{% endif %}
+
+{% call dataview_settings_modal(title='View Settings', id_post='layoutSettings') %}
+<div class="modal-body p-0">
+    <div class="modal-body-bg">
+        <div class="accordion accordion-flush vstack gap-4" id="viewSettingsAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button fs-3" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#settingsView" aria-expanded="true" aria-controls="settingsView">
+                        General
+                    </button>
+                </h2>
+                <div id="settingsView" class="accordion-collapse collapse show" data-bs-parent="#viewSettingsAccordion">
+                    <div class="accordion-body">
+                        {% include 'dataview_form_view.html' %}
+                        <div class="form-button">
+                            <button class="settings-btn btn btn-primary" type="submit"
+                                form="viewBasicForm">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button fs-3 collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#settingsLayout" aria-expanded="false" aria-controls="settingsFilters">
+                        Layout Options
+                    </button>
+                </h2>
+                <div id="settingsLayout" class="accordion-collapse collapse" data-bs-parent="#viewSettingsAccordion">
+                    <div class="accordion-body">
+                        <div id="tableSettings"
+                            class="settings-layout {% if views.current.layout == 'list' %}d-none{% endif %}">
+                            {% include 'dataview_table_settings.html' %}
+                            <div class="form-button">
+                                <button class="settings-btn btn btn-primary" type="submit"
+                                    form="viewLayoutTableForm">Save</button>
+                            </div>
+                        </div>
+                        <div id="tableSettings"
+                            class="settings-layout {% if views.current.layout == 'table' %}d-none{% endif %}">
+                            {% include 'dataview_form_list.html' %}
+                            <div class="form-button">
+                                <button class="settings-btn btn btn-primary" type="submit"
+                                    form="viewBasicForm">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button fs-3 collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#settingsFilters" aria-expanded="false" aria-controls="settingsFilters">
+                        Filters
+                    </button>
+                </h2>
+                <div id="settingsFilters" class="accordion-collapse collapse" data-bs-parent="#viewSettingsAccordion">
+                    <div class="accordion-body">
+                        {% include 'data_filters_form.html' %}
+                        <div class="form-button">
+                            <button class="settings-btn btn btn-primary" type="submit"
+                                form="viewFiltersForm">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button fs-3 collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#settingsSort" aria-expanded="false" aria-controls="settingsSort">
+                        Sort
+                    </button>
+                </h2>
+                <div id="settingsSort" class="accordion-collapse collapse" data-bs-parent="#viewSettingsAccordion">
+                    <div class="accordion-body">
+                        {% include 'dataview_form_sort.html' %}
+                        <div class="form-button">
+                            <button class="settings-btn btn btn-primary" type="submit" form="viewSortForm">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-<div class="modal-footer">
-    <button class="settings-btn btn btn-primary" type="submit" form="table-settings-form">Save</button>
-    <button type="button" class="btn btn-secondary me-4" data-bs-dismiss="modal">Close</button>
+<div class="modal-footer border-0 py-4 px-0 justify-content-between">
+    <button
+        class="btn btn-outline-danger my-3 mx-0">{{ iconBtnContent(icon_class='bi bi-trash3', text='Delete View') }}</button>
+    <button type="button" class="btn btn-secondary my-3 mx-0" style="width: 150px;"
+        data-bs-dismiss="modal">Close</button>
 </div>
 {% endcall %}
-
-{% endif %}
 
 
 
 {% call dataview_settings_modal(title='Filters', id_post='filters') %}
-<div class="modal-body p-4">
-    <div class="mx-4">
+<div class="modal-body p-0">
+    <div class="modal-body-bg p-4">
         {% include 'data_filters_form.html' %}
     </div>
 </div>
-<div class="modal-footer">
+
+<div class="modal-footer p-4">
     {# Later TODO: Add button to clear/reset all filters #}
-    <button class="settings-btn btn btn-primary" type="submit" form="data-filters-form">Save</button>
-    <button type="button" class="btn btn-secondary me-4" data-bs-dismiss="modal">Close</button>
+    <button class="settings-btn btn btn-primary" type="submit" form="viewFiltersForm">Save</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>
 {% endcall %}

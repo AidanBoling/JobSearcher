@@ -1,3 +1,15 @@
+:root {
+    --bg-dark-overlay: rgba(16, 19, 22, 0.75);
+    --panel-container-bg-rgb: 25, 27, 45;
+
+    --panel-bg-darker-rgb: 22, 25, 30;
+    --panel-bg-rgb: 33, 37, 41;
+    --panel-bg-lighter-rgb: 43, 47, 51;
+
+    --btn-color-ltcolor-rgb: 199, 206, 255;
+}
+
+
 * {
     box-sizing: border-box;
 }
@@ -11,15 +23,6 @@ html {
     overflow-y: hidden;
 }
 
-/* body {
-    color: var(--foreground-text-default);
-    color: rgb(var(--foreground-rgb));
-    background: rgb(var(--background-start-rgb));
-    width: 100vw;
-    padding: 0;
-    margin: 0 !important;
-} */
-
 body {
     height: 100%;
     background: linear-gradient(to bottom, #282660 0%, #251a54 100%);
@@ -29,6 +32,10 @@ body {
     padding: 0;
     margin: 0 !important;
     overflow-x: hidden;
+}
+
+.navbar {
+    backdrop-filter: blur(8px);
 }
 
 main {
@@ -56,7 +63,7 @@ main {
     --btn-color: var(--bs-body-color);
     --hover-color: #fff;
     --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-    transition: color .10s ease-in-out, background-color .10s ease-in-out, border-color .10s ease-in-out, box-shadow .10s ease-in-out;
+    transition: color .08s ease-in-out, background-color .08s ease-in-out, border-color .08s ease-in-out, box-shadow .08s ease-in-out;
     border-radius: var(--bs-border-radius-sm);
 }
 
@@ -107,7 +114,7 @@ main {
 .btn-light-soft:hover,
 .btn-icon:hover,
 .btn-icon:active {
-    box-shadow: inset 0px 0px 50px rgba(255, 255, 255, 0.30);
+    box-shadow: inset 0px 0px 100px rgba(255, 255, 255, 0.30);
 }
 
 .btn-outline-light.soft:hover,
@@ -115,9 +122,55 @@ main {
     --bs-btn-font-weight: 450;
 }
 
+.btn.icon-radio {
+    width: 150px !important;
+    min-height: fit-content;
+    padding: .5rem;
+    padding-top: .75rem;
+
+    border-width: .2rem;
+    border-radius: .1rem;
+
+    --btn-color: #b3bbc3;
+    --hover-color: rgb(var(--btn-color-ltcolor-rgb));
+    --btn-border-color: var(--hover-color);
+
+    --bs-btn-color: var(--btn-color);
+    --bs-btn-bg: rgba(var(--panel-bg-darker-rgb), .65);
+    --bs-btn-border-color: transparent;
+
+    --bs-btn-disabled-color: #6c757d;
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: #6c757d;
+
+    box-shadow: 0px 0px 0px 1px rgba(var(--btn-color-ltcolor-rgb), 0.40);
+}
+
+.btn.icon-radio:hover,
+.btn.icon-radio:active,
+.btn-check:checked+.btn {
+    --bs-btn-color: rgb(var(--btn-color-ltcolor-rgb)) !important;
+    --bs-body-color: var(--bs-btn-color) !important;
+    --bs-btn-bg: rgba(var(--panel-bg-darker-rgb), .9) !important;
+    --bs-btn-active-bg: var(--bs-btn-bg);
+    --bs-btn-active-color: var(--bs-btn-color);
+    --bs-btn-border-color: rgba(var(--btn-color-ltcolor-rgb), 0.40);
+}
+
+.btn-check:checked+.btn:not(:focus-visible) {
+    box-shadow: unset;
+}
+
+.btn-check:checked+.btn {
+    border-color: rgb(var(--btn-color-ltcolor-rgb)) !important;
+}
+
+/* .btn-check:focus+.btn:focus-visible {
+    box-shadow: 0 0 0 var(--bs-focus-ring-width) var(--bs-focus-ring-color) !important;
+} */
+
 
 /* DATAVIEW SECTION */
-
 
 .dataview-frame {
     padding: 1.75rem;
@@ -135,7 +188,6 @@ main {
 #data-view-controls {
     /* background: #212529c0; */
     background: #101316c6;
-    /* border-bottom-width: .4rem !important; */
 }
 
 #data-view-controls>* {
@@ -176,10 +228,6 @@ main {
 
 /* DATAVIEW -- TABLE */
 
-/* #dataview-main .view-border {
-    border-top-width: .4rem !important;
-} */
-
 
 .table-container {
     overflow: scroll;
@@ -200,19 +248,9 @@ table {
     z-index: -5;
 }
 
-/* :root {
-    --table-bg-rgb: 33, 37, 41;
-    --table-bg-dark-rgb: 23, 27, 31;
-
-    --table-bg-lighter-rgb: 43, 47, 51;
-    --table-bg-lightest-rbg: 73, 77, 81;
-
-    --table-active-rgb: 55, 59, 62;
-    --table-active-lighter-rgb: 65, 69, 72;
-} */
 
 .table-dark {
-    --table-bg-rgb: 33, 37, 41;
+    --table-bg-rgb: var(--panel-bg-rgb);
     --table-bg-lighter-rgb: 43, 47, 51;
     --table-bg-lightest-rbg: 73, 77, 81;
 
@@ -232,9 +270,7 @@ table {
 }
 
 .table-dark .item-actions .btn-dark {
-    /* --btn-bg: #545d64f0; */
-    /* --btn-bg: #212529; */
-    --btn-color: #c7ceff;
+    --btn-color: rgb(199, 206, 255);
     --btn-bg: rgba(var(--table-bg-rgb), .4);
     --btn-hover-bg: rgba(var(--table-bg-rgb), .9);
 
@@ -288,19 +324,7 @@ tr .text-one-line {
 }
 
 tr .text-long {
-    /* --max-lines: 4; */
-
     min-width: 400px;
-    /* max-width: 400px; */
-    /* 
-    overflow-y: hidden;
-    text-overflow: ellipsis;
-
-    max-height: calc(1.5rem * var(--max-lines));
-    -webkit-box-orient: vertical;
-    display: block; */
-    /* display: -webkit-box; */
-    /* -webkit-line-clamp: var(--max-lines); */
 }
 
 
@@ -350,16 +374,6 @@ tr>th {
     background-color: rgba(245, 245, 245, 0.25);
 }
 
-/* .group-inner .g-col-inner {
-
-} */
-
-/* .group-inner .row.outer-row {
-
-} */
-
-
-
 .row.outer-row {
     --padding-y: .5rem !important;
     --bs-gutter-x: 0.5rem;
@@ -402,4 +416,111 @@ tr>th {
     padding-top: var(--padding-y);
     padding-bottom: var(--padding-y);
 
+}
+
+
+/* MODALS */
+
+.modal-backdrop.show {
+    opacity: 0.75;
+}
+
+.modal .modal-content {
+    --modal-bg: rgb(27, 25, 59);
+
+    border-radius: var(--bs-border-radius-xl);
+    border-color: var(--modal-bg);
+    border-width: .1rem;
+    /* background: rgba(var(--panel-container-bg-rgb), .95); */
+    background: var(--modal-bg);
+}
+
+.modal-content-bg {
+    --modal-content-px: 2.75rem;
+    /* background: rgba(16, 18, 22, 0.85); */
+    background: rgba(10, 12, 21, 0.9);
+    padding-left: var(--modal-content-px);
+    padding-right: var(--modal-content-px);
+}
+
+
+/* -- Dataview Settings */
+
+@media (min-width: 576px) {
+    .modal.dataview-settings-modal {
+        --bs-modal-margin: 1.75rem;
+        margin-top: 6rem;
+        margin-bottom: calc(var(--bs-modal-margin) * 4);
+    }
+}
+
+#settingsModal-layoutSettings #layoutRadiosContainer {
+    background: rgba(var(--panel-bg-rgb), .99);
+    column-gap: 2.5rem;
+}
+
+#table-settings-form fieldset.dropdown-menu.show {
+    transform: translate3d(0px, 19.3333px, 0px) !important;
+}
+
+.modal-content .accordion-flush,
+.modal-content .accordion {
+    --accordion-px: 2.5rem;
+
+    --bs-accordion-btn-padding-x: var(--accordion-px);
+    --bs-accordion-body-padding-x: var(--accordion-px);
+    --bs-accordion-body-padding-y: var(--accordion-px);
+    --bs-accordion-btn-bg: rgb(var(--panel-bg-rgb));
+    --bs-accordion-bg: rgb(var(--panel-bg-darker-rgb));
+    --bs-accordion-border-color: var(--bg-dark-overlay);
+    --bs-accordion-border-width: .65rem;
+}
+
+.modal-content .accordion-flush .accordion-item {
+    border-width: 0;
+}
+
+.accordion.vstack>* {
+    border-radius: var(--bs-border-radius-sm);
+}
+
+#viewSettingsAccordion {
+    --bs-accordion-active-color: rgb(var(--btn-color-ltcolor-rgb));
+    --bs-accordion-active-bg: rgba(var(--panel-bg-lighter-rgb), .9);
+}
+
+#viewSettingsAccordion .accordion-button {
+
+    &:focus-visible {
+        --bs-accordion-btn-focus-box-shadow: inset 0 0 0 0.25rem var(--bs-focus-ring-color);
+        outline: 0;
+        box-shadow: var(--bs-accordion-btn-focus-box-shadow);
+    }
+
+    &:focus:not(:focus-visible) {
+        --bs-accordion-btn-focus-box-shadow: 0 0 0 0.25rem transparent;
+        outline: 0;
+        box-shadow: none;
+    }
+
+    &:active {
+        outline: none;
+    }
+
+    &:hover {
+        background-color: rgba(var(--panel-bg-lighter-rgb), .9);
+    }
+
+    &:not(.collapsed):not(:focus-visible) {
+        box-shadow: none;
+    }
+}
+
+#viewSettingsAccordion .form-button {
+    margin-top: 2rem;
+    /* margin-bottom: 1rem; */
+}
+
+#viewSettingsAccordion .form-button button {
+    width: 150px;
 }

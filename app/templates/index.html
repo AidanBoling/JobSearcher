@@ -14,7 +14,7 @@
 
 <h1 id="posts-table-label" class="pt-2">Job Posts</h1>
 
-<div class="dataview-frame">
+<div class="dataview-frame shadow">
     <div class="d-flex mb-2 flex-row justify-content-between view-border" id="data-view-controls">
 
         <div class="d-flex flex-row">
@@ -54,7 +54,7 @@
     </div>
 
     <div class="d-flex">
-        <span class="align-self-end" aria-live=”polite” role=”region”>{{jobs|length}} Jobs</span>
+        <span class="align-self-end" aria-live=”polite” role=”region”> {{ jobs|length }} Jobs</span>
     </div>
 </div>
 
@@ -88,6 +88,10 @@
     viewsMenuButton.on('choose', function (choice) {
         const viewSelected = choice.innerText.trim()
         viewsButton.innerText = viewSelected
+
+        // TODO: Deal with when current view is deleted
+        // TODO: Handle when view is not found on backend
+        //      (i.e. need to figure how to update history, etc. Maybe throw error from backend?)
 
         function updateView(viewName) {
             const view = viewName.toLowerCase();

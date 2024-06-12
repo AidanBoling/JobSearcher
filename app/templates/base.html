@@ -29,7 +29,7 @@
 
     <body>
 
-        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark bg-gradient">
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark bg-opacity-25 border-bottom border-2 border-dark border-opacity-10 shadow">
             <div class="container-fluid">
                 <!-- <a class="navbar-brand" href="#">Fixed navbar</a> -->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" 
@@ -62,10 +62,7 @@
             <div class="mt-4">
                 <div class="container-md px-4 px-lg-5">
                     {% block content %}{% endblock %}
-                    <!-- <div class="row gx-4 gx-lg-5 justify-content-center">
-                        <div class="col-md-10 col-lg-8 col-xl-7">
-                        </div>
-                    </div> -->
+
                 </div>
             </div>
 
@@ -77,17 +74,6 @@
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/inclusive-menu-button.js') }}"></script>
-        <!-- 
-        <script
-            src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
-            integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
-            crossorigin="anonymous"></script>
-        <script
-            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
-            integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
-            crossorigin="anonymous"></script> -->
-        
-        
         {% endblock %}
     </body>
 </html>
