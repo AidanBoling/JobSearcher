@@ -66,7 +66,7 @@ def main():
     def get_view(view):
         # if error...
         #     # Q: make this a redirect (to table_layout, view='default') instead?
-        #     view_filters = saved_views.filters.default (all_view_filters.default)
+        #     view_filters = all_view_filters.default
         
         views_ctrl.set_current(view)
 
@@ -75,15 +75,22 @@ def main():
         return render_template('index.html', jobs=jobs, options=options, views=views, filters=filters, filter_options=filter_options)
 
 
-    @app.post('/views/<view>/update/settings/<section>/<setting>')
-    def update_view_settings(view, section, setting):
-        if view in views_ctrl.saved_views.names and request.form:
-            if section == 'layout':
-                views_ctrl.update_view_layout_settings(view, setting, request.form)
+    @app.post('/views/<view>/update/basics')
+    def update_view_basics(view):
+        if request.form:
+            print(request.form)
+            view = views_ctrl.update_view_name(view, request.form['name'])
+            views_ctrl.update_view_layout(view, request.form['view_layout'])
+            print('new view name: ', view)
+        return redirect(url_for('get_view', view=view))
+    
 
-
+    @app.post('/views/<view>/update/layout-options/<layout>')
+    def update_layout_options(view, layout):
+        if request.form:
+            views_ctrl.update_view_layout_settings(view, layout, request.form)
         return redirect(request.referrer)
-   
+
 
     @app.post('/views/<view>/update/filters')
     def update_filters(view):
@@ -92,6 +99,15 @@ def main():
 
         return redirect(request.referrer)
     
+
+    # TODO
+    @app.post('/views/<view>/update/sort')
+    def update_sort(view):
+        if request.form:
+            pass
+
+        return redirect(request.referrer)
+
     
     @app.post('/data/update/job/<int:id>')
     def update_job(id):
@@ -185,7 +201,9 @@ def update_global_data_filters_obj(data: dict):
 def get_job_data(view):
     jobs=''
 
-    view = views_ctrl.check_view(view)
+    if not views_ctrl.view_exists(view):
+            print('View doesn\'t exist -- using default.')
+            view = views_ctrl.default_view
     filter_group = views_ctrl.filters_control.db_filter_groups[view]
     
     if filter_group:
@@ -200,13 +218,16 @@ def get_template_variables(view):
 
     jobs = get_job_data(view)
 
+    # TODO: Delete filters (now not used)
     filters={'settings': filter_options,
-            'current': views_ctrl.current_view['filters']['saved']}
+            # 'current': views_ctrl.current_view['filters']['saved']
+            }
 
     views={'current': views_ctrl.current_view, 
         'names': views_ctrl.saved_views.names,
-        'layouts': views_ctrl.get_all_layouts()}
-    #TODO: Check if actually use views.layouts
+        # 'layouts': views_ctrl.get_all_layouts()
+        }
+    #[x] TODO: Check if actually use views.layouts
     
     options = views_ctrl.current_view['layout_options']
 

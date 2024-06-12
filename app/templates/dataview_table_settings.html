@@ -10,7 +10,7 @@ onsubmit="announceSave()" id="viewLayoutTableForm" class="vstack gap-1">
         </button>
         <fieldset class="dropdown-menu px-5 position-relative rounded-1">
             <legend class="visually-hidden">Show/Hide Table Columns</legend>
-            {% for field in options.job_fields %}
+            {% for field in options.table.job_fields %}
             <div class="form-check p-2">
                 {% if field.hidden %}
 

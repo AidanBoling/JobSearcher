@@ -4,6 +4,6 @@
     {# TODO: Check accessibility of labeling for this setup #}
 
     <div class="container-fluid">
-        {{ filter_group(filter_options=filter_options, job_fields=options.job_fields, filters_current=views.current.filters.saved) }}
+        {{ filter_group(filter_options=filter_options, job_fields=options.table.job_fields, filters_current=views.current.filters.saved) }}
     </div>
 </form>

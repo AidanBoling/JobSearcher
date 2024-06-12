@@ -11,4 +11,6 @@ def update_table_settings(layout_options: dict, data: dict):
 
 
 def update_list_settings(layout_options: dict, data: dict):
-    pass
+    # TODO
+
+    return layout_options

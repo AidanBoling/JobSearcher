@@ -1,7 +1,7 @@
 {% macro text_input(label, id, name, value='', container_class='my-3') %}
 <div class="{{ container_class }}">
     <label for="{{ id }}" class="form-label">{{ label }}</label>
-    <input type="text" class="form-control" id="{{ id }}" name="{{ id }}" value="{{ value }}" />
+    <input type="text" class="form-control" id="{{ id }}" name="{{ name }}" value="{{ value }}" />
 </div>
 {% endmacro %}
 
@@ -9,20 +9,20 @@
 <div class="{{ container_class }}">
     <label for="{{ id }}" class="form-label">{{ label }}</label>
     <textarea rows="{{ rows }}" class="form-control overscroll-contain" id="{{ id }}"
-        name="{{ id }}">{{ value }}</textarea>
+        name="{{ name }}">{{ value }}</textarea>
 </div>
 {% endmacro %}
 
 {% macro number_input(label, id, name, value='', container_class='my-3') %}
 <div class="{{ container_class }}">
     <label for="{{ id }}" class="form-label">{{ label }}</label>
-    <input type="number" class="form-control" id="{{ id }}" name="{{ id }}" value="{{ value }}" />
+    <input type="number" class="form-control" id="{{ id }}" name="{{ name }}" value="{{ value }}" />
 </div>
 {% endmacro %}
 
 {% macro date_input(label, id, name, value='', container_class='my-3') %}
 <div class="{{ container_class }}">
     <label for="{{ id }}" class="form-label">{{ label }}</label>
-    <input type="date" class="form-control" id="{{ id }}" name="{{ id }}" value="{{ value }}" />
+    <input type="date" class="form-control" id="{{ id }}" name="{{ name }}" value="{{ value }}" />
 </div>
 {% endmacro %}

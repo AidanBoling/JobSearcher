@@ -1,20 +1,9 @@
 {% from 'modals.html' import dataview_settings_modal %}
+{% from 'general_components.html' import iconBtnContent %}
 
 {% if views.current.layout == 'list' %}
 <div id="dataview-list">
 </div>
-{# 
-{% call dataview_settings_modal(title='List Settings', id_post='layoutSettings') %}
-<div class="modal-body">
-    <div class="modal-body-bg p-4">
-        {% include 'dataview_form_list.html' %}
-    </div>
-</div>
-<div class="modal-footer">
-    <button class="settings-btn btn btn-primary" type="submit" form="list-settings-form">Save</button>
-    <button type="button" class="btn btn-secondary me-4" data-bs-dismiss="modal">Close</button>
-</div>
-{% endcall %} #}
 
 
 {% else %}
@@ -37,7 +26,7 @@
                 </h2>
                 <div id="settingsView" class="accordion-collapse collapse show" data-bs-parent="#viewSettingsAccordion">
                     <div class="accordion-body">
-                        {% include 'dataview_form_view.html' %}
+                        {% include 'dataview_form_basics.html' %}
                         <div class="form-button">
                             <button class="settings-btn btn btn-primary" type="submit"
                                 form="viewBasicForm">Save</button>

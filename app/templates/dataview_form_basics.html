@@ -10,7 +10,7 @@
 </svg>
 
 {% macro radio_icon_btn_input(name, id, svg_href, icon_w, icon_h, label_text, label_class='', checked=false) %}
-<input type="radio" class="btn-check" name="view_layout" id="{{ id }}" autocomplete="off" {% if checked %}checked{% endif %}>
+<input type="radio" class="btn-check" name="{{ name }}" id="{{ id }}" value="{{ label_text|lower }}" autocomplete="off" {% if checked %}checked{% endif %}>
 <label class="btn {{ label_class }}" for="{{ id }}">
     <svg aria-hidden="true" focusable="false" width="{{ icon_w }}" height="{{ icon_h }}">
         <use href="{{ svg_href }}" xlink:href="{{ svg_href }}"/>
