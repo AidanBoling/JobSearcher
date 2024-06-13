@@ -59,20 +59,19 @@
 {% endmacro %}
 
 
-{# FIXME: Scrollable functionality is not working #}
 {% macro dataview_settings_modal(title,  id_post) %}
 <div id="settingsModal-{{ id_post }}" class="modal dataview-settings-modal" tabindex="-1"
     aria-labelledby="settingsModalLabel-{{ id_post }}" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-lg modal-fullscreen-lg-down">
         <div class="modal-content">
-            <div class="modal-content-bg">
-                <div class="modal-header py-4 px-0 border-0">
-                    <h1 class="modal-title ms-auto me-auto" id="settingsModalLabel-{{ id_post }}">{{ title }}</h1>
-                    <button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                {{ caller() }}
+            {# <div class="modal-content-bg"> #}
+            <div class="modal-header py-3 border-0 modal-content-bg modal-gradient-bg">
+                <h1 class="modal-title ms-auto me-auto" id="settingsModalLabel-{{ id_post }}">{{ title }}</h1>
+                <button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            {{ caller() }}
         </div>
     </div>
+</div>
 </div>
 {% endmacro %}

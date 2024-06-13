@@ -14,10 +14,10 @@
 {% endif %}
 
 {% call dataview_settings_modal(title='View Settings', id_post='layoutSettings') %}
-<div class="modal-body p-0">
+<div class="modal-body px-5 py-4 modal-content-bg">
     <div class="modal-body-bg">
-        <div class="accordion accordion-flush vstack gap-4" id="viewSettingsAccordion">
-            <div class="accordion-item">
+        <div class="accordion accordion-flush vstack gap-2" id="viewSettingsAccordion">
+            <div class="accordion-item shadow">
                 <h2 class="accordion-header">
                     <button class="accordion-button fs-3" type="button" data-bs-toggle="collapse"
                         data-bs-target="#settingsView" aria-expanded="true" aria-controls="settingsView">
@@ -34,7 +34,7 @@
                     </div>
                 </div>
             </div>
-            <div class="accordion-item">
+            <div class="accordion-item shadow">
                 <h2 class="accordion-header">
                     <button class="accordion-button fs-3 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#settingsLayout" aria-expanded="false" aria-controls="settingsFilters">
@@ -62,7 +62,7 @@
                     </div>
                 </div>
             </div>
-            <div class="accordion-item">
+            <div class="accordion-item shadow">
                 <h2 class="accordion-header">
                     <button class="accordion-button fs-3 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#settingsFilters" aria-expanded="false" aria-controls="settingsFilters">
@@ -79,7 +79,7 @@
                     </div>
                 </div>
             </div>
-            <div class="accordion-item">
+            <div class="accordion-item shadow">
                 <h2 class="accordion-header">
                     <button class="accordion-button fs-3 collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#settingsSort" aria-expanded="false" aria-controls="settingsSort">
@@ -98,7 +98,7 @@
         </div>
     </div>
 </div>
-<div class="modal-footer border-0 py-4 px-0 justify-content-between">
+<div class="modal-footer py-3 modal-content-bg modal-gradient-bg border-0 justify-content-between">
     <button
         class="btn btn-outline-danger my-3 mx-0">{{ iconBtnContent(icon_class='bi bi-trash3', text='Delete View') }}</button>
     <button type="button" class="btn btn-secondary my-3 mx-0" style="width: 150px;"

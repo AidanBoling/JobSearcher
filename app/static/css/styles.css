@@ -431,7 +431,6 @@ tr>th {
     border-radius: var(--bs-border-radius-xl);
     border-color: var(--modal-bg);
     border-width: .1rem;
-    /* background: rgba(var(--panel-container-bg-rgb), .95); */
     background: var(--modal-bg);
 }
 
@@ -443,14 +442,23 @@ tr>th {
     padding-right: var(--modal-content-px);
 }
 
+.modal-gradient-bg {
+    --inner-bg-rgb: 10, 12, 21;
+    --direction: to bottom;
+    background: linear-gradient(var(--direction), rgba(var(--inner-bg-rgb), 0.9) 0%, rgba(var(--inner-bg-rgb), 0.7) 98%, rgba(var(--inner-bg-rgb), 0.95) 100%);
+}
+
+.modal-gradient-bg.modal-footer {
+    --direction: to top;
+}
+
+
 
 /* -- Dataview Settings */
 
 @media (min-width: 576px) {
     .modal.dataview-settings-modal {
-        --bs-modal-margin: 1.75rem;
-        margin-top: 6rem;
-        margin-bottom: calc(var(--bs-modal-margin) * 4);
+        --bs-modal-margin: calc(1rem + 4vh);
     }
 }
 
@@ -468,6 +476,7 @@ tr>th {
     --accordion-px: 2.5rem;
 
     --bs-accordion-btn-padding-x: var(--accordion-px);
+    --bs-accordion-btn-padding-y: .75rem;
     --bs-accordion-body-padding-x: var(--accordion-px);
     --bs-accordion-body-padding-y: var(--accordion-px);
     --bs-accordion-btn-bg: rgb(var(--panel-bg-rgb));
