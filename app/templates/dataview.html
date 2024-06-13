@@ -2,16 +2,22 @@
 {% from 'general_components.html' import iconBtnContent %}
 
 {% if views.current.layout == 'list' %}
-<div id="dataview-list">
+<div id="dataviewList">
 </div>
 
 
 {% else %}
-<div id="dataview-table">
+<div id="dataviewTable">
     {% include 'posts_table.html' %}
 </div>
 
 {% endif %}
+
+<div id="resultsInfo" class="d-flex">
+    <span class="align-self-end" aria-live=”polite” role=”region”> {{ jobs|length }} Jobs</span>
+</div>
+
+
 
 {% call dataview_settings_modal(title='View Settings', id_post='layoutSettings') %}
 <div class="modal-body px-5 py-4 modal-content-bg">

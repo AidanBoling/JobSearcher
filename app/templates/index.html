@@ -17,7 +17,7 @@
 <h1 id="posts-table-label" class="pt-2">Job Posts</h1>
 
 <div class="dataview-frame shadow">
-    <div class="d-flex mb-2 justify-content-between view-border" id="data-view-controls">
+    <div class="d-flex mb-2 justify-content-between view-border" id="dataviewControls">
 
         <div class="d-flex flex-row align-items-center" style="column-gap: .5rem">
             <label class="me-2 fs-5" id="views-label">View </label>
@@ -33,7 +33,6 @@
                         {% if view == views.current.name %}aria-checked="true"
                         {% endif %}>{{ view|capitalize }}</button>
                     {% endfor %}
-
                 </div>
             </div>
             <button class="btn btn-light-soft btn-icon" type="button" data-bs-toggle="modal"
@@ -56,13 +55,10 @@
 
     </div>
 
-    <div id="dataview-main">
+    <div id="dataviewMain">
         {% include 'dataview.html' %}
     </div>
 
-    <div class="d-flex">
-        <span class="align-self-end" aria-live=”polite” role=”region”> {{ jobs|length }} Jobs</span>
-    </div>
 </div>
 
 {% call dataview_settings_modal(title='Create New View', id_post='createView') %}
@@ -100,18 +96,18 @@
     const viewsButton = document.querySelector('[data-inclusive-menu-opens="views-menu"]')
     const viewsMenuButton = new MenuButton(viewsButton, { checkable: 'one' })
 
-    const changeViewForm = document.getElementById('change-view-form')
-    const dataviewSection = document.querySelector('#dataview-main')
+    //const changeViewForm = document.getElementById('change-view-form')
+    const dataviewSection = document.querySelector('#dataviewMain')
 
-    const dataviewTable = document.querySelector('#dataview-table')
-    const dataviewList = document.querySelector('#dataview-list')
+    const dataviewTable = document.querySelector('#dataviewTable')
+    const dataviewList = document.querySelector('#dataviewList')
 
     // Listen to choose event
     viewsMenuButton.on('choose', function (choice) {
         const viewSelected = choice.innerText.trim()
         viewsButton.innerText = viewSelected
 
-        // TODO: Deal with when current view is deleted
+        // TODO: Deal with when current view is deleted (remove from history...?)
         // TODO: Handle when view is not found on backend
         //      (i.e. need to figure how to update history, etc. Maybe throw error from backend?)
 

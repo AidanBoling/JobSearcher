@@ -193,12 +193,12 @@ main {
 
 /* DATAVIEW -- View Controls */
 
-#data-view-controls {
+#dataviewControls {
     /* background: #212529c0; */
     background: #101316c6;
 }
 
-#data-view-controls>* {
+#dataviewControls>* {
     padding: 1rem;
 }
 
