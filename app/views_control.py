@@ -166,7 +166,10 @@ class ViewsControl:
 
     def delete_view(self, name: str):
         name = name.lower().strip()
-        
+        if name == self.default_view:
+            print(f'View "{name}" can\'t be deleted while it is set as the default view.')
+            return
+
         if name not in self.saved_views.names and not self.saved_views.views.get(name):
             print(f'View to be deleted, "{name}", does not exist.')
             return

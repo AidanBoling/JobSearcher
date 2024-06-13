@@ -1,4 +1,4 @@
-{% from 'modals.html' import dataview_settings_modal %}
+{% from 'modals.html' import dataview_settings_modal, confirmation_modal %}
 {% from 'general_components.html' import iconBtnContent %}
 
 {% if views.current.layout == 'list' %}
@@ -99,8 +99,8 @@
     </div>
 </div>
 <div class="modal-footer py-3 modal-content-bg modal-gradient-bg border-0 justify-content-between">
-    <button
-        class="btn btn-outline-danger my-3 mx-0">{{ iconBtnContent(icon_class='bi bi-trash3', text='Delete View') }}</button>
+    <button class="btn btn-outline-danger my-3 mx-0" data-bs-target="#confirmModal-deleteConfirm"
+        data-bs-toggle="modal">{{ iconBtnContent(icon_class='bi bi-trash3', text='Delete View') }}</button>
     <button type="button" class="btn btn-secondary my-3 mx-0" style="width: 150px;"
         data-bs-dismiss="modal">Close</button>
 </div>
@@ -109,15 +109,35 @@
 
 
 {% call dataview_settings_modal(title='Filters', id_post='filters') %}
-<div class="modal-body p-0">
+<div class="modal-body p-0 modal-content-bg">
     <div class="modal-body-bg p-4">
         {% include 'data_filters_form.html' %}
     </div>
 </div>
 
-<div class="modal-footer p-4">
+<div class="modal-footer p-4 modal-content-bg">
     {# Later TODO: Add button to clear/reset all filters #}
     <button class="settings-btn btn btn-primary" type="submit" form="viewFiltersForm">Save</button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>
+{% endcall %}
+
+
+{% call confirmation_modal(title='Are You Sure?', id_post='deleteConfirm') %}
+
+<div class="modal-body px-5 pb-0 pt-5 modal-content-bg text-center">
+    <p class="fs-5">
+        The following view will be deleted:
+    </p>
+    <p class="fs-3">{{ views.current.name | capitalize }}</p>
+</div>
+<div class="modal-footer py-5 border-0 modal-content-bg justify-content-evenly" style="column-gap: 2.5rem;">
+    <form action="{{ url_for( 'delete_view', view=views.current.name) }}" method="POST"
+        onsubmit="sendToLiveRegion('Delete request submitted.')">
+        {# Later TODO: Check live region message - change? #}
+        <button class="settings-btn btn btn-danger btn-lg w-200" type="submit">Delete</button>
+    </form>
+    <button type="button" class="btn btn-secondary btn-lg w-200" data-bs-dismiss="modal">Cancel</button>
+</div>
+
 {% endcall %}

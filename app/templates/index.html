@@ -66,19 +66,17 @@
 </div>
 
 {% call dataview_settings_modal(title='Create New View', id_post='createView') %}
-<div class="modal-body p-0">
-    <div class="modal-body-bg py-3">
-        <form action="{{ url_for( 'create_view' ) }}" method="POST" id="createViewForm">
-            {{ text_input(label='Name', id='newViewName', name='name', value='', container_class='mb-3 fs-4 px-1') }}
-        </form>
-    </div>
+<div class="modal-body py-3 modal-content-bg">
+    {# <div class="modal-body-bg py-3"> #}
+    <form action="{{ url_for( 'create_view' ) }}" method="POST" id="createViewForm">
+        {{ text_input(label='Name', id='newViewName', name='name', value='', container_class='mb-3 fs-4 px-1') }}
+    </form>
+    {# </div> #}
 </div>
 
-<div class="modal-footer p-0 pb-5 pt-3 justify-content-evenly border-0">
-    <button class="settings-btn btn btn-primary btn-lg" type="submit" form="createViewForm"
-        style="width: 150px">Save</button>
-    <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal"
-        style="width: 150px">Cancel</button>
+<div class="modal-footer pb-5 pt-3 modal-content-bg justify-content-evenly border-0">
+    <button class="settings-btn btn btn-primary btn-lg w-200" type="submit" form="createViewForm">Save</button>
+    <button type="button" class="btn btn-outline-secondary btn-lg w-200" data-bs-dismiss="modal">Cancel</button>
 </div>
 {% endcall %}
 

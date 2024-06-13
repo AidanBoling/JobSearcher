@@ -57,6 +57,14 @@ main {
     overscroll-behavior: contain;
 }
 
+.w-150 {
+    width: 150px;
+}
+
+.w-200 {
+    width: 200px;
+}
+
 /* Buttons */
 
 .btn {
@@ -427,6 +435,7 @@ tr>th {
 
 .modal .modal-content {
     --modal-bg: rgb(27, 25, 59);
+    --modal-content-px: 2.75rem;
 
     border-radius: var(--bs-border-radius-xl);
     border-color: var(--modal-bg);
@@ -438,6 +447,12 @@ tr>th {
     --modal-content-px: 2.75rem;
     /* background: rgba(16, 18, 22, 0.85); */
     background: rgba(10, 12, 21, 0.9);
+    padding-left: var(--modal-content-px);
+    padding-right: var(--modal-content-px);
+}
+
+.modal-bg-lighter {
+    background: rgba(10, 12, 21, 0.7);
     padding-left: var(--modal-content-px);
     padding-right: var(--modal-content-px);
 }

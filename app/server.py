@@ -98,7 +98,7 @@ def main():
         return redirect(request.referrer)
     
 
-    # TODO
+    # TODO: Implement sort
     @app.post('/views/<view>/update/sort')
     def update_sort(view):
         if request.form:
@@ -107,7 +107,7 @@ def main():
         return redirect(request.referrer)
 
     
-    @app.post('/create')
+    @app.post('/create-view')
     def create_view():
         if request.form:
             view = views_ctrl.create_view(request.form['name'])
@@ -117,12 +117,23 @@ def main():
         return redirect(url_for('dataview'))
 
 
+    @app.post('/delete-view/<view>')
+    def delete_view(view):
+        view = views_ctrl.delete_view(view)
+        if view:
+            return redirect(url_for('get_view', view=views_ctrl.default_view))
+        
+        return redirect(url_for('dataview'))
+        # Later TODO: Send message notifying of failure + reason (or success + reason)
+
+
     @app.post('/data/update/job/<int:id>')
     def update_job(id):
         if request.form:
             db_control.update_one(id, request.form)
         return redirect(url_for('dataview'))
     
+
     # @app.delete('/data/delete/job/<int:id>')
     # def delete_job(id):
     #     db_control.update_one(id, request.form)
