@@ -92,7 +92,6 @@ class ViewsControl:
         
         saved_view = self.saved_views.views[view]
         saved_view['layout'] = layout
-        self.saved_views.views[view] = saved_view
         self.save_views()
 
         return layout
@@ -102,41 +101,38 @@ class ViewsControl:
         if not self.view_exists(view):
             return
        
-        saved_view = self.saved_views.views[view]
-        view_layout_options = saved_view['layout_options']
+        layout_options = self.saved_views.views[view]['layout_options']
         
+        # If view doesn't yet have options for the given layout, first pull defaults, THEN update accordingly 
         if layout == 'table':
-            if not view_layout_options.get('table'):
-                view_layout_options['table'] = self.default_settings.table
+            if not layout_options.get('table'):
+                layout_options['table'] = self.default_settings.table
             
-            view_layout_options['table'] = update_table_settings(view_layout_options['table'], options)
+            layout_options['table'] = update_table_settings(layout_options['table'], options)
 
         else:
-            if not view_layout_options.get('list'):
-                view_layout_options['list'] = self.default_settings.list
+            if not layout_options.get('list'):
+                layout_options['list'] = self.default_settings.list
             
-            view_layout_options['list'] = update_list_settings(view_layout_options['list'], options)
+            layout_options['list'] = update_list_settings(layout_options['list'], options)
 
-        self.saved_views.views[view] = view_layout_options['list']
         self.save_views()
 
 
     def update_view_data_filters(self, view: str, data: dict):
-
+        if not self.view_exists(view):
+            return
+        
         filter_group_dict = self.filters_control.form_response_to_dict(data)
         print(f'\nUpdating filters for view "{view}": ', filter_group_dict)
-        
-        # if not view or view == 'current':
-        #     self.filters_control.current_filters = filter_group_dict
-        
+                
         # Update and save view 
         self.saved_views.views[view]['job_filters'] = filter_group_dict
         self.save_views()
 
         # Update filters_control
-        self.filters_control.view_filters[view] = self.saved_views.views[view]['job_filters']
+        self.filters_control.view_filters[view] = filter_group_dict
         # self.filters_control.update_filters(self.get_all_filters())
-
         self.filters_control.update_view_db_filter_group(view)
 
         # Later TODO (maybe): Allow save view filters separate from "saving" filters
@@ -163,7 +159,7 @@ class ViewsControl:
 
             self.filters_control.update_filters(self.get_all_filters())
 
-            return self.saved_views.views[name]
+            return name
         
         # Later TODO (maybe): Make dataclass for view, use for create_view
 
