@@ -38,8 +38,6 @@ with app.app_context():
     filter_options = views_ctrl.filters_control.frontend_filters
 
 
-# TODO: Be able to create new view.
-
 def main():
     @app.route('/',)
     def dataview():        
@@ -109,13 +107,22 @@ def main():
         return redirect(request.referrer)
 
     
+    @app.post('/create')
+    def create_view():
+        if request.form:
+            view = views_ctrl.create_view(request.form['name'])
+            if view:
+                return redirect(url_for('get_view', view=view))
+        
+        return redirect(url_for('dataview'))
+
+
     @app.post('/data/update/job/<int:id>')
     def update_job(id):
         if request.form:
             db_control.update_one(id, request.form)
         return redirect(url_for('dataview'))
     
-
     # @app.delete('/data/delete/job/<int:id>')
     # def delete_job(id):
     #     db_control.update_one(id, request.form)

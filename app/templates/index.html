@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% from 'general_components.html' import iconBtnContent %}
+{% from 'modals.html' import dataview_settings_modal %}
+{% from 'form.html' import text_input %}
 
 {% block page_title %}View Job Posts{% endblock %}
 
@@ -8,17 +10,17 @@
 {# TODO: Add ability to change sort-by field(s) #}
 
 <!-- Later TODO: Move this live region to a better location. -->
-<div role="status" aria-live="polite">
+<div role="status" aria-live="polite" class="visually-hidden">
     <!-- add content to hear it spoken -->
 </div>
 
 <h1 id="posts-table-label" class="pt-2">Job Posts</h1>
 
 <div class="dataview-frame shadow">
-    <div class="d-flex mb-2 flex-row justify-content-between view-border" id="data-view-controls">
+    <div class="d-flex mb-2 justify-content-between view-border" id="data-view-controls">
 
-        <div class="d-flex flex-row">
-            <label class="me-2 align-self-center fs-5" id="views-label">View </label>
+        <div class="d-flex flex-row align-items-center" style="column-gap: .5rem">
+            <label class="me-2 fs-5" id="views-label">View </label>
             <div class="dropdown" id="saved-views-dropdown" data-inclusive-menu aria-labelledby="views-label">
                 <button
                     class="dropdown-toggle btn btn-outline-light btn-light-soft rounded-1 d-flex flex-row align-items-center"
@@ -31,8 +33,13 @@
                         {% if view == views.current.name %}aria-checked="true"
                         {% endif %}>{{ view|capitalize }}</button>
                     {% endfor %}
+
                 </div>
             </div>
+            <button class="btn btn-light-soft btn-icon" type="button" data-bs-toggle="modal"
+                data-bs-target="#settingsModal-createView">
+                {{ iconBtnContent('bi bi-plus-lg', 'Create View', icon_style='font-size: 1.1rem;') }}
+            </button>
         </div>
 
         <div class="btn-group" role="group" aria-label="View Settings">
@@ -57,6 +64,23 @@
         <span class="align-self-end" aria-live=”polite” role=”region”> {{ jobs|length }} Jobs</span>
     </div>
 </div>
+
+{% call dataview_settings_modal(title='Create New View', id_post='createView') %}
+<div class="modal-body p-0">
+    <div class="modal-body-bg py-3">
+        <form action="{{ url_for( 'create_view' ) }}" method="POST" id="createViewForm">
+            {{ text_input(label='Name', id='newViewName', name='name', value='', container_class='mb-3 fs-4 px-1') }}
+        </form>
+    </div>
+</div>
+
+<div class="modal-footer p-0 pb-5 pt-3 justify-content-evenly border-0">
+    <button class="settings-btn btn btn-primary btn-lg" type="submit" form="createViewForm"
+        style="width: 150px">Save</button>
+    <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal"
+        style="width: 150px">Cancel</button>
+</div>
+{% endcall %}
 
 
 {% endblock %}
@@ -153,8 +177,15 @@
             const myInput = e.target.querySelector('.edit-modal input')
             myInput.focus()
         })
-    }
-    )
+    })
+
+    // Put focus on create view modal input
+    const createViewModal = document.getElementById('settingsModal-createView')
+
+    createViewModal.addEventListener('shown.bs.modal', (e) => {
+        const firstInput = e.target.querySelector('.form-control')
+        firstInput.focus()
+    })
 
 
     // example LIVE REGION script -- for alert/status messages to be read by Voice Readers 
