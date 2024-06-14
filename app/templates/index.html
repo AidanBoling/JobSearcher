@@ -37,7 +37,7 @@
             </div>
             <button class="btn btn-light-soft btn-icon" type="button" data-bs-toggle="modal"
                 data-bs-target="#settingsModal-createView">
-                {{ iconBtnContent('bi bi-plus-lg', 'Create View', icon_style='font-size: 1.1rem;') }}
+                {{ iconBtnContent('bi bi-plus-lg', 'Create View', icon_style='font-size: 1.2rem;') }}
             </button>
         </div>
 
@@ -45,6 +45,11 @@
             <button class="btn btn-outline-light btn-light-soft btn-icon" type="button" data-bs-toggle="modal"
                 data-bs-target="#settingsModal-filters">
                 {{ iconBtnContent('bi bi-funnel', 'Filters', icon_style='font-size: 1.2rem;') }}
+            </button>
+            <div class="vr"></div>
+            <button class="btn btn-outline-light btn-light-soft btn-icon" type="button" data-bs-toggle="modal"
+                data-bs-target="#settingsModal-sort">
+                {{ iconBtnContent('bi bi-arrow-down-up', 'Sort', icon_style='font-size: 1.2rem;') }}
             </button>
             <div class="vr"></div>
             <button class="btn btn-outline-light btn-light-soft btn-icon" type="button" data-bs-toggle="modal"
@@ -86,6 +91,7 @@
 {% include 'data_filters_js.html' %}
 
 <script>
+    const sortOptions = {{ sort_options | tojson }}
 
     // VIEW NAVIGATION
 

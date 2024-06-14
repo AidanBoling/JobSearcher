@@ -5,8 +5,7 @@ from filters_db import DbFilterGroup
 from models.base import Base
 
        
-DEFAULT_SORT = 'id'
-
+DEFAULT_SORT = [('id', 'asc')]
 
 
 class DbControl:
@@ -28,14 +27,16 @@ class JobDbControl(DbControl):
         super().__init__(db=db, db_model=JobPost)
 
 
-    def get_list(self, filter_group: DbFilterGroup=None, sort_by: str=DEFAULT_SORT):   
+    def get_list(self, filter_group: DbFilterGroup=None, sort_by: list[list]=DEFAULT_SORT):           
+        sort_by_list = self.sort_to_db_sort(sort_by)
 
         query = ''
         if filter_group is not None and filter_group:
-            query = db.select(self.model).where(filter_group.op_expression()).order_by(self.col_map[sort_by])
+            query = db.select(self.model).where(filter_group.op_expression()).order_by(*sort_by_list)
+
         else:
-            query = db.select(self.model).order_by(self.col_map[sort_by])
-        
+            query = db.select(self.model).order_by(*sort_by_list)
+
         jobs = db.session.execute(query).scalars().all()
         return jobs
 
@@ -47,12 +48,14 @@ class JobDbControl(DbControl):
         return ids
     
 
-    def get_from_col(self, column: str, unique: bool=False, filter_group: DbFilterGroup=None, sort_by: str=DEFAULT_SORT):
+    def get_from_col(self, column: str, unique: bool=False, filter_group: DbFilterGroup=None, sort_by: list[tuple]=DEFAULT_SORT):
+        sort_by_list = self.sort_to_db_sort(sort_by)
+
         query = ''
         if filter_group is None:
-            query = self.db.select(self.col_map[column]).order_by(self.col_map[sort_by])
+            query = self.db.select(self.col_map[column]).order_by(*sort_by_list)
         else:
-            query = self.db.select(self.col_map[column]).where(filter_group.op_expression()).order_by(self.col_map[sort_by])
+            query = self.db.select(self.col_map[column]).where(filter_group.op_expression()).order_by(*sort_by_list)
         
         if unique:
             return self.db.session.execute(query).unique().scalars().all()
@@ -128,7 +131,20 @@ class JobDbControl(DbControl):
                return parse(date, settings={'RETURN_AS_TIMEZONE_AWARE': True})
         except KeyError:
             pass
+    
+
+    def sort_to_db_sort(self, sort: list[list]):
+        # Later TODO (prob): Move this to a separate class (like did for filters in DBFilterGroups)
+        db_sort_list = []
+        for col_name, order in sort:
+            order = order.lower().strip()
+            
+            if not order or order == 'asc':
+                db_sort_list.append(self.col_map[col_name].asc())
+            elif order == 'desc':
+                db_sort_list.append(self.col_map[col_name].desc())
         
+        return db_sort_list
 
 
 

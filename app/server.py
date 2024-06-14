@@ -55,9 +55,9 @@ def main():
                 view = selected_view
 
         views_ctrl.set_current(view)
-        jobs, options, views, filters, filter_options = get_template_variables(view)
+        jobs, options, views, filters, filter_options, sort_options = get_template_variables(view)
         
-        return render_template('dataview.html', jobs=jobs, options=options, views=views, filters=filters, filter_options=filter_options)
+        return render_template('dataview.html', jobs=jobs, options=options, views=views, filters=filters, filter_options=filter_options, sort_options=sort_options)
 
 
     @app.get('/views/<view>')
@@ -68,18 +68,17 @@ def main():
         
         views_ctrl.set_current(view)
 
-        jobs, options, views, filters, filter_options = get_template_variables(view)
+        jobs, options, views, filters, filter_options, sort_options = get_template_variables(view)
 
-        return render_template('index.html', jobs=jobs, options=options, views=views, filters=filters, filter_options=filter_options)
+        return render_template('index.html', jobs=jobs, options=options, views=views, filters=filters, filter_options=filter_options, sort_options=sort_options)
 
 
     @app.post('/views/<view>/update/basics')
     def update_view_basics(view):
         if request.form:
-            print(request.form)
             view = views_ctrl.update_view_name(view, request.form['name'])
             views_ctrl.update_view_layout(view, request.form['view_layout'])
-            print('new view name: ', view)
+            # print('new view name: ', view)
         return redirect(url_for('get_view', view=view))
     
 
@@ -93,7 +92,7 @@ def main():
     @app.post('/views/<view>/update/filters')
     def update_filters(view):
         if request.form:
-            views_ctrl.update_view_data_filters(request.form, view)
+            views_ctrl.update_view_data_filters(view, request.form)
 
         return redirect(request.referrer)
     
@@ -102,7 +101,7 @@ def main():
     @app.post('/views/<view>/update/sort')
     def update_sort(view):
         if request.form:
-            pass
+            views_ctrl.update_view_sort(view, request.form)
 
         return redirect(request.referrer)
 
@@ -220,14 +219,16 @@ def get_job_data(view):
     jobs=''
 
     if not views_ctrl.view_exists(view):
-            print('View doesn\'t exist -- using default.')
-            view = views_ctrl.default_view
+        print('View doesn\'t exist -- using default.')
+        view = views_ctrl.default_view
+
     filter_group = views_ctrl.filters_control.db_filter_groups[view]
+    sort = views_ctrl.saved_views.views[view]['sort']
     
     if filter_group:
-        jobs = db_control.get_list(filter_group=filter_group)
+        jobs = db_control.get_list(filter_group=filter_group, sort_by=sort)
     else:
-        jobs = db_control.get_list()
+        jobs = db_control.get_list(sort_by=sort)
     
     return jobs
 
@@ -237,21 +238,23 @@ def get_template_variables(view):
     jobs = get_job_data(view)
 
     # TODO: Delete filters (now not used)
-    filters={'settings': filter_options,
-            # 'current': views_ctrl.current_view['filters']['saved']
-            }
+    filters={'settings': filter_options}
 
     views={'current': views_ctrl.current_view, 
-        'names': views_ctrl.saved_views.names,
-        # 'layouts': views_ctrl.get_all_layouts()
+        'names': views_ctrl.saved_views.names
         }
-    #[x] TODO: Check if actually use views.layouts
     
     options = views_ctrl.current_view['layout_options']
 
+    fields = views_ctrl.default_settings.table.job_fields
+    field_options = [(field['name'], field['label']) for field in fields] # -> Can probably move to top of doc (startup vars)
+    field_options.insert(0, ('', 'Select field'))
+
+    sort_options = {'fields': field_options, 'order': [('asc', 'Ascending'), ('desc', 'Descending')]}
+
     # Later TODO (maybe): Combine layout_options and filter_options into options
 
-    return jobs, options, views, filters, filter_options
+    return jobs, options, views, filters, filter_options, sort_options
 
 
 
@@ -260,21 +263,3 @@ main()
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-
-# ----- Trash (TEMP) ---------
-
-        # Test view (temp):
-        # elif view == 'test':
-            # inner_filters = [JobDbFilter('employment_type', 'Full-time', '=='), JobDbFilter('level', 'Entry level', '==')]
-            # inner_filter_group = DbFilterGroup('OR', inner_filters)
-            # and_filters = [inner_filter_group, JobDbFilter('company_name', 'Patterned Learning Career', '!=')]
-            # jobs = db_control.get_list(filter_group=DbFilterGroup('AND', and_filters))
-            # inner_filters = [JobDbFilter('employment_type', ['Full-time'], 'any'), JobDbFilter('level', ['Entry level'], 'any')]
-            # inner_filter_group = DbFilterGroup('OR', inner_filters)
-
-            # and_filters = [inner_filter_group, JobDbFilter('company_name', 'Patterned Learning Career', 'not_ilike')]
-            
-            # filter_group = DbFilterGroup('AND', and_filters)
-            # print('manual filter_group: ', filter_group)

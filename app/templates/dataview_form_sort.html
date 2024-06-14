@@ -1,4 +1,142 @@
-<form action="{{ url_for( 'update_sort', view=views.current.name) }}"
-    method="POST" onsubmit="announceSave()" id="viewSortForm" class="v-stack gap-1">
-    <strong>This is where the sort form inputs will go.</strong>
+{% macro sort_select(item, number, aria_label, div_class='col-4', options=[], selected_option=options[0][0], style='') %}
+<div class="{{ div_class }} sort-{{ item }}">
+    <select class="form-select" name="{{ number }}.{{ item }}" aria-label="{{ aria_label }}" style="{{ style }}">
+        {% if options %}
+
+        {% for option in options %}
+        <option value="{{ option[0] }}" {% if option[0] == selected_option %}selected{% endif %}>
+            {{ option[1] }}
+        </option>
+        {% endfor %}
+
+        {% endif %}
+    </select>
+</div>
+{% endmacro %}
+
+
+<form action="{{ url_for( 'update_sort', view=views.current.name) }}" method="POST" onsubmit="announceSave()"
+    id="viewSortForm" class="v-stack gap-1">
+    <div class="sort-container">
+        {% for sort in views.current.sort %}
+        <div class="sort-row row" id="sort_{{ loop.index }}">
+            {{ sort_select(item='field', number=loop.index, aria_label='Field Name', options=sort_options.fields, selected_option=sort[0]) }}
+            {{ sort_select(item='order', number=loop.index, aria_label='Sort Order', options=sort_options.order, selected_option=sort[1]) }}
+            <div class="col-auto d-inline">
+                <div class="remove-button">
+                    <button class="btn btn-outline-light btn-light-soft btn-icon" type="button"
+                        onclick="deleteSort(this)">
+                        <i class="bi bi-trash3" aria-hidden="true"></i>
+                        <span class="visually-hidden">Remove</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="sort-button row">
+            <div class="col-auto">
+                <button type="button" class="settings-btn btn btn-primary" id='addSortBtn' onclick="addSort(this)">
+                    Add Sort
+                </button>
+            </div>
+        </div>
+    </div>
 </form>
+
+
+
+
+
+<script>
+
+
+    function addSort(element) {
+        //Get number --> i.e. index number + 1, or, length of all sort rows.
+        console.log('element: ', element)
+        const parentEl = element.closest('.sort-container')
+        console.log('sortContainer: ', parentEl)
+
+        const sortRows = parentEl.querySelectorAll('.sort-row')
+        console.log('sortRows: ', sortRows)
+        const numRows = sortRows.length
+        console.log('numRows: ', numRows)
+
+        let number = 0
+        if (numRows > 0) {
+            const lastRow = sortRows[numRows - 1]
+            console.log('lastRow: ', lastRow)
+            number = parseInt(lastRow.id.split('-').pop()) + 1
+
+            console.log('number: ', number)
+        }
+
+        const text = newSortEl(number)
+
+        const buttonDiv = element.closest('.sort-button')
+        buttonDiv.insertAdjacentHTML('beforebegin', text)
+    }
+
+    function deleteSort(element) {
+        const sortRowDiv = btnElement.closest('.sort-row')
+
+        sortRowDiv.remove()
+
+    }
+
+    function newSortEl(number) {
+        //console.log('options: ', sortOptions)
+
+        function sortSelectEl(item, number, ariaLabel, options, divClass) {
+            let options_els = ''
+            console.log('options: ', options)
+            options.forEach((option) => {
+                console.log('option[0]', option[0])
+                options_els += `
+                        <option value=${option[0]}>${option[1]}</option>`
+            })
+
+            return (
+                `<div class="sort-${item} ${divClass}">
+                    <select class="form-select" name="${number}.${item}" aria-label="${ariaLabel}">
+                        ${options_els}
+                    </select>
+                </div>
+                `
+            )
+        }
+
+        const fieldDivClass = 'col-4'
+        const orderDivClass = 'col-4'
+
+        const fieldSelectInput = sortSelectEl('field', number, 'Field Name', sortOptions.fields, fieldDivClass)
+        const orderSelectInput = sortSelectEl('order', number, 'Sort Order', sortOptions.order, orderDivClass)
+
+        const deleteButton = deleteSortBtnEl('col-auto d-inline')
+
+        return (
+            `<div class="sort-row row" id="sort-${number}">
+                    ${fieldSelectInput}
+                    ${orderSelectInput}
+                    ${deleteButton}
+                </div>
+                `
+        )
+    }
+
+
+
+    function deleteSortBtnEl(outerClass) {
+        return `<div class="${outerClass}">
+                    <div class="remove-button">
+                        <button class="btn btn-outline-light btn-light-soft btn-icon" type="button"
+                        onclick="deleteSort(this)">
+                            <i class="bi bi-trash3" aria-hidden="true"></i>
+                            <span class="visually-hidden">Remove</span>
+                        </button>
+                    </div>
+                </div>
+        `
+    }
+
+</script>

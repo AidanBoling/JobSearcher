@@ -19,8 +19,10 @@ class ViewsControl:
         self.current_view = {'name': str, 
                              'layout': str, 
                              'layout_options': {'table': dict, 'list': dict}, 
-                             'filters': {'saved': {}, 'temp': {}}}
-        
+                             'filters': {'saved': {}, 'temp': {}},
+                             'sort': []} 
+        # TODO: Add default sort to global settings
+
         self.set_current(self.default_view)
 
 
@@ -55,7 +57,8 @@ class ViewsControl:
             self.current_view['layout_options'][layout] = layout_options
 
         self.current_view['filters']['saved'] = saved_view['job_filters']
-        # self.filters_control.current_filters_db = self.filters_control.view_db_filter_groups[view]
+
+        self.current_view['sort'] = saved_view['sort']
 
 
     def get_all_filters(self):
@@ -132,11 +135,31 @@ class ViewsControl:
 
         # Update filters_control
         self.filters_control.view_filters[view] = filter_group_dict
-        # self.filters_control.update_filters(self.get_all_filters())
+
         self.filters_control.update_view_db_filter_group(view)
 
         # Later TODO (maybe): Allow save view filters separate from "saving" filters
         # -- e.g. update filters temporarily, and user can decide if keep changes
+
+
+    def update_view_sort(self, view: str, data: dict): 
+        if not self.view_exists(view):
+            return
+        
+        # Get sort from form data
+        sort = {}
+        for key, value in data.items():
+            order, type = key.split('.')
+            if not sort.get(order):
+                sort[f'{order}'] = [value]
+            else:
+                sort[f'{order}'].append(value)
+
+        sort_list = [item for key, item in sort.items() if item[0]]
+        
+        # Save sort
+        self.saved_views.views[view]['sort'] = sort_list
+        self.save_views()
 
 
     def create_view(self, name: str):
@@ -151,7 +174,8 @@ class ViewsControl:
             new_view = {'name': name,
                         'layout': self.default_layout,
                         'layout_options': {},
-                        'job_filters': {}}
+                        'job_filters': {},
+                        'sort': []}
             
             self.saved_views.views[name] = new_view
             self.saved_views.names.append(name)
