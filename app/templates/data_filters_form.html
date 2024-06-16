@@ -6,4 +6,11 @@
     <div class="container-fluid">
         {{ filter_group(filter_options=filter_options, job_fields=options.table.job_fields, filters_current=views.current.filters.saved) }}
     </div>
+
+    <div class="btn-remove-all my-2">
+        <button class="btn ab-btn-danger with-hover-border" type="button" onclick="removeAllFilters(this)">
+            {{ iconBtnContent(icon_class='bi-trash3', text='Clear All Filters') }}
+        </button>
+    </div>
+
 </form>

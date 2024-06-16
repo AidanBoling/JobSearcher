@@ -265,6 +265,22 @@
 
     }
 
+    function removeAllFilters(element) {
+        const filterForm = element.closest('form')
+        const outerFilterGroup = filterForm.querySelector('.filter-group.in-group-0')
+        
+        // First, copy the group Operator element, and add to top-level of group (hidden)
+        const groupOp = outerFilterGroup.querySelector('.group-operator')
+        const firstDivInGroup = outerFilterGroup.querySelector('div.row')
+        firstDivInGroup.insertAdjacentElement('afterbegin', groupOp)
+        const newGroupOp = outerFilterGroup.querySelector('.group-operator')
+        newGroupOp.classList.add('d-none')
+        
+        // Remove rows
+        const filterRowsAll = filterForm.querySelectorAll('.outer-row.in-group-1')
+        filterRowsAll.forEach((row) => row.remove())
+    }
+
 
     // -- onChange:
 
@@ -451,7 +467,7 @@
 
         return `<div class="${outerClass}">
                     <div class="remove-button">
-                        <button class="btn btn-outline-light btn-light-soft btn-icon" type="button"
+                        <button class="btn ab-btn-light" type="button"
                         onclick="deleteFilter(this, '${filterType}')">
                             <i class="bi bi-trash3" aria-hidden="true"></i>
                             <span class="visually-hidden">Remove</span>
