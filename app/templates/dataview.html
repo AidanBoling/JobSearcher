@@ -105,7 +105,8 @@
     </div>
 </div>
 <div class="modal-footer py-3 modal-content-bg modal-gradient-bg border-0 justify-content-between">
-    <button class="btn btn-outline-danger my-3 mx-0" data-bs-target="#confirmModal-deleteConfirm"
+    <button class="btn ab-btn-danger with-border with-hover-border my-3 mx-0"
+        data-bs-target="#confirmModal-deleteConfirm"
         data-bs-toggle="modal">{{ iconBtnContent(icon_class='bi bi-trash3', text='Delete View') }}</button>
     <button type="button" class="btn btn-secondary my-3 mx-0" style="width: 150px;"
         data-bs-dismiss="modal">Close</button>
@@ -133,7 +134,7 @@
         {% include 'dataview_form_sort.html' %}
     </div>
 </div>
-<div class="modal-footer p-4 modal-content-bg sort-filter">
+<div class="modal-footer modal-gradient-bg p-4 border-0 sort-filter">
     {# Later TODO: Add button to clear/remove all sorts #}
     <button class="btn btn-primary" type="submit" form="viewSortForm">Save</button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
