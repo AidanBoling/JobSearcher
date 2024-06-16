@@ -1,3 +1,5 @@
+{% from 'general_components.html' import iconBtnContent %}
+
 {# Filter Groups, Rows #}
 
 {% macro filter_group(filter_options, job_fields, number=1, prev_group_number=0, prev_group_id_post='', outer_group_op_el='', name_prefix='group', filters_current={'group_op': 'AND', 'filters': []}, class_row='') %}
@@ -61,15 +63,17 @@
                 {% endfor %}
 
                 <div class="filter-button row">
-                    <div class="col-auto">
-                        <button type="button" class="settings-btn btn btn-primary"
-                            id='add-filter_g{{ ns.group_id_post }}' onclick="addFilter('row', this, this.id)">Add
-                            Filter</button>
-                    </div>
-                    <div class="col-auto">
-                        <button type="button" class="settings-btn btn btn-primary"
-                            id='add-filter-group_g{{ ns.group_id_post }}'
-                            onclick="addFilter('group', this, this.id)">Add Filter Group</button>
+                    <div class="col-auto btn-group" role="group" aria-label="Add Filters">
+                        <button type="button" class="settings-btn btn ab-btn-light with-hover-border"
+                            id='add-filter_g{{ ns.group_id_post }}' onclick="addFilter('row', this, this.id)">
+                            {{ iconBtnContent('bi bi-plus-lg', 'Add Filter', icon_style='font-size: 1.2rem; font-style: bold;') }}
+                        </button>
+                        {# </div> #}
+                        {# <div class="col-auto"> #}
+                        <button type="button" class="settings-btn btn ab-btn-light"
+                            id='add-filter-group_g{{ ns.group_id_post }}' onclick="addFilter('group', this, this.id)">
+                            {{ iconBtnContent('bi bi-plus-lg', 'Add Group', icon_style='font-size: 1.2rem;') }}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -194,8 +198,8 @@
 
 {% macro deleteFilterBtn(filter_type) %}
 <div class="remove-button">
-    <button class="btn btn-outline-light btn-light-soft btn-icon" type="button"
-        onclick="deleteFilter(this, '{{ filter_type }}')"><i class="bi bi-trash3" aria-hidden="true"></i>
+    <button class="btn ab-btn-light" type="button" onclick="deleteFilter(this, '{{ filter_type }}')"><i
+            class="bi bi-trash3" aria-hidden="true"></i>
         <span class="visually-hidden">Remove</span></button>
 </div>
 {% endmacro %}
