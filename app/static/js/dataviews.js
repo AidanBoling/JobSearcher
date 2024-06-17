@@ -82,7 +82,7 @@ function addFilterRow(element, elementId) {
     const groupItemIndex = filterRows.length + filterGroups.length
     //console.log('groupItemIndex: ', groupItemIndex)
 
-    const buttonDiv = element.closest('.filter-button')
+    const buttonDiv = element.closest('.filter-btn')
     text = newRowEl(groupNum, filterNum, groupNamePrefix, groupItemIndex)
     buttonDiv.insertAdjacentHTML('beforebegin', text)
 }

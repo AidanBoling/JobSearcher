@@ -114,28 +114,26 @@
 {% endcall %}
 
 
-{% call dataview_settings_modal(title='Filters', id_post='filters') %}
+{% call dataview_settings_modal(title='Filters', id_post='filters', outer_class='sort-filter') %}
 <div class="modal-body p-0 modal-content-bg">
-    <div class="modal-body-bg p-4">
+    <div class="modal-body-bg">
         {% include 'data_filters_form.html' %}
     </div>
 </div>
-<div class="modal-footer p-4 modal-content-bg sort-filter">
-    {# Later TODO: Add button to clear/reset all filters #}
+<div class="modal-footer p-4 modal-gradient-bg border-0 sort-filter">
     <button class="btn btn-primary" type="submit" form="viewFiltersForm">Save</button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>
 {% endcall %}
 
 
-{% call dataview_settings_modal(title='Sort', id_post='sort') %}
+{% call dataview_settings_modal(title='Sort', id_post='sort', size='modal-md modal-fullscreen-md-down', outer_class='sort-filter') %}
 <div class="modal-body p-0 modal-content-bg">
-    <div class="modal-body-bg p-4">
+    <div class="modal-body-bg">
         {% include 'dataview_form_sort.html' %}
     </div>
 </div>
 <div class="modal-footer modal-gradient-bg p-4 border-0 sort-filter">
-    {# Later TODO: Add button to clear/remove all sorts #}
     <button class="btn btn-primary" type="submit" form="viewSortForm">Save</button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>

@@ -38,8 +38,14 @@
             text = newFilterGroupEl(groupOperatorEl, namePrefix, idPost, groupIdPost)
         }
 
-        const buttonDiv = element.closest('.filter-button')
+        const buttonDiv = element.closest('.filter-btn.row')
         buttonDiv.insertAdjacentHTML('beforebegin', text)
+        
+        // If adding first filter, un-disable the "clear all" button
+        if (groupIdPost === '1' && itemsInGroup === 0) {
+            const removeAllBtn = groupDiv.querySelector('.remove-all-btn')
+            removeAllBtn.removeAttribute("disabled")
+        }
     }
 
 
@@ -57,6 +63,11 @@
 
         const { groupDiv, groupIdPost, itemsInGroup, groupNum } = getGroupElInfo(btnElement)
 
+        // If filter to delete is only filter, disable the "clear all" button
+        if (groupIdPost === '1' && itemsInGroup === 1) {
+            const removeAllBtn = groupDiv.querySelector('.remove-all-btn')
+            removeAllBtn.setAttribute("disabled", true)
+        }
 
         // Determine if row to delete is 2nd row of group
         const allRowEls = groupDiv.querySelectorAll(`.outer-row.in-group-${groupIdPost}`)
@@ -279,6 +290,9 @@
         // Remove rows
         const filterRowsAll = filterForm.querySelectorAll('.outer-row.in-group-1')
         filterRowsAll.forEach((row) => row.remove())
+
+        // Disable the "clear all" button
+        element.setAttribute("disabled", true)
     }
 
 
@@ -357,8 +371,8 @@
 
     function newFilterGroupEl(outerGroupOpEl, namePrefix, idPost, previousGroupIdPost) {
         const groupOpEl = groupOpElementHtml(namePrefix, idPost, { divClass: 'd-none' })
-        const newFilterBtn = filterButtonElement('row', 'Add Filter', idPost)
-        const newGroupBtn = filterButtonElement('group', 'Add Filter Group', idPost)
+        const newFilterBtn = filterButtonElement('row', 'Add Filter', 'bi bi-plus-lg', idPost)
+        const newGroupBtn = filterButtonElement('group', 'Add Filter Group', 'bi bi-subtract', idPost)
 
         // "Outside" of group
         const groupOuterColWrapper = (innerContent, classDivCols, classDivInner = 'row outer-row') => (`
@@ -372,7 +386,7 @@
                         </div>
                     </div>`)
 
-        const deleteBtn = deleteFilterBtnEl(classOuter = 'row outer-row', filterType = 'group')
+        const deleteBtn = deleteFilterBtnEl(classOuter = '', filterType = 'group')
 
         return `<div class="group-inner outer-row row in-group-${previousGroupIdPost}">
                     ${groupOuterColWrapper(outerGroupOpEl, 'row-start')}
@@ -381,9 +395,12 @@
                         ${groupOpEl}
                         <div class="row">
                             <div class="col g-col-inner">
-                                <div class="filter-button row">
-                                ${newFilterBtn}
-                                ${newGroupBtn}
+                                <div class="filter-btn row">
+                                    <div class="col btn-group filter-btn-group" role="group" aria-label="Add Filters">
+                                        ${newFilterBtn}
+                                        <div class="vr"></div>
+                                        ${newGroupBtn}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -430,8 +447,10 @@
                         aria-label="Operator">
                     </select>
                 </div>
-                <div class='${valueDivClass}'></div>
-                ${deleteButton}
+                <div class="${valueDivClass}"></div>
+                <div class="col-auto d-inline">
+                    ${deleteButton}
+                </div>
             </div>
             `
         )
@@ -439,7 +458,7 @@
 
 
     function groupOpElementHtml(namePrefix, idPost, { itemClass = '', innerText = 'Where', divClass = '' }) {
-        const divStyle = 'width: 100px;'
+        const divStyle = 'width: 80px;'
         const ariaLabel = 'Filter Group Operator'
         let innerElement = ''
 
@@ -465,27 +484,28 @@
 
     function deleteFilterBtnEl(outerClass, filterType) {
 
-        return `<div class="${outerClass}">
-                    <div class="remove-button">
-                        <button class="btn ab-btn-light" type="button"
-                        onclick="deleteFilter(this, '${filterType}')">
-                            <i class="bi bi-trash3" aria-hidden="true"></i>
-                            <span class="visually-hidden">Remove</span>
-                        </button>
-                    </div>
+        return `<div class="remove-button">
+                    <button class="btn ab-btn-light start-grey" type="button"
+                    onclick="deleteFilter(this, '${filterType}')">
+                        <i class="bi bi-trash3" aria-hidden="true"></i>
+                        <span class="visually-hidden">Remove</span>
+                    </button>
                 </div>
         `
     }
 
 
-    function filterButtonElement(type, label, groupIdPost) {
-
-        btnClass = 'settings-btn btn btn-primary'
-
-        return `<div class="col">
-                    <button type="button" class="${btnClass}" id='add-filter_g${groupIdPost}'
-                        onclick="addFilter('${type}', this, this.id)">${label}</button>
-                </div>`
+    function filterButtonElement(type, label, iconClass, groupIdPost) {
+        const idType = type === 'row' ? 'add-filter' : 'add-filter-group'
+        const btnClass = 'filter-btn btn ab-btn-dark-color with-hover-border'
+        
+        return `<button type="button" class="${btnClass}" id='${idType}_g${groupIdPost}'
+                    onclick="addFilter('${type}', this, this.id)">
+                    <i class="${iconClass}" aria-hidden="true"></i>
+                    <span class="spacer" aria-hidden="true" style="display: inline-block; width: .2rem">
+                    </span>
+                    <span>${label}</span>
+                </button>`
     }
 
 

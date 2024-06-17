@@ -59,10 +59,10 @@
 {% endmacro %}
 
 
-{% macro dataview_settings_modal(title, id_post) %}
-<div id="settingsModal-{{ id_post }}" class="modal dataview-settings-modal" tabindex="-1"
+{% macro dataview_settings_modal(title, id_post, size='modal-lg modal-fullscreen-lg-down', outer_class='') %}
+<div id="settingsModal-{{ id_post }}" class="modal dataview-settings-modal {{ outer_class }}" tabindex="-1"
     aria-labelledby="settingsModalLabel-{{ id_post }}" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-lg modal-fullscreen-lg-down">
+    <div class="modal-dialog modal-dialog-scrollable {{ size }}">
         <div class="modal-content">
             <div class="modal-header py-3 border-0 modal-content-bg modal-gradient-bg">
                 <h1 class="modal-title ms-auto me-auto" id="settingsModalLabel-{{ id_post }}">{{ title }}</h1>

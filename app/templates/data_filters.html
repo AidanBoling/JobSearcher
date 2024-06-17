@@ -45,7 +45,7 @@
                 {% set ns.group_op_is_echo = true %}
                 {% endif %}
 
-                {% set group_op_el = group_op_element(current_group_op=filters_current['group_op'], name_prefix=name_prefix, id_post=group_op_id_post, is_empty=ns.group_op_is_empty, is_echo=ns.group_op_is_echo, div_style='width: 100px;') %}
+                {% set group_op_el = group_op_element(current_group_op=filters_current['group_op'], name_prefix=name_prefix, id_post=group_op_id_post, is_empty=ns.group_op_is_empty, is_echo=ns.group_op_is_echo, div_style='width: 80px;') %}
 
                 {% set keys = f.keys()|list %}
                 {% if 'group_op' in keys %}
@@ -62,19 +62,30 @@
 
                 {% endfor %}
 
-                <div class="filter-button row">
-                    <div class="col-auto btn-group" role="group" aria-label="Add Filters">
-                        <button type="button" class="settings-btn btn ab-btn-light with-hover-border"
+                <div class="filter-btn row">
+                    <div class="{% if prev_group_number > 0 %}col{% else %}col-8{% endif %} btn-group filter-btn-group"
+                        role="group" aria-label="Add Filters">
+                        <button type="button" class="filter-btn btn ab-btn-dark-color with-hover-border"
                             id='add-filter_g{{ ns.group_id_post }}' onclick="addFilter('row', this, this.id)">
-                            {{ iconBtnContent('bi bi-plus-lg', 'Add Filter', icon_style='font-size: 1.2rem; font-style: bold;') }}
+                            {{ iconBtnContent('bi bi-plus-lg', 'Add Filter', icon_style='font-style: bold;') }}
                         </button>
-                        {# </div> #}
-                        {# <div class="col-auto"> #}
-                        <button type="button" class="settings-btn btn ab-btn-light"
+                        <div class="vr"></div>
+                        <button type="button" class="filter-btn btn ab-btn-dark-color with-hover-border"
                             id='add-filter-group_g{{ ns.group_id_post }}' onclick="addFilter('group', this, this.id)">
-                            {{ iconBtnContent('bi bi-plus-lg', 'Add Group', icon_style='font-size: 1.2rem;') }}
+                            {{ iconBtnContent('bi bi-subtract', 'Add Group', icon_style='') }}
                         </button>
                     </div>
+
+                    {% if prev_group_number == 0 %}
+                    <div class="col d-flex justify-content-end">
+                        <button class="remove-all-btn btn ab-btn-danger with-hover-border w-150 align-self-end"
+                            type="button" onclick="removeAllFilters(this)"
+                            {% if not filters_current.filters %}disabled{% endif %}>
+                            {{ iconBtnContent(icon_class='bi-trash3', text='Clear All') }}
+                        </button>
+                    </div>
+                    {% endif %}
+
                 </div>
             </div>
         </div>
@@ -170,7 +181,7 @@
 {% endmacro %}
 
 
-{% macro group_op_element(current_group_op, name_prefix, id_post, selected='', div_class_inner='col-auto d-inline', is_empty=false, is_echo=false, div_style='width: 100px;') %}
+{% macro group_op_element(current_group_op, name_prefix, id_post, selected='', div_class_inner='col-auto d-inline', is_empty=false, is_echo=false, div_style='width: 80px;') %}
 
 {% set options = [('AND', 'And'), ('OR', 'Or')] %}
 {% set onchange = 'updateOpEchos(this, this.options[this.selectedIndex].value)' %}
@@ -198,7 +209,7 @@
 
 {% macro deleteFilterBtn(filter_type) %}
 <div class="remove-button">
-    <button class="btn ab-btn-light" type="button" onclick="deleteFilter(this, '{{ filter_type }}')"><i
+    <button class="btn ab-btn-light start-grey" type="button" onclick="deleteFilter(this, '{{ filter_type }}')"><i
             class="bi bi-trash3" aria-hidden="true"></i>
         <span class="visually-hidden">Remove</span></button>
 </div>
