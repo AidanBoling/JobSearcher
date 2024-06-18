@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from 'general_components.html' import iconBtnContent %}
+{% from 'general_components.html' import iconBtnContentSvg %}
 {% from 'modals.html' import dataview_settings_modal %}
 {% from 'form.html' import text_input %}
 
@@ -7,7 +7,7 @@
 
 {% block content %}
 
-{# TODO: Add ability to change sort-by field(s) #}
+{# Later TODO: Add tooltips to buttons, etc. #}
 
 <!-- Later TODO: Move this live region to a better location. -->
 <div role="status" aria-live="polite" class="visually-hidden">
@@ -18,7 +18,7 @@
 
 <div class="dataview-frame shadow">
     <div class="d-flex mb-2 justify-content-between view-border" id="dataviewControls">
-
+        {# Later TODO: Turn dataview control section into toolbar (aria) #}
         <div class="d-flex flex-row align-items-center" style="column-gap: .5rem">
             <label class="me-2 fs-5" id="views-label">View </label>
             <div class="dropdown" id="saved-views-dropdown" data-inclusive-menu aria-labelledby="views-label">
@@ -37,23 +37,23 @@
             </div>
             <button class="btn ab-btn-light" type="button" data-bs-toggle="modal"
                 data-bs-target="#settingsModal-createView">
-                {{ iconBtnContent('bi bi-plus-lg', 'Create View', icon_style='font-size: 1.2rem;') }}
+                {{ iconBtnContentSvg('#svg-bi-plus-lg', text='Create View', icon_w='18', icon_h='18', spacer_style='width: 0rem;') }}
             </button>
         </div>
 
         <div class="btn-group" role="group" aria-label="View Settings">
             <button class="btn ab-btn-light" type="button" data-bs-toggle="modal"
                 data-bs-target="#settingsModal-filters">
-                {{ iconBtnContent('bi bi-funnel', 'Filters', icon_style='font-size: 1.2rem;') }}
+                {{ iconBtnContentSvg('#svg-bi-funnel', 'Filters', icon_w='18', icon_h='18') }}
             </button>
             <div class="vr"></div>
             <button class="btn ab-btn-light" type="button" data-bs-toggle="modal" data-bs-target="#settingsModal-sort">
-                {{ iconBtnContent('bi bi-arrow-down-up', 'Sort', icon_style='font-size: 1.2rem;') }}
+                {{ iconBtnContentSvg('#svg-bi-arrow-down-up', 'Sort', icon_w='18', icon_h='18') }}
             </button>
             <div class="vr"></div>
             <button class="btn ab-btn-light" type="button" data-bs-toggle="modal"
                 data-bs-target="#settingsModal-layoutSettings">
-                {{ iconBtnContent('bi bi-gear', 'Settings', icon_style='font-size: 1.2rem;') }}
+                {{ iconBtnContentSvg('#svg-bi-gear', 'Settings', icon_w='18', icon_h='18') }}
             </button>
         </div>
 

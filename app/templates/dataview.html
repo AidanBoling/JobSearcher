@@ -94,7 +94,7 @@
                 </h2>
                 <div id="settingsSort" class="accordion-collapse collapse" data-bs-parent="#viewSettingsAccordion">
                     <div class="accordion-body">
-                        {# {% include 'dataview_form_sort.html' %} #}
+                        {% include 'dataview_form_sort.html' %}
                         <div class="form-button">
                             <button class="settings-btn btn btn-primary" type="submit" form="viewSortForm">Save</button>
                         </div>
@@ -107,7 +107,7 @@
 <div class="modal-footer py-3 modal-content-bg modal-gradient-bg border-0 justify-content-between">
     <button class="btn ab-btn-danger with-border with-hover-border my-3 mx-0"
         data-bs-target="#confirmModal-deleteConfirm"
-        data-bs-toggle="modal">{{ iconBtnContent(icon_class='bi bi-trash3', text='Delete View') }}</button>
+        data-bs-toggle="modal">{{ iconBtnContentSvg('#svg-bi-trash3', text='Delete View') }}</button>
     <button type="button" class="btn btn-secondary my-3 mx-0" style="width: 150px;"
         data-bs-dismiss="modal">Close</button>
 </div>
@@ -115,7 +115,7 @@
 
 
 {% call dataview_settings_modal(title='Filters', id_post='filters', outer_class='sort-filter') %}
-<div class="modal-body p-0 modal-content-bg">
+<div class="modal-body p-0 modal-content-bg sort-filter">
     <div class="modal-body-bg">
         {% include 'data_filters_form.html' %}
     </div>
@@ -128,7 +128,7 @@
 
 
 {% call dataview_settings_modal(title='Sort', id_post='sort', size='modal-md modal-fullscreen-md-down', outer_class='sort-filter') %}
-<div class="modal-body p-0 modal-content-bg">
+<div class="modal-body p-0 modal-content-bg sort-filter">
     <div class="modal-body-bg">
         {% include 'dataview_form_sort.html' %}
     </div>

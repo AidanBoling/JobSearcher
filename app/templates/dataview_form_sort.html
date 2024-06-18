@@ -1,4 +1,4 @@
-{% from 'general_components.html' import iconBtnContent %}
+{% from 'general_components.html' import iconBtnContentSvg %}
 
 {% macro sort_select(item, number, aria_label, div_class='col-4', options=[], selected_option=options[0][0], style='') %}
 <div class="{{ div_class }} sort-{{ item }}">
@@ -28,7 +28,7 @@
                 {{ sort_select(item='order', number=loop.index, aria_label='Sort Order', options=sort_options.order, selected_option=sort[1], div_class='col-auto px-2') }}
                 <div class="btn-remove-one col-auto d-inline">
                     <button class="btn ab-btn-light start-grey" type="button" onclick="removeOneSort(this)">
-                        {{ iconBtnContent(icon_class='bi-trash3', text='Remove', text_is_hidden=true, icon_style='') }}
+                        {{ iconBtnContentSvg(svg_href='#svg-bi-trash3', text='Remove', text_is_hidden=true, icon_w='16', icon_h='16', icon_style='') }}
                     </button>
                 </div>
             </div>
@@ -38,12 +38,12 @@
         <div class="btn-group sort-btn-group" role="group" aria-label="Sort Actions">
             <button type="button" class="sort-btn btn ab-btn-dark-color with-hover-border w-100" id='addSortBtn'
                 onclick="addSort(this)">
-                {{ iconBtnContent(icon_class='bi-plus-lg', text='Add Sort', text_is_hidden=false, icon_style='font-size: 1rem; font-weight: bold;') }}
+                {{ iconBtnContentSvg(svg_href='#svg-bi-plus-lg', text='Add Sort', text_is_hidden=false) }}
             </button>
             <div class="vr"></div>
             <button class="remove-all-btn btn ab-btn-danger with-hover-border w-100" type="button"
                 onclick="removeAllSort(this)" disabled={% if not views.current.sort %}true{% endif %}>
-                {{ iconBtnContent(icon_class='bi-trash3', text='Clear All', text_is_hidden=false) }}
+                {{ iconBtnContentSvg('#svg-bi-trash3', text='Clear All', text_is_hidden=false) }}
             </button>
         </div>
 
@@ -55,7 +55,6 @@
 
 
 <script>
-
 
     function addSort(element) {
         //Get number --> i.e. index number + 1, or, length of all sort rows.
@@ -84,18 +83,19 @@
         }
     }
 
+
     function removeOneSort(element) {
         const sortRowDiv = element.closest('.sort-row')
-        sortRowDiv.remove()
 
         // If removing the last/only sort, disable the "clear all" button
         const parentEl = element.closest('.sort-container')
         const sortRows = parentEl.querySelectorAll('.sort-row')
-        if (sortRows.length === 0) {
+        if (sortRows.length === 1) {
             const removeAllBtn = parentEl.querySelector('.remove-all-btn')
             removeAllBtn.setAttribute("disabled", true)
         }
 
+        sortRowDiv.remove()
     }
 
 
@@ -108,6 +108,7 @@
         // Disable the "clear all" button
         element.setAttribute("disabled", true)
     }
+
 
     function newSortEl(number) {
         function sortSelectEl(item, number, ariaLabel, options, divClass) {
@@ -148,13 +149,14 @@
     }
 
 
-
     function deleteSortBtnEl(outerClass) {
+        const iconOptions = { w: '16' }
+        const btnContent = iconBtnContent(svgHref = '#svg-bi-trash3', text = 'Remove', text_is_hidden = true, { iconOptions })
+
         return `<div class="btn-remove-one ${outerClass}">
                     <button class="btn ab-btn-light start-grey" type="button"
                     onclick="removeOneSort(this)">
-                        <i class="bi bi-trash3" aria-hidden="true"></i>
-                        <span class="visually-hidden">Remove</span>
+                        ${btnContent}
                     </button>
                 </div>
         `

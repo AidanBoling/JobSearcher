@@ -371,8 +371,8 @@
 
     function newFilterGroupEl(outerGroupOpEl, namePrefix, idPost, previousGroupIdPost) {
         const groupOpEl = groupOpElementHtml(namePrefix, idPost, { divClass: 'd-none' })
-        const newFilterBtn = filterButtonElement('row', 'Add Filter', 'bi bi-plus-lg', idPost)
-        const newGroupBtn = filterButtonElement('group', 'Add Filter Group', 'bi bi-subtract', idPost)
+        const newFilterBtn = filterButtonElement('row', 'Add Filter', '#svg-bi-plus-lg', idPost)
+        const newGroupBtn = filterButtonElement('group', 'Add Filter Group', '#svg-bi-subtract', idPost)
 
         // "Outside" of group
         const groupOuterColWrapper = (innerContent, classDivCols, classDivInner = 'row outer-row') => (`
@@ -483,28 +483,29 @@
 
 
     function deleteFilterBtnEl(outerClass, filterType) {
+        const iconOptions = { w: '16' }
+        const btnContent = iconBtnContent(svgHref = '#svg-bi-trash3', text = 'Remove', text_is_hidden = true, { iconOptions })
 
         return `<div class="remove-button">
                     <button class="btn ab-btn-light start-grey" type="button"
                     onclick="deleteFilter(this, '${filterType}')">
-                        <i class="bi bi-trash3" aria-hidden="true"></i>
-                        <span class="visually-hidden">Remove</span>
+                        ${btnContent}
                     </button>
                 </div>
         `
     }
 
 
-    function filterButtonElement(type, label, iconClass, groupIdPost) {
+    function filterButtonElement(type, label, svgHref, groupIdPost) {
         const idType = type === 'row' ? 'add-filter' : 'add-filter-group'
         const btnClass = 'filter-btn btn ab-btn-dark-color with-hover-border'
         
+        const iconOptions = { w: '16' }
+        const btnContent = iconBtnContent(svgHref, text = label, text_is_hidden = false, { iconOptions })
+
         return `<button type="button" class="${btnClass}" id='${idType}_g${groupIdPost}'
                     onclick="addFilter('${type}', this, this.id)">
-                    <i class="${iconClass}" aria-hidden="true"></i>
-                    <span class="spacer" aria-hidden="true" style="display: inline-block; width: .2rem">
-                    </span>
-                    <span>${label}</span>
+                    ${btnContent}
                 </button>`
     }
 

@@ -1,3 +1,5 @@
+{% from 'general_components.html' import iconBtnContentSvg %}
+
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
     <head>
@@ -20,7 +22,8 @@
             href="{{ url_for('static', filename='css/styles.css') }}"
             rel="stylesheet" />
         
-        
+        {% include 'icons.html' %}
+
         {% block head %}
         
         {% endblock %}
@@ -28,7 +31,6 @@
     </head>
 
     <body>
-
         <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark bg-opacity-25 border-bottom border-2 border-dark border-opacity-10 shadow">
             <div class="container-fluid">
                 <!-- <a class="navbar-brand" href="#">Fixed navbar</a> -->
@@ -43,11 +45,14 @@
                         {% if request.path.split('/')[1] == 'settings' %}
                         {% set ns.current_page = 'settings' %}
                         {% endif %}
-                        <li class="nav-item">
-                            <a class="nav-link {% if ns.current_page != 'settings' %}active{% endif %}" {% if ns.current_page != 'settings' %}aria-current="page"{% endif %} href="{{ url_for('dataview') }}">Jobs</a>
+                        <li class="nav-item px-2">
+                            <a class="nav-link {% if ns.current_page != 'settings' %}active{% endif %}" {% if ns.current_page != 'settings' %}aria-current="page"{% endif %} href="{{ url_for('dataview') }}">
+                                Jobs
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if ns.current_page == 'settings' %}active{% endif %}" {% if ns.current_page == 'settings' %}aria-current="page"{% endif %} href="{{ url_for('settings') }}">Settings</a>
+                        <div class="vr"></div>
+                        <li class="nav-item px-2">
+                            <a class="nav-link {% if ns.current_page == 'settings' %}active{% endif %}" {% if ns.current_page == 'settings' %}aria-current="page"{% endif %} href="{{ url_for('settings') }}">{{ iconBtnContentSvg('#svg-bi-tools', 'Settings', spacer_style='width: 0;') }}</a>
                         </li>
                     </ul>
                     <!-- <form class="d-flex" role="search">
@@ -74,6 +79,7 @@
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/inclusive-menu-button.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/general_components.js') }}"></script>
         {% endblock %}
     </body>
 </html>

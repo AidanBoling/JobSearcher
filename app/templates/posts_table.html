@@ -1,7 +1,7 @@
 {% from 'modals.html' import view_job_modal, view_job_button, edit_modal, edit_modal_button %}
 {% from 'table_macros.html' import table_cell_content %}
 {% import 'form.html' as form %}
-{% from 'general_components.html' import iconBtnContent %}
+{% from 'general_components.html' import iconBtnContent, iconBtnContentSvg %}
 {% set visible_fields = options.table.job_fields|rejectattr('hidden')|list %}
 
 
@@ -46,10 +46,9 @@
                             {{ table_cell_content(field=visible_fields[0], job=job) }}
                             {# TODO: Check button placement accessibility #}
                             <div class="btn-group d-flex gap-0 item-actions" role="group" aria-label="Actions">
-                                {{ view_job_button(job['id'], label=iconBtnContent('bi bi-arrows-fullscreen', 'View', icon_style='font-size: .8rem;'),
-                                class="btn btn-dark") }}
+                                {{ view_job_button(job['id'], label=iconBtnContentSvg('#svg-bi-arrows-fullscreen', 'View', icon_w='13', icon_h='13', icon_style='vertical-align: -.025em;'), class="btn btn-dark") }}
                                 <div class="vr"></div>
-                                {{ edit_modal_button(iconBtnContent('bi bi-pencil-square', 'Edit'), data_target='job-{}'.format(job['id']), class='btn btn-dark') }}
+                                {{ edit_modal_button(iconBtnContentSvg('#svg-bi-pencil-square', 'Edit'), data_target='job-{}'.format(job['id']), class='btn btn-dark') }}
                                 {# Add delete button here(?). justify-self-end #}
                             </div>
                         </div>

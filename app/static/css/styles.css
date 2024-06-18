@@ -74,6 +74,9 @@ main {
     width: 200px;
 }
 
+.svg-icon {
+    vertical-align: -.125em;
+}
 
 /* Buttons */
 
@@ -572,7 +575,7 @@ tr > th {
     padding: 0;
 }
 
-.modal form.sort-filter {
+.modal .sort-filter form.sort-filter {
     --padding-x: 1.5rem;
     --padding-y: .75rem;
     padding: var(--padding-y) var(--padding-x) !important;

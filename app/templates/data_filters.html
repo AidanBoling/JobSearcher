@@ -1,4 +1,4 @@
-{% from 'general_components.html' import iconBtnContent %}
+{% from 'general_components.html' import iconBtnContentSvg %}
 
 {# Filter Groups, Rows #}
 
@@ -67,12 +67,12 @@
                         role="group" aria-label="Add Filters">
                         <button type="button" class="filter-btn btn ab-btn-dark-color with-hover-border"
                             id='add-filter_g{{ ns.group_id_post }}' onclick="addFilter('row', this, this.id)">
-                            {{ iconBtnContent('bi bi-plus-lg', 'Add Filter', icon_style='font-style: bold;') }}
+                            {{ iconBtnContentSvg('#svg-bi-plus-lg', 'Add Filter') }}
                         </button>
                         <div class="vr"></div>
                         <button type="button" class="filter-btn btn ab-btn-dark-color with-hover-border"
                             id='add-filter-group_g{{ ns.group_id_post }}' onclick="addFilter('group', this, this.id)">
-                            {{ iconBtnContent('bi bi-subtract', 'Add Group', icon_style='') }}
+                            {{ iconBtnContentSvg('#svg-bi-subtract', 'Add Group') }}
                         </button>
                     </div>
 
@@ -81,7 +81,7 @@
                         <button class="remove-all-btn btn ab-btn-danger with-hover-border w-150 align-self-end"
                             type="button" onclick="removeAllFilters(this)"
                             {% if not filters_current.filters %}disabled{% endif %}>
-                            {{ iconBtnContent(icon_class='bi-trash3', text='Clear All') }}
+                            {{ iconBtnContentSvg('#svg-bi-trash3', text='Clear All') }}
                         </button>
                     </div>
                     {% endif %}

@@ -1,3 +1,20 @@
+{% macro iconSvg(svg_href, w='16', h='16', style='') %}
+<svg class="svg-icon" aria-hidden="true" focusable="false" width="{{ w }}" height="{{ h }}" style="{{ style }}">
+    <use href="{{ svg_href }}" xlink:href="{{ svg_href }}" width="{{ w }}" height="{{ h }}" />
+</svg>
+{% endmacro %}
+
+
+{% macro iconBtnContentSvg(svg_href, text, text_is_hidden=false, icon_w='16', icon_h='16', icon_style='', spacer_style='width: .20rem;') %}
+{{ iconSvg(svg_href, icon_w, icon_h, icon_style) }}
+{% if not text_is_hidden %}
+<span class="spacer" aria-hidden="true" style="display: inline-block; {{ spacer_style }}">
+</span>
+{% endif %}
+<span {% if text_is_hidden %}class="visually-hidden" {% endif %}>{{ text }}</span></button>
+{% endmacro %}
+
+
 {% macro iconBtnContent(icon_class, text, text_is_hidden=false, icon_style='', spacer_style='width: .20rem;') %}
 <i class="{{ icon_class }}" aria-hidden="true" style="{{ icon_style }}"></i>
 {% if not text_is_hidden %}
