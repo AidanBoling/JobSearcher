@@ -1,10 +1,4 @@
-<script>
-
-    const filterOptions = {{ filter_options | tojson }}
-    const viewOptions = {{ options | tojson }}
-
-
-    // OnChange and OnClick Actions
+// OnChange and OnClick Actions
 
     // -- onClick (Buttons):
 
@@ -47,7 +41,6 @@
             removeAllBtn.removeAttribute("disabled")
         }
     }
-
 
 
     function deleteFilter(btnElement, filterType) {
@@ -276,6 +269,7 @@
 
     }
 
+
     function removeAllFilters(element) {
         const filterForm = element.closest('form')
         const outerFilterGroup = filterForm.querySelector('.filter-group.in-group-0')
@@ -346,7 +340,7 @@
             if (filter.values) {
                 value = filter.values
             }
-            valueText = getInputText('text', idPost, namePrefix, value)
+            const valueText = getInputText('text', idPost, namePrefix, value)
             valueDiv.innerHTML = valueText
         }
 
@@ -420,7 +414,7 @@
 
         const jobFields = viewOptions.table.job_fields
         const filterableFields = Object.keys(filterOptions)
-
+        
         let options = ''
         jobFields.forEach((field) => {
             if (filterableFields.includes(field.name)) {
@@ -607,33 +601,3 @@
 
         return groupOpElementHtml(namePrefix, idPost, elVars)
     }
-
-
-    // Other Helpers
-
-    //function getHtml(url, data) {
-
-    //    request = {
-    //        "method": "POST",
-    //        "body": data,
-    //        "headers": { "Accept": "text/html" },
-    //    }
-
-    //    return fetch(url, request)
-    //        .then(response => response.text)
-        // .then(text => element.innerHTML = text)
-    //}
-
-</script>
-
-<!-- 
-{# 
-    ----- Trash (TEMP) ------
-
-
-    //const groupOpElHtml = hiddenGroupOpEl.classList.remove('d-none').outerHtml
-    //console.log('hidden groupop html: ', groupOpElHtml)
-    //groupOperatorEl = groupOpElHtml
-            
-#} 
--->

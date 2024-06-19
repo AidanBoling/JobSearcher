@@ -87,15 +87,17 @@
 {% block scripts %}
 {{ super() }}
 
-{% include 'data_filters_js.html' %}
-
 <script>
+    // Variables from backend via Jinja
+    const views = {{ views | tojson }}
+    const viewOptions = {{ options | tojson }}
     const sortOptions = {{ sort_options | tojson }}
-
-    // VIEW NAVIGATION
+    const filterOptions = {{ filter_options | tojson }}
 
     const get_view_url = {{ url_for('change_view') | tojson }}
-    const views = {{ views | tojson }}
+
+
+    // VIEW NAVIGATION
 
     // Menu button instantiation
     const viewsButton = document.querySelector('[data-inclusive-menu-opens="views-menu"]')
@@ -205,6 +207,8 @@
     // formBtn.addEventListener("click", announceSave());
 
 </script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/dataview_filters.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/dataview_sort.js') }}"></script>
 
 {% endblock %}
 

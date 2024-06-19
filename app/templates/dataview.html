@@ -1,5 +1,7 @@
 {% from 'modals.html' import dataview_settings_modal, confirmation_modal %}
-{% from 'general_components.html' import iconBtnContent %}
+{% from 'general_components.html' import iconBtnContentSvg %}
+{% from 'data_filters_form.html' import update_filters_form %}
+{% from 'dataview_form_sort.html' import update_sort_form %}
 
 {% if views.current.layout == 'list' %}
 <div id="dataviewList">
@@ -77,10 +79,10 @@
                 </h2>
                 <div id="settingsFilters" class="accordion-collapse collapse" data-bs-parent="#viewSettingsAccordion">
                     <div class="accordion-body">
-                        {% include 'data_filters_form.html' %}
+                        {{ update_filters_form(id='viewFiltersForm-settingsModal', filter_options=filter_options, job_fields=options.table.job_fields, current_view=views.current) }}
                         <div class="form-button">
                             <button class="settings-btn btn btn-primary" type="submit"
-                                form="viewFiltersForm">Save</button>
+                                form="viewFiltersForm-settingsModal">Save</button>
                         </div>
                     </div>
                 </div>
@@ -94,9 +96,10 @@
                 </h2>
                 <div id="settingsSort" class="accordion-collapse collapse" data-bs-parent="#viewSettingsAccordion">
                     <div class="accordion-body">
-                        {% include 'dataview_form_sort.html' %}
+                        {{ update_sort_form(id='viewSortForm-settingsModal', sort_options=sort_options, current_view=views.current) }}
                         <div class="form-button">
-                            <button class="settings-btn btn btn-primary" type="submit" form="viewSortForm">Save</button>
+                            <button class="settings-btn btn btn-primary" type="submit"
+                                form="viewSortForm-settingsModal">Save</button>
                         </div>
                     </div>
                 </div>
@@ -117,11 +120,11 @@
 {% call dataview_settings_modal(title='Filters', id_post='filters', outer_class='sort-filter') %}
 <div class="modal-body p-0 modal-content-bg sort-filter">
     <div class="modal-body-bg">
-        {% include 'data_filters_form.html' %}
+        {{ update_filters_form(id='viewFiltersForm-filtersModal', filter_options=filter_options, job_fields=options.table.job_fields, current_view=views.current) }}
     </div>
 </div>
 <div class="modal-footer p-4 modal-gradient-bg border-0 sort-filter">
-    <button class="btn btn-primary" type="submit" form="viewFiltersForm">Save</button>
+    <button class="btn btn-primary" type="submit" form="viewFiltersForm-filtersModal">Save</button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>
 {% endcall %}
@@ -130,11 +133,11 @@
 {% call dataview_settings_modal(title='Sort', id_post='sort', size='modal-md modal-fullscreen-md-down', outer_class='sort-filter') %}
 <div class="modal-body p-0 modal-content-bg sort-filter">
     <div class="modal-body-bg">
-        {% include 'dataview_form_sort.html' %}
+        {{ update_sort_form(id='viewSortForm-sortModal', sort_options=sort_options, current_view=views.current) }}
     </div>
 </div>
 <div class="modal-footer modal-gradient-bg p-4 border-0 sort-filter">
-    <button class="btn btn-primary" type="submit" form="viewSortForm">Save</button>
+    <button class="btn btn-primary" type="submit" form="viewSortForm-sortModal">Save</button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>
 {% endcall %}

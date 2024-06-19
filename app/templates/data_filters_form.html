@@ -1,11 +1,13 @@
 {% from 'data_filters.html' import filter_group %}
 
-<form action="{{ url_for( 'update_filters', view=views.current.name ) }}" method="POST" id="viewFiltersForm"
-    class="sort-filter">
+{% macro update_filters_form(id, filter_options, job_fields, current_view) %}
+<form action="{{ url_for( 'update_filters', view=current_view.name ) }}" method="POST" id="{{id}}" class="sort-filter">
     {# TODO: Check accessibility of labeling for this setup #}
 
     <div class="container-fluid">
-        {{ filter_group(filter_options=filter_options, job_fields=options.table.job_fields, filters_current=views.current.filters.saved) }}
+        {{ filter_group(filter_options=filter_options, job_fields=job_fields, filters_current=current_view.filters.saved) }}
     </div>
 
 </form>
+
+{% endmacro %}
