@@ -97,12 +97,13 @@ def main():
         return redirect(request.referrer)
     
 
-    # TODO: Implement sort
     @app.post('/views/<view>/update/sort')
     def update_sort(view):
+        data = {}
         if request.form:
-            views_ctrl.update_view_sort(view, request.form)
+            data = request.form
 
+        views_ctrl.update_view_sort(view, data)
         return redirect(request.referrer)
 
     
