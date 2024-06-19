@@ -17,7 +17,11 @@ TYPES = {
     'date': {
         'operators': ['==', '!=', '<=', '>=', '<', '>'],
         'form_input_type': 'date'
-        }
+        },
+    'boolean': {
+        'operators': ['==', '!='],
+        'form_input_type': 'boolean'
+        },
     }
 
 LABELS = {

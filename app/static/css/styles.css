@@ -522,6 +522,14 @@ tr > th {
     display: inline !important;
 }
 
+.filter-row .form-check-input {
+    width: 1.5em;
+    height: 1.5em;
+    margin-top: 0.4em;
+    vertical-align: middle;
+    margin-left: .25rem;
+}
+
 
 /* MODALS */
 

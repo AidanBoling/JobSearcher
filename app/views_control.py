@@ -127,6 +127,8 @@ class ViewsControl:
             return
         
         filter_group_dict = self.filters_control.form_response_to_dict(data)
+        if not filter_group_dict.get('filters'):
+            filter_group_dict = {}
         print(f'\nUpdating filters for view "{view}": ', filter_group_dict)
                 
         # Update and save view 

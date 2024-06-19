@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from typing import Optional
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, String, DateTime, Text
+from sqlalchemy import Integer, String, DateTime, Text, Boolean
 from datetime import datetime, timezone
 from models.base import Base
 
@@ -28,7 +28,9 @@ class JobPost(TimestampMixin, db.Model):
     posted_date: Mapped[Optional[datetime]] = mapped_column(DateTime)
     company_location: Mapped[Optional[str]] = mapped_column(String(250))
     company_other: Mapped[Optional[str]] = mapped_column(String(500))
-    
+    bookmarked: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
     def __repr__(self):
         return f'<Job: {self.post_title} ({self.id})>'
 
@@ -56,6 +58,11 @@ job_filters = {
         'values': '',
         'get_values': False
         },
+    'bookmarked': {
+        'filter_type': 'boolean',
+        'values': '',
+        'get_values': False
+        }
     }
 
 

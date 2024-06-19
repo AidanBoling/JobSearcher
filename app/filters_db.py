@@ -28,6 +28,10 @@ class DbFilter:
             'not_ilike': self.col.not_ilike
             }
         
+        if self.value == 'bool_true':
+            self.value = True
+        if self.value == 'bool_false':
+            self.value = False
 
     def get(self):
         return self.op_map[self.operator](self.value)

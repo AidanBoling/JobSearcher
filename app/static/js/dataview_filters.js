@@ -316,6 +316,17 @@
         }
 
 
+        function getCheckboxText(idPost, namePrefix, isChecked = false) {
+            const checkedAttr = isChecked ? 'checked' : ''
+            const id = `filter-value_checkbox_${idPost}`
+            const name = `${namePrefix}.values`
+            const hiddenInputEl = uncheckedValueEl(id, name)
+            
+            return (`<input type="checkbox" id="${id}" aria-label="Value" class="form-check-input" name="${name}" value="bool_true" ${checkedAttr} onchange="toggleUncheckedValue(this, this.checked)" />
+                    ${hiddenInputEl}`)
+        }
+
+
         const filterRow = document.getElementById('filter-row_' + idPost)
 
         // Operator Options
@@ -334,6 +345,10 @@
                                     ${valueOptions}
                                     </select>`
             valueDiv.innerHTML = valueSelectText
+        }
+        else if (filter['input_type'] === 'boolean') {
+            const valueText = getCheckboxText(idPost, namePrefix)
+            valueDiv.innerHTML = valueText
         }
         else {
             let value = ''
@@ -357,6 +372,23 @@
         const text = selectedVal[0].toUpperCase() + selectedVal.slice(1).toLowerCase()
         if (echoEls) {
             echoEls.forEach(el => { el.innerText = text })
+        }
+    }
+
+
+    function toggleUncheckedValue(checkboxEl, isChecked) {
+
+        if (isChecked) {
+            const parentEl = checkboxEl.closest('.filter-value')
+            const hiddenInputId = checkboxEl.id + '_unchecked'
+            const hiddenInput = parentEl.querySelector(`#${hiddenInputId}`)
+            hiddenInput.remove()
+        }
+        else {
+            const hiddenInputId = checkboxEl.id
+            const hiddenInputName = checkboxEl.name
+            const text = uncheckedValueEl(hiddenInputId, hiddenInputName)
+            checkboxEl.insertAdjacentHTML('afterend', text)
         }
     }
 
@@ -501,6 +533,11 @@
                     onclick="addFilter('${type}', this, this.id)">
                     ${btnContent}
                 </button>`
+    }
+
+
+    function uncheckedValueEl(id, name) {
+        return `<input type="hidden" id="${id}_unchecked" name="${name}" value="bool_false" />`
     }
 
 

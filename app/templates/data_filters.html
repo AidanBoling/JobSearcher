@@ -141,7 +141,13 @@
     aria_label='Values', div_class='col', options=f_options[filter_current['field']]['values'],
     selected_options=filter_current['values']) }}
 
+    {% elif f_options[filter_current['field']]['input_type'] == 'boolean' %}
+
+    {{ filter_checkbox(item='filter-value', name='{}.values'.format(name_prefix), id_post=id_post,
+    aria_label='Value', is_checked=filter_current['values'], div_class='col') }}
+
     {% else %}
+
     {{ filter_input(item='filter-value', type='text', name='{}.values'.format(name_prefix), id_post=id_post,
     aria_label='Value', div_class='col', value=filter_current['values']) }}
 
@@ -267,19 +273,13 @@
 {% endmacro %}
 
 
-
-<!-- <div class="col-4 filter-value filter-text d-none">
-    <label for="filter-value_text_1" class="form-label"></label> 
-    <input type="text" class="form-control" id="filter-value_text_1" name="value" value=""
-        aria-label="Value" />
-</div>-->
-
-<!--<div class="col-4 filter-value filter-date d-none">
-    <label for="filter-value_date_1" class="form-label"></label>
-    <input type="date" class="form-control" id="filter-value_date_1" name="value" value=""
-        aria-label="Value" />
-</div>-->
-
-
-{# outer = 'col-auto {{div_outer}}'
-inner = 'col-auto d-inline {{div_outer}}' #}
+{% macro filter_checkbox(item, name, id_post, aria_label, is_checked, div_class='col-4', class='') %}
+<div class="{{ div_class }} {{ item }}">
+    <input type="checkbox" id="{{ item }}_checkbox_{{ id_post }}" aria-label="{{ aria_label }}"
+        class="form-check-input {{ class }}" name="{{ name }}" value="bool_true"
+        {% if is_checked == 'bool_true' %}checked{% endif %} onchange="toggleUncheckedValue(this, this.checked)" />
+    {% if is_checked == 'bool_false' %}
+    <input type="hidden" id="{{ item }}_checkbox_{{ id_post }}_unchecked" name="{{ name }}" value="bool_false" />
+    {% endif %}
+</div>
+{% endmacro %}
