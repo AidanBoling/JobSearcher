@@ -3,7 +3,6 @@ from sqlalchemy.exc import IntegrityError
 from models.job_posts import JobPost, db
 from filters_db import DbFilterGroup
 from models.base import Base
-
        
 DEFAULT_SORT = [('id', 'asc')]
 
@@ -99,7 +98,7 @@ class JobDbControl(DbControl):
         
         data = {key: value for (key, value) in updated_data.items() if key not in ['id', 'created', 'post_id', 'post_link', 'posted_date']}
         
-        if updated_data['posted_date']:
+        if updated_data.get('posted_date'):
             # Date fixing -- probably not necessary, but implementing for now just in case keeping the time becomes relevant
             
             if job.posted_date:
@@ -117,9 +116,12 @@ class JobDbControl(DbControl):
         print(data)
         job.update_cols(data)
         self.db.session.commit()
+        job = self.get_one(id)
+
+        return job
 
 
-    def delete_one(self, id):
+    def delete_one(self, id: int):
         job = self.get_one(id)
         self.db.session.delete(job)
         self.db.session.commit()
@@ -144,8 +146,18 @@ class JobDbControl(DbControl):
             elif order == 'desc':
                 db_sort_list.append(self.col_map[col_name].desc())
         
-        return db_sort_list
+        return db_sort_list   
 
+
+    def job_exists_where(self, job_id: str, filter_group: DbFilterGroup=None) -> bool:
+        ''' 
+        Checks whether a specific job, by id, matches a given group of filters. Useful for checking if a
+        job that has been modified still belongs in a given view.
+        '''
+
+        exists_criteria = self.db.exists(JobPost.id).where(JobPost.id == job_id).where(filter_group.op_expression()).select()
+
+        return self.db.session.execute(exists_criteria).scalar()
 
 
 
@@ -165,62 +177,38 @@ class JobDbControl(DbControl):
 
 
 
-# def filter_jobs(self, filters: dict ={}, sort_by: str ='id'):
-        
-    #     filter_data = {key: value for (key, value) in filters.items() if value}
-    #     query = db.select(JobPost).filter_by(**filter_data).order_by(self.col_map[sort_by])
+    # def filter_group(method: str, filters: dict):
+    # #     filter_stmts = []
 
-    #     jobs = db.session.execute(query).scalars().all()
-        
-    #     # if not filter_data or not jobs:
-    #     #     raise NotFound(description='No results found with the given parameters.')
-    #     return jobs
+    # #     for key, value in filters.items():
+    # #         filter_stmts.append(key == value)
+
+    #     if method == 'and':
+    #         args = [mapped[filter_key] == filter_value, ????????]
+    #         args = [filter, filter]
+    #         filter.get().join(', ')
+    #         stmt = select(JobPost).where(and_(mapped[filter_key] == filter_value, ????????))
+
+    #     return stmnt
+
+
+    # if not filter_data or not jobs:
+    #     raise NotFound(description='No results found with the given parameters.')
     
+    # return jobs
 
 
-        # filters = [JobDbFilter('employment_type', 'Full-time', '=='), JobDbFilter('job_board', 'LinkedIn', '==')]
-        # # group_with_nested = DbFilterGroup([JobDbFilter(), filters], 'AND')   
-        
-        # operator = 'AND'
-        # top_filter_group = DbFilterGroup(filters, operator)
-        
+    # def toggle_bool_field(self, id: int, field_name: str, value: bool):
+    # # fields_types = self.model().get_field_types()
 
-        # filter_data = {key: value for (key, value) in filters.items() if value}
-        # jobs = db.session.execute(query).scalars().all()
-        
-        
-        # filter_group = { 'AND': [nested_filter_group], ('job_board', 'LinkedIn')],
-        #     'OR': [],
-        #     'NOT': []
-        #     }
+    # # boolean_fields = [field for field in fields_types.keys() if isinstance(fields_types[field], Boolean)]
+    # # if field_name in boolean_fields:
+    # job = self.get_one(id)
 
-        # nested_filter_group = {'OR': [('employment_type', 'Remote'), ('employment_type', 'Remote')]}
-        
-        
+    # job.update_cols({field_name: value})
+    
+    # self.db.session.commit()
+    # job = self.get_one(id)
 
-        # def filter_group(method: str, filters: dict):
-        # #     filter_stmts = []
-
-        # #     for key, value in filters.items():
-        # #         filter_stmts.append(key == value)
-
-        #     if method == 'and':
-        #         args = [mapped[filter_key] == filter_value, ????????]
-        #         args = [filter, filter]
-        #         filter.get().join(', ')
-        #         stmt = select(JobPost).where(and_(mapped[filter_key] == filter_value, ????????))
-
-        #     return stmnt
-
-
-        # if not filter_data or not jobs:
-        #     raise NotFound(description='No results found with the given parameters.')
-        
-        # return jobs
-
-
-    # def get_all(self):
-    #     # order_by_field
-    #     query = db.select(JobPost).order_by(JobPost.id)
-    #     all_posts = db.session.execute(query).scalars().all()
-    #     return all_posts
+    # return job
+    # # self.update_one()

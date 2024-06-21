@@ -13,6 +13,7 @@ class Base(DeclarativeBase):
     def get_field_names(self):
         return [col.name for col in self.__table__.columns] 
 
+
     def update_cols(self, updates: dict):
         updated = {}
         for name, value in updates.items():
@@ -33,3 +34,7 @@ class Base(DeclarativeBase):
         for col in self.__table__.columns:
             if col.name == col_name:
                 return col
+
+
+    def get_field_types(self):
+        return {col.name: col.type for col in self.__table__.columns}

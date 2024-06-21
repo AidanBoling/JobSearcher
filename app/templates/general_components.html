@@ -23,3 +23,14 @@
 {% endif %}
 <span {% if text_is_hidden %}class="visually-hidden" {% endif %}>{{ text }}</span></button>
 {% endmacro %}
+
+
+{% macro checkboxButton(id, svg_href_off, svg_href_on, text, onchange, is_checked=false, text_is_hidden=true, btn_class='ab-btn-light', icon_size='16', icon_style='') %}
+<input type="checkbox" class="btn-check" id="{{ id }}" autocomplete="off" onchange="{{ onchange }}"
+    {% if is_checked %}checked{% endif %}>
+<label class="btn {{btn_class}}" for="{{ id }}">
+    {% set svg_href = svg_href_on if is_checked else svg_href_off %}
+    {{ iconSvg(svg_href=svg_href, w=icon_size, h=icon_size, style=icon_style) }}
+    <span {% if text_is_hidden %}class="visually-hidden" {% endif %}>{{ text }}</span>
+</label>
+{% endmacro %}

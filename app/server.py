@@ -1,5 +1,6 @@
 from pathlib import Path
-from flask import Flask, render_template, request, abort, redirect, url_for
+from flask import Flask, render_template, request, abort, redirect, url_for, jsonify
+from sqlalchemy import Boolean
 from models.job_posts import db
 from db_control import JobDbControl
 from views_control import ViewsControl
@@ -132,7 +133,44 @@ def main():
         if request.form:
             db_control.update_one(id, request.form)
         return redirect(url_for('dataview'))
+
+
+    @app.post('/data/update/job-field/toggle/')
+    def toggle_boolean_field():
+        response = {}
+
+        # Validate form data:
+        fields_types = db_control.model().get_field_types()
+        boolean_fields = [field for field in fields_types.keys() if isinstance(fields_types[field], Boolean)]
+        
+        if not request.form['field_name'].lower() in boolean_fields:
+            response = {'status': 'Error', 'message': 'Field submitted not a valid boolean field in the jobs db.'}
+            return jsonify(response)
     
+        try:
+            value = to_bool(request.form['value'])
+        except ValueError or KeyError:
+            response = {'status': 'Error', 'message': 'Value field missing, or value not an accepted boolean value.'}
+            return jsonify(response)
+        
+        # Update field
+        field = request.form['field_name']
+        job = db_control.update_one(request.form['id'], {field: value})  # Later todo: Error handling (db)
+        job = job.as_dict()
+       
+        # Set response
+        if to_bool(job['bookmarked']) == value:
+            response = {'status': 'Success',
+                        'message': f'Job field "{field}" field updated.'}
+        else:
+            response = {'status': 'Error',
+                        'message': f'Something went wrong; Job field "{field}" not updated.'}
+
+        response['job'] = job
+        response['in_view'] = in_current_view(job['id'])
+
+        return jsonify(response)
+
 
     # @app.delete('/data/delete/job/<int:id>')
     # def delete_job(id):
@@ -257,6 +295,31 @@ def get_template_variables(view):
 
     return jobs, options, views, filters, filter_options, sort_options
 
+
+def to_bool(val):
+    true_vals = [True, 'true', 1, '1']
+    false_vals = [False, 'false', 0, '0']
+
+    if type(val) == str:
+        val = val.lower().strip()
+    
+    if val in true_vals:
+        return True
+    if val in false_vals:
+        return False
+    
+    else:
+        raise ValueError('Value not an accepted boolean')
+
+
+def in_current_view(id):
+    view = views_ctrl.current_view['name']
+    filter_group = views_ctrl.filters_control.db_filter_groups[view]
+ 
+    is_in_view = db_control.job_exists_where(id, filter_group)
+    print('is in view: ', is_in_view)
+
+    return is_in_view
 
 
 main()

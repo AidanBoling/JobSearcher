@@ -94,8 +94,8 @@
     const sortOptions = {{ sort_options | tojson }}
     const filterOptions = {{ filter_options | tojson }}
 
-    const get_view_url = {{ url_for('change_view') | tojson }}
-
+    const getViewUrl = {{ url_for('change_view') | tojson }}
+    const toggleBooleanUrl = {{ url_for('toggle_boolean_field') | tojson }}
 
     // VIEW NAVIGATION
 
@@ -133,7 +133,7 @@
                 'body': data,
             }
 
-            fetch(get_view_url, request)
+            fetch(getViewUrl, request)
                 .then(response => {
                     return response.text();
                 })
@@ -209,6 +209,7 @@
 </script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/dataview_filters.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/dataview_sort.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/item_actions.js') }}"></script>
 
 {% endblock %}
 

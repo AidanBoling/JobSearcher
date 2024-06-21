@@ -1,13 +1,14 @@
 {% from 'modals.html' import view_job_modal, view_job_button, edit_modal, edit_modal_button %}
 {% from 'table_macros.html' import table_cell_content %}
 {% import 'form.html' as form %}
-{% from 'general_components.html' import iconBtnContent, iconBtnContentSvg %}
+{% from 'general_components.html' import iconBtnContent, iconBtnContentSvg, checkboxButton %}
 {% set visible_fields = options.table.job_fields|rejectattr('hidden')|list %}
 
 
 {# TODO: Enable delete table items. (w/ confirmation dialog) #}
 
-{# TODO: Add columns for marking out "bookmark", "read/seen", (maybe mark out "hide"...) #}
+{# [x] TODO: Add columns for marking out "bookmark", #}
+{# TODO: Add columns for "read/seen", (maybe mark out "hide"...) #}
 
 {# TODO: Filter out titles based on global_data_filters.post_title filters. #}
 
@@ -19,7 +20,8 @@
     {% if not jobs %}
     {# Later TODO: Edit this to allow for "no results" for filter #}
     <div class="p-5">
-        <p>No jobs here yet. Go to settings to set up options and run a search manually.</p>
+        <p>No results.</p>
+        <p>Go to settings to set up options and run a search manually.</p>
     </div>
 
     {% else %}
@@ -39,17 +41,22 @@
             </thead>
             <tbody>
                 {% for job in jobs %}
-                <tr>
+                <tr id="dataviewItem-{{ job['id'] }}">
                     <th scope="row"
                         class="table-active {{ visible_fields[0]['type'] }} name-{{ visible_fields[0]['name'] }}">
                         <div class="d-flex flex-column gap-2">
                             {{ table_cell_content(field=visible_fields[0], job=job) }}
                             {# TODO: Check button placement accessibility #}
-                            <div class="btn-group d-flex gap-0 item-actions" role="group" aria-label="Actions">
-                                {{ view_job_button(job['id'], label=iconBtnContentSvg('#svg-bi-arrows-fullscreen', 'View', icon_w='13', icon_h='13', icon_style='vertical-align: -.025em;'), class="btn btn-dark") }}
-                                <div class="vr"></div>
-                                {{ edit_modal_button(iconBtnContentSvg('#svg-bi-pencil-square', 'Edit'), data_target='job-{}'.format(job['id']), class='btn btn-dark') }}
-                                {# Add delete button here(?). justify-self-end #}
+                            <div class="d-flex gap-2" role="group" aria-label="Item Actions">
+                                {{ checkboxButton(id='bookmarkBtn-{}'.format(job.id), svg_href_off='#svg-bi-bookmark', svg_href_on='#svg-bi-bookmark-fill', text='Toggle Bookmark', onchange='toggleBookmark(this)', is_checked=job.bookmarked, btn_class='ab-btn-light') }}
+
+                                <div class="btn-group w-100 item-actions">
+                                    {{ view_job_button(job['id'], label=iconBtnContentSvg('#svg-bi-arrows-fullscreen', 'View', icon_w='13', icon_h='13', icon_style='vertical-align: -.025em;'), class="btn btn-dark") }}
+                                    <div class="vr"></div>
+                                    {{ edit_modal_button(iconBtnContentSvg('#svg-bi-pencil-square', 'Edit'), data_target='job-{}'.format(job['id']), class='btn btn-dark') }}
+
+                                    {# Add delete button here(?). justify-self-end #}
+                                </div>
                             </div>
                         </div>
                     </th>
@@ -64,28 +71,8 @@
         </table>
 
 
-
-
         {% for job in jobs %}
-
-        {{ view_job_modal(job) }}
-
-        {% call(data) edit_modal(formURL=url_for('update_job', id=job['id']), title='Edit Job', id='job-{}'.format(job['id']), data=job) %}
-        {% for field in options.table.job_fields if field.name not in ['id', 'created', 'post_id', 'post_link'] %}
-
-        {% if field.type == 'text-short' or field.type == 'text-one-line' %}
-        {{ form.text_input(field.label, id=field.name, name=field.name, value=data[field.name]) }}
-        {% elif field.type == 'text-long' %}
-
-        {{ form.textarea(field.label, id=field.name, name=field.name, rows='10', value=data[field.name]) }}
-        {% elif field.type == 'date' %}
-        {{ form.date_input(field.label, id=field.name, name=field.name, value=data[field.name].strftime('%Y-%m-%d') if data[field.name]) }}
-        {% endif %}
-
-        {% endfor %}
-
-        {% endcall %}
-
+        {% include 'dataview_item_modals_group.html' %}
         {% endfor %}
 
     </div>

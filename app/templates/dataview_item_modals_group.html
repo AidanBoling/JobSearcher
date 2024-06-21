@@ -1,0 +1,19 @@
+<div id="modalsJob-{{ job['id'] }}">
+    {{ view_job_modal(job) }}
+
+    {% call(data) edit_modal(formURL=url_for('update_job', id=job['id']), title='Edit Job', id='job-{}'.format(job['id']), data=job) %}
+    {% for field in options.table.job_fields if field.name not in ['id', 'created', 'post_id', 'post_link'] %}
+
+    {% if field.type == 'text-short' or field.type == 'text-one-line' %}
+    {{ form.text_input(field.label, id=field.name, name=field.name, value=data[field.name]) }}
+    {% elif field.type == 'text-long' %}
+
+    {{ form.textarea(field.label, id=field.name, name=field.name, rows='10', value=data[field.name]) }}
+    {% elif field.type == 'date' %}
+    {{ form.date_input(field.label, id=field.name, name=field.name, value=data[field.name].strftime('%Y-%m-%d') if data[field.name]) }}
+    {% endif %}
+
+    {% endfor %}
+
+    {% endcall %}
+</div>
