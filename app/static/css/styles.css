@@ -201,7 +201,9 @@ main {
     --bs-btn-active-border-color: var(--ab-btn-hover-border-color);
     --bs-btn-disabled-border-color: var(--ab-btn-border-color);
 
-    --bs-btn-focus-shadow-rgb: 66, 70, 73;
+    /* --bs-btn-focus-shadow-rgb: 66, 70, 73; */
+    --bs-btn-focus-shadow-rgb: var(--btn-color-ltcolor-rgb);
+    --bs-btn-focus-box-shadow: 0 0 0 0.25rem rgba(var(--bs-btn-focus-shadow-rgb), .25);
     --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 
     --bs-btn-border-width: .1rem;
@@ -222,6 +224,43 @@ main {
         box-shadow: 0px 0px 0px 1px rgba(var(--btn-color-ltcolor-rgb), 0.40);
     } */
 }
+
+.btn.ab-toggle-btn-color {
+    --ab-btn-color-rgb: 255, 255, 255;
+    --ab-btn-color: rgb(var(--ab-btn-color-rgb));
+    --ab-btn-hover-color: rgb(var(--btn-color-ltcolor-rgb));
+
+    --ab-btn-bg: transparent;
+    --ab-btn-active-bg: var(--ab-btn-bg);
+
+    --ab-btn-border-color: var(--ab-btn-bg);
+    --ab-btn-hover-border-color: var(--ab-btn-bg);
+
+
+    --bs-btn-color: var(--ab-btn-color);
+    --bs-btn-hover-color: var(--ab-btn-hover-color);
+    --bs-btn-active-color: var(--ab-btn-hover-color);
+    --bs-btn-disabled-color: var(--ab-btn-color);
+
+    --bs-btn-bg: var(--ab-btn-bg);
+    --bs-btn-hover-bg: var(--ab-btn-bg);
+    --bs-btn-active-bg: var(--ab-btn-active-bg);
+    --bs-btn-disabled-bg: var(--ab-btn-bg);
+
+    --bs-btn-border-color: var(--ab-btn-border-color);
+    --bs-btn-hover-border-color: var(--ab-btn-hover-border-color);
+    --bs-btn-active-border-color: var(--ab-btn-hover-border-color);
+    --bs-btn-disabled-border-color: var(--ab-btn-border-color);
+
+    --bs-btn-focus-shadow-rgb: var(--btn-color-ltcolor-rgb);
+    --bs-btn-focus-box-shadow: 0 0 0 0.25rem rgba(var(--bs-btn-focus-shadow-rgb), .25);
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+
+    --bs-btn-border-width: .1rem;
+
+}
+
+
 
 .btn.icon-radio {
     /* btn darkest color */
@@ -250,7 +289,7 @@ main {
 
 .btn.icon-radio:hover,
 .btn.icon-radio:active,
-.btn-check:checked + .btn {
+.icon-radio.btn-check:checked + .btn {
     --bs-btn-color: rgb(var(--btn-color-ltcolor-rgb)) !important;
     --bs-body-color: var(--bs-btn-color) !important;
     --bs-btn-bg: rgba(var(--panel-bg-darker-rgb), .9) !important;
@@ -259,11 +298,11 @@ main {
     --bs-btn-border-color: rgba(var(--btn-color-ltcolor-rgb), 0.40);
 }
 
-.btn-check:checked + .btn:not(:focus-visible) {
+.icon-radio.btn-check:checked + .btn:not(:focus-visible) {
     box-shadow: unset;
 }
 
-.btn-check:checked + .btn {
+.icon-radio.btn-check:checked + .btn {
     border-color: rgb(var(--btn-color-ltcolor-rgb)) !important;
 }
 
@@ -375,22 +414,27 @@ table {
     --bs-table-hover-bg: rgba(var(--table-active-lighter-rgb), 0.941);
 }
 
-.table-dark .item-actions .btn-dark {
-    --btn-color: rgb(199, 206, 255);
-    --btn-bg: rgba(var(--table-bg-rgb), .4);
-    --btn-hover-bg: rgba(var(--table-bg-rgb), .9);
+.table-dark .item-actions .ab-btn-dark-color {
+    --ab-btn-color-rgb: var(--btn-color-ltcolor-rgb);
+    --ab-btn-color: rgb(var(--ab-btn-color-rgb));
 
-    --bs-btn-color: var(--btn-color);
-    --bs-btn-hover-color: var(--btn-color);
-    --bs-btn-active-color: var(--btn-color);
+    --ab-btn-bg: rgba(var(--table-bg-rgb), .4);
+    --ab-btn-hover-bg: rgba(var(--table-bg-rgb), .9);
 
-    --bs-btn-bg: var(--btn-bg);
-    --bs-btn-border-color: transparent;
-    --bs-btn-active-border-color: transparent;
-    --bs-btn-hover-border-color: transparent;
+    --ab-btn-border-color: transparent;
 
-    --bs-btn-active-bg: var(--btn-hover-bg);
-    --bs-btn-hover-bg: var(--btn-hover-bg);
+
+    --bs-btn-color: var(--ab-btn-color);
+    --bs-btn-hover-color: var(--ab-btn-color);
+    --bs-btn-active-color: var(--ab-btn-color);
+
+    --bs-btn-bg: var(--ab-btn-bg);
+    --bs-btn-active-bg: var(--ab-btn-hover-bg);
+    --bs-btn-hover-bg: var(--ab-btn-hover-bg);
+
+    --bs-btn-border-color: var(--ab-btn-border-color);
+    --bs-btn-active-border-color: var(--ab-btn-border-color);
+    --bs-btn-hover-border-color: var(--ab-btn-border-color);
 }
 
 /* -- */

@@ -47,13 +47,13 @@
                         <div class="d-flex flex-column gap-2">
                             {{ table_cell_content(field=visible_fields[0], job=job) }}
                             {# TODO: Check button placement accessibility #}
-                            <div class="d-flex gap-2" role="group" aria-label="Item Actions">
-                                {{ checkboxButton(id='bookmarkBtn-{}'.format(job.id), svg_href_off='#svg-bi-bookmark', svg_href_on='#svg-bi-bookmark-fill', text='Toggle Bookmark', onchange='toggleBookmark(this)', is_checked=job.bookmarked, btn_class='ab-btn-light') }}
+                            <div class="d-flex gap-1" role="group" aria-label="Item Actions">
+                                {{ checkboxButton(id='bookmarkBtn-{}'.format(job.id), svg_href_off='#svg-bi-bookmark', svg_href_on='#svg-bi-bookmark-fill', text='Toggle Bookmark', onchange='toggleBookmark(this)', is_checked=job.bookmarked, btn_class='ab-toggle-btn-color') }}
 
                                 <div class="btn-group w-100 item-actions">
-                                    {{ view_job_button(job['id'], label=iconBtnContentSvg('#svg-bi-arrows-fullscreen', 'View', icon_w='13', icon_h='13', icon_style='vertical-align: -.025em;'), class="btn btn-dark") }}
+                                    {{ view_job_button(job['id'], label=iconBtnContentSvg('#svg-bi-arrows-fullscreen', 'View', icon_w='13', icon_h='13', icon_style='vertical-align: -.025em;'), class="btn ab-btn-dark-color") }}
                                     <div class="vr"></div>
-                                    {{ edit_modal_button(iconBtnContentSvg('#svg-bi-pencil-square', 'Edit'), data_target='job-{}'.format(job['id']), class='btn btn-dark') }}
+                                    {{ edit_modal_button(iconBtnContentSvg('#svg-bi-pencil-square', 'Edit'), data_target='job-{}'.format(job['id']), class='btn ab-btn-dark-color') }}
 
                                     {# Add delete button here(?). justify-self-end #}
                                 </div>
