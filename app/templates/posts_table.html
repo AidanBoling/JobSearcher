@@ -1,11 +1,11 @@
-{% from 'modals.html' import view_job_modal, view_job_button, edit_modal, edit_modal_button %}
+{% from 'modals.html' import view_job_modal, view_job_button, edit_modal, edit_modal_button, confirmation_modal_button, confirmation_modal %}
 {% from 'table_macros.html' import table_cell_content %}
 {% import 'form.html' as form %}
 {% from 'general_components.html' import iconBtnContent, iconBtnContentSvg, checkboxButton %}
 {% set visible_fields = options.table.job_fields|rejectattr('hidden')|list %}
 
 
-{# TODO: Enable delete table items. (w/ confirmation dialog) #}
+{# [x] TODO: Enable delete table items. (w/ confirmation dialog) #}
 
 {# [x] TODO: Add columns for marking out "bookmark", #}
 {# TODO: Add columns for "read/seen", (maybe mark out "hide"...) #}
@@ -48,14 +48,14 @@
                             {{ table_cell_content(field=visible_fields[0], job=job) }}
                             {# TODO: Check button placement accessibility #}
                             <div class="d-flex gap-1" role="group" aria-label="Item Actions">
-                                {{ checkboxButton(id='bookmarkBtn-{}'.format(job.id), svg_href_off='#svg-bi-bookmark', svg_href_on='#svg-bi-bookmark-fill', text='Toggle Bookmark', onchange='toggleBookmark(this)', is_checked=job.bookmarked, btn_class='ab-toggle-btn-color') }}
+                                {{ checkboxButton(id='bookmarkBtn-{}'.format(job.id), svg_href_off='#svg-bi-bookmark', svg_href_on='#svg-bi-bookmark-fill', text='Toggle Bookmark', onchange='handleToggleBookmark(this)', is_checked=job.bookmarked, btn_class='ab-toggle-btn-color') }}
 
                                 <div class="btn-group w-100 item-actions">
-                                    {{ view_job_button(job['id'], label=iconBtnContentSvg('#svg-bi-arrows-fullscreen', 'View', icon_w='13', icon_h='13', icon_style='vertical-align: -.025em;'), class="btn ab-btn-dark-color") }}
+                                    {{ view_job_button(job['id'], label=iconBtnContentSvg('#svg-bi-arrows-fullscreen', 'View', icon_w='13', icon_h='13', icon_style='vertical-align: -.025em;'), class='btn ab-btn-dark-color') }}
                                     <div class="vr"></div>
                                     {{ edit_modal_button(iconBtnContentSvg('#svg-bi-pencil-square', 'Edit'), data_target='job-{}'.format(job['id']), class='btn ab-btn-dark-color') }}
-
-                                    {# Add delete button here(?). justify-self-end #}
+                                    <div class="vr"></div>
+                                    {{ confirmation_modal_button(label=iconBtnContentSvg('#svg-bi-trash3', 'Delete', text_is_hidden=true), modal_id_post='deleteJob-{}'.format(job['id']), class='btn ab-btn-danger with-hover-border', style='max-width: min-content;') }}
                                 </div>
                             </div>
                         </div>

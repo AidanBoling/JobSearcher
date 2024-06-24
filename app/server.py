@@ -1,4 +1,7 @@
 from pathlib import Path
+import os
+import json
+from datetime import datetime, timezone
 from flask import Flask, render_template, request, abort, redirect, url_for, jsonify
 from sqlalchemy import Boolean
 from models.job_posts import db
@@ -56,9 +59,9 @@ def main():
                 view = selected_view
 
         views_ctrl.set_current(view)
-        jobs, options, views, filters, filter_options, sort_options = get_template_variables(view)
+        jobs, options, views, filter_options, sort_options = get_template_variables(view)
         
-        return render_template('dataview.html', jobs=jobs, options=options, views=views, filters=filters, filter_options=filter_options, sort_options=sort_options)
+        return render_template('dataview.html', jobs=jobs, options=options, views=views, filter_options=filter_options, sort_options=sort_options)
 
 
     @app.get('/views/<view>')
@@ -69,9 +72,9 @@ def main():
         
         views_ctrl.set_current(view)
 
-        jobs, options, views, filters, filter_options, sort_options = get_template_variables(view)
+        jobs, options, views, filter_options, sort_options = get_template_variables(view)
 
-        return render_template('index.html', jobs=jobs, options=options, views=views, filters=filters, filter_options=filter_options, sort_options=sort_options)
+        return render_template('index.html', jobs=jobs, options=options, views=views, filter_options=filter_options, sort_options=sort_options)
 
 
     @app.post('/views/<view>/update/basics')
@@ -139,7 +142,7 @@ def main():
     def toggle_boolean_field():
         response = {}
 
-        # Validate form data:
+        # Validate form data
         fields_types = db_control.model().get_field_types()
         boolean_fields = [field for field in fields_types.keys() if isinstance(fields_types[field], Boolean)]
         
@@ -172,10 +175,26 @@ def main():
         return jsonify(response)
 
 
-    # @app.delete('/data/delete/job/<int:id>')
-    # def delete_job(id):
-    #     db_control.update_one(id, request.form)
-    #     return redirect(url_for('dataview'))
+    @app.post('/data/delete/job')
+    def delete_job():
+        if request.form:
+            job = json.loads(request.form['job'])
+            response = {}
+
+            save_in_deletion_log(job)   # So job won't be grabbed again on next job search
+            is_deleted = db_control.delete_one(job['id'])
+
+            if is_deleted:
+                response = {'status': 'Success',
+                        'message': 'Successfully deleted 1 job.'}
+            else:
+                response = {'status': 'Error',
+                            'message': 'Something went wrong; Job could not be deleted.'}
+
+            return jsonify(response)
+        
+        return redirect(url_for('dataview'))
+
 
 
     # APP SETTINGS
@@ -277,7 +296,7 @@ def get_template_variables(view):
     jobs = get_job_data(view)
 
     # TODO: Delete filters (now not used)
-    filters={'settings': filter_options}
+    # filters={'settings': filter_options}
 
     views={'current': views_ctrl.current_view, 
         'names': views_ctrl.saved_views.names
@@ -293,7 +312,7 @@ def get_template_variables(view):
 
     # Later TODO (maybe): Combine layout_options and filter_options into options
 
-    return jobs, options, views, filters, filter_options, sort_options
+    return jobs, options, views, filter_options, sort_options
 
 
 def to_bool(val):
@@ -320,6 +339,31 @@ def in_current_view(id):
     print('is in view: ', is_in_view)
 
     return is_in_view
+
+
+def save_in_deletion_log(job):
+    print('Starting save to deletion log...')
+
+    deleted_logs_dir = ROOT_DIR / 'instance/deletion_logs'
+    if not os.path.exists(deleted_logs_dir):
+        print('No deletion_log directory found; creating directory...')
+        os.mkdir(deleted_logs_dir)
+    
+    filename = job['job_board'].replace(' ', '_')
+    timestamp = datetime.now(timezone.utc)  # ...Or should this be local time?
+    log_file = f'{deleted_logs_dir}/{filename}.txt'
+    
+    deletion_entry = f'{timestamp},{job["post_id"]}\n'
+    
+    try:
+        with open(log_file, 'a') as file:
+            file.write(deletion_entry)
+    except FileNotFoundError:
+        with open(log_file, 'w+') as file:
+            file.write(deletion_entry)
+    finally:
+        print('Entry added to deletion log.')
+
 
 
 main()

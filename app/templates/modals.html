@@ -75,6 +75,14 @@
 {% endmacro %}
 
 
+{% macro confirmation_modal_button(label, modal_id_post, class='btn btn-primary', style='') %}
+<button type="button" class="{{ class }}" data-bs-toggle="modal" data-bs-target="#confirmModal-{{ modal_id_post }}"
+    {% if style %} style="{{ style }}" {% endif %}>
+    {{ label }}
+</button>
+{% endmacro %}
+
+
 {% macro confirmation_modal(title, id_post) %}
 <div id="confirmModal-{{ id_post }}" class="modal confirm-modal" tabindex="-1"
     aria-labelledby="confirmModalLabel-{{ id_post }}" aria-hidden="true">

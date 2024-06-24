@@ -1,3 +1,5 @@
+{% from 'modals.html' import view_job_modal, edit_modal, confirmation_modal %}
+
 <div id="modalsJob-{{ job['id'] }}">
     {{ view_job_modal(job) }}
 
@@ -14,6 +16,28 @@
     {% endif %}
 
     {% endfor %}
-
     {% endcall %}
+
+    {% call() confirmation_modal(title='Confirm Delete', id_post='deleteJob-{}'.format(job['id'])) %}
+    <div class="modal-body px-5 pb-0 pt-5 modal-content-bg text-center">
+        <p class="fs-5">
+            The following job will be deleted:
+        </p>
+        <p class="fs-3">
+            {{ job['post_title'] }}, at {{ job['company_name'] }}
+        </p>
+        <p class="fs-5 mt-5">
+            This action cannot be undone.
+        </p>
+    </div>
+    <div class="modal-footer py-5 border-0 modal-content-bg justify-content-evenly" style="column-gap: 2.5rem;">
+        <button class="btn btn-danger btn-lg w-200" onclick="handleDeleteJob({{ job.as_dict() }})">Delete</button>
+
+        {# <form action="{{ url_for( 'delete_job', id=job['id']) }}" method="POST">
+            <button class="btn btn-danger btn-lg w-200" type="submit">Delete</button>
+        </form> #}
+        <button type="button" class="btn btn-secondary btn-lg w-200" data-bs-dismiss="modal">Cancel</button>
+    </div>
+    {% endcall %}
+
 </div>

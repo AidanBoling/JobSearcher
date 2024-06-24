@@ -437,6 +437,28 @@ table {
     --bs-btn-hover-border-color: var(--ab-btn-border-color);
 }
 
+.table-dark .item-actions .ab-btn-danger {
+    --ab-btn-color-rgb: var(--btn-color-grey-white-rgb);
+    --ab-btn-hover-color-rgb: var(--bs-danger-rgb);
+
+    --ab-btn-color: rgb(var(--ab-btn-color-rgb));
+    --ab-btn-hover-color: rgb(var(--ab-btn-hover-color-rgb));
+
+    --ab-btn-bg: rgba(var(--table-bg-rgb), .4);
+    --ab-btn-hover-bg: rgba(var(--table-bg-rgb), .9);
+
+    /* --ab-btn-bg: transparent;
+    --ab-btn-hover-bg: rgba(var(--ab-btn-hover-color-rgb), .15); */
+    --bs-btn-bg: var(--ab-btn-bg);
+    --bs-btn-active-bg: var(--ab-btn-hover-bg);
+    --bs-btn-hover-bg: var(--ab-btn-hover-bg);
+    --ab-btn-disabled-bg: var(--ab-btn-bg);
+
+    &.with-hover-border {
+        --ab-btn-hover-border-color: rgba(var(--ab-btn-hover-color-rgb), .50);
+    }
+}
+
 /* -- */
 
 thead .border-bottom {

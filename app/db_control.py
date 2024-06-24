@@ -125,6 +125,8 @@ class JobDbControl(DbControl):
         job = self.get_one(id)
         self.db.session.delete(job)
         self.db.session.commit()
+        
+        return job
 
 
     def str_date_to_obj(self, date):
