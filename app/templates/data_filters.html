@@ -107,7 +107,7 @@
     {# Field #}
     <div class="col-4 filter-field">
         <select name="{{ name_prefix }}.field" id="field-name_{{ id_post }}" class="form-select" aria-label="Field Name"
-            onchange="getFilterOptions(this.id, this.name, this.options[this.selectedIndex].value)">
+            onchange="getFilterOptions(this, this.options[this.selectedIndex].value)">
 
             {% if not filter_current %}
             <option value="" selected>Select field</option>

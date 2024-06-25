@@ -292,11 +292,15 @@
 
     // -- onChange:
 
-    function getFilterOptions(inputId, inputName, selectedOption) {
+    function getFilterOptions(fieldElement, selectedOption) {
+        // console.log('selected option: ', selectedOption)
 
-        //console.log('selected option: ', selectedOption)
-        const idPost = inputId.split('_')[1]
+        const elementId = fieldElement.id
+        const inputName = fieldElement.name
+        const filterRow = fieldElement.closest('.filter-row')
+
         const filter = filterOptions[selectedOption]
+        const idPost = elementId.split('_')[1]
         const namePrefix = inputName.split('.').slice(0, -1).join('.')
 
 
@@ -307,14 +311,13 @@
                 if (i === 0) { selected = 'selected ' }
                 options += `<option ${selected}value="${valueLabel[0]}">${valueLabel[1]}</option>`
             })
+
             return options
         }
-
 
         function getInputText(type, id, namePrefix, value = '') {
             return (`<input type="${type}" id="filter-value_${type}_${id}" aria-label="Value" class="form-control" name="${namePrefix}.values" value="${value}"  />`)
         }
-
 
         function getCheckboxText(idPost, namePrefix, isChecked = false) {
             const checkedAttr = isChecked ? 'checked' : ''
@@ -326,8 +329,6 @@
                     ${hiddenInputEl}`)
         }
 
-
-        const filterRow = document.getElementById('filter-row_' + idPost)
 
         // Operator Options
         const operatorOptions = getOptionsText(filter['op_list'])
@@ -463,7 +464,7 @@
                 <div class="${fieldDivClass}">
                     <select name="${namePrefix}.field" id="field-name_${idPost}"
                         class="form-select" aria-label="Field Name"
-                        onchange="getFilterOptions(this.id, this.name, this.options[this.selectedIndex].value)">
+                        onchange="getFilterOptions(this, this.options[this.selectedIndex].value)">
                         <option value="" selected>Select field</option>
                         ${options}
                     </select>
