@@ -319,6 +319,12 @@
             return (`<input type="${type}" id="filter-value_${type}_${id}" aria-label="Value" class="form-control" name="${namePrefix}.values" value="${value}"  />`)
         }
 
+        function getInputNumber(id, namePrefix, value = '') {
+            valueProp = value ? `value=${value}` : ''
+
+            return (`<input type="number" id="filter-value_number_${id}" aria-label="Value" class="form-control" name="${namePrefix}.values" ${valueProp} />`)
+        }
+
         function getCheckboxText(idPost, namePrefix, isChecked = false) {
             const checkedAttr = isChecked ? 'checked' : ''
             const id = `filter-value_checkbox_${idPost}`
@@ -339,26 +345,34 @@
 
         // Field Values
         const valueDiv = filterRow.querySelector('div.filter-value')
+        let valueText = ''
         if (filter['input_type'] === 'multi-select') {
 
             const valueOptions = getOptionsText(filter.values)
-            const valueSelectText = `<select class="form-select" name="${namePrefix}.values" id="filter-value_multi-select_${idPost}" aria-label="Value">
+            valueText = `<select class="form-select" name="${namePrefix}.values" id="filter-value_multi-select_${idPost}" aria-label="Value">
                                     ${valueOptions}
-                                    </select>`
-            valueDiv.innerHTML = valueSelectText
+                                </select>`
+            // valueDiv.innerHTML = valueText
         }
         else if (filter['input_type'] === 'boolean') {
-            const valueText = getCheckboxText(idPost, namePrefix)
-            valueDiv.innerHTML = valueText
+            valueText = getCheckboxText(idPost, namePrefix)
+            // valueDiv.innerHTML = valueText
+        }
+        else if (filter['input_type'] === 'number') {
+            valueText = getInputNumber(idPost, namePrefix)
+            // valueDiv.innerHTML = valueText
         }
         else {
             let value = ''
             if (filter.values) {
                 value = filter.values
             }
-            const valueText = getInputText('text', idPost, namePrefix, value)
-            valueDiv.innerHTML = valueText
+            valueText = getInputText('text', idPost, namePrefix, value)
+            // valueDiv.innerHTML = valueText
         }
+
+        if (valueText) {valueDiv.innerHTML = valueText}
+        
 
         // Un-hide element
         valueDiv.classList.remove('d-none')

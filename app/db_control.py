@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from models.job_posts import JobPost, db
 from filters_db import DbFilterGroup
 from models.base import Base
+from utils import get_salary_data_from_str
        
 DEFAULT_SORT = [('id', 'asc')]
 
@@ -15,7 +16,7 @@ class DbControl:
         self.col_map = db_model.get_column_map(db_model)
     
 
-    def get_one(self, id):
+    def get_one(self, id) -> JobPost:
         return db.get_or_404(self.model, id)
     
 
@@ -84,15 +85,11 @@ class JobDbControl(DbControl):
         # TODO: Catch sqlalchemy.exc.IntegrityError -- log jobs that went wrong, and what data was missing/incorrectly formatted.
         
         for job in jobs:
-            try:
-                if type(job['posted_date']) is str:
-                    job['posted_date'] = parse(job['posted_date'], settings={'RETURN_AS_TIMEZONE_AWARE': True})
-            except KeyError:
-                pass
+            self.parse_and_format_fields(job)
         
             self.add_one(job)
         
-    
+
     def update_one(self, id: int, updated_data: dict):
         job = self.get_one(id)
         
@@ -100,9 +97,7 @@ class JobDbControl(DbControl):
         
         if updated_data.get('posted_date'):
             # Date fixing -- probably not necessary, but implementing for now just in case keeping the time becomes relevant
-            
             if job.posted_date:
-                # get time from original date, add to data[posted_date] string, then str_to_obj
                 date = updated_data['posted_date'].split(' ')[0]
                 time = job.posted_date.strftime('%H:%M:%S')
                 date_str = f'{date} {time}'
@@ -112,8 +107,9 @@ class JobDbControl(DbControl):
             data['posted_date'] = self.str_date_to_obj(date_str)
         
             # Note: With current implementation, can't update posted_date to be empty value (e.g. if wanted to clear it for some reason)
+        data = self.parse_and_format_fields(data)
+        print('Updated data:\n', data)
 
-        print(data)
         job.update_cols(data)
         self.db.session.commit()
         job = self.get_one(id)
@@ -130,11 +126,9 @@ class JobDbControl(DbControl):
 
 
     def str_date_to_obj(self, date):
-        try:
-            if type(date) is str:
-               return parse(date, settings={'RETURN_AS_TIMEZONE_AWARE': True})
-        except KeyError:
-            pass
+        if type(date) is str:
+            return parse(date, settings={'RETURN_AS_TIMEZONE_AWARE': True})
+        return
     
 
     def sort_to_db_sort(self, sort: list[list]):
@@ -161,6 +155,23 @@ class JobDbControl(DbControl):
 
         return self.db.session.execute(exists_criteria).scalar()
 
+
+    def parse_and_format_fields(self, job: dict):
+        posted_date = job.get('posted_date')
+        if posted_date and type(posted_date) is str:
+            job['posted_date'] = parse(posted_date, settings={'RETURN_AS_TIMEZONE_AWARE': True})
+
+        salary = job.get('salary')
+        if salary and not job.get('salary_low'):
+            salary_data = get_salary_data_from_str(str(salary))
+            new_fields = {
+                'salary_currency': salary_data.currency,
+                'salary_low': salary_data.range_low,
+                'salary_high': salary_data.range_high
+                }
+            job.update(new_fields)
+        
+        return job
 
 
 #------- Trash (temp) -------

@@ -7,12 +7,13 @@
     {% for field in options.table.job_fields if field.name not in ['id', 'created', 'post_id', 'post_link'] %}
 
     {% if field.type == 'text-short' or field.type == 'text-one-line' %}
-    {{ form.text_input(field.label, id=field.name, name=field.name, value=data[field.name]) }}
+    {{ form.text_input(field.label, id=field.name, name=field.name, value=data[field.name] if data[field.name] else '') }}
     {% elif field.type == 'text-long' %}
-
     {{ form.textarea(field.label, id=field.name, name=field.name, rows='10', value=data[field.name]) }}
     {% elif field.type == 'date' %}
     {{ form.date_input(field.label, id=field.name, name=field.name, value=data[field.name].strftime('%Y-%m-%d') if data[field.name]) }}
+    {% elif field.type == 'number' %}
+    {{ form.number_input(field.label, id=field.name, name=field.name, value=data[field.name]) }}
     {% endif %}
 
     {% endfor %}
@@ -24,7 +25,7 @@
             The following job will be deleted:
         </p>
         <p class="fs-3">
-            {{ job['post_title'] }}, at {{ job['company_name'] }}
+            {{ job['post_title'] }}, at {{ job['company_name'] if job['company_name'] else '(Unknown Company)' }}
         </p>
         <p class="fs-5 mt-5">
             This action cannot be undone.

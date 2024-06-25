@@ -18,6 +18,9 @@ class JobPost(TimestampMixin, db.Model):
     post_title: Mapped[str] = mapped_column(String(250))
     company_name: Mapped[str] = mapped_column(String(250))
     salary: Mapped[Optional[str]] = mapped_column(String(250))
+    salary_currency: Mapped[Optional[str]] = mapped_column(String(250))
+    salary_low: Mapped[Optional[int]] = mapped_column(Integer)
+    salary_high: Mapped[Optional[int]] = mapped_column(Integer)
     workplace_type: Mapped[Optional[str]] = mapped_column(String(250))
     employment_type: Mapped[str] = mapped_column(String(250))
     level: Mapped[Optional[str]] = mapped_column(String(250))
@@ -41,6 +44,26 @@ class JobPost(TimestampMixin, db.Model):
 
 
 job_filters = {
+    'company_name': {
+        'filter_type': 'text',
+        'values': '',
+        'get_values': False
+        },
+    'salary': {
+        'filter_type': 'text',
+        'values': '',
+        'get_values': False
+        },
+    'salary_low': {
+        'filter_type': 'number',
+        'values': '',
+        'get_values': False
+        },
+    'salary_high': {
+        'filter_type': 'number',
+        'values': '',
+        'get_values': False
+        },
     'employment_type': {
         'filter_type': 'list',
         'values': []
@@ -52,11 +75,6 @@ job_filters = {
     'level': {
         'filter_type': 'list',
         'values': []
-        },
-    'company_name': {
-        'filter_type': 'text',
-        'values': '',
-        'get_values': False
         },
     'bookmarked': {
         'filter_type': 'boolean',

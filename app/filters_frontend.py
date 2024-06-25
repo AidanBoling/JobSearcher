@@ -7,15 +7,15 @@ TYPES = {
         'form_input_type': 'multi-select',
         },
     'text': {
-        'operators': ['ilike', 'not_ilike'],
+        'operators': ['ilike', 'not_ilike', '==', '!='],
         'form_input_type': 'text'
         },
     'number': {
-        'operators': ['==', '!=', '<=', '>=', '<', '>'],
+        'operators': ['<', '<=', '>', '>=', '==', '!='],
         'form_input_type': 'number'
         },
     'date': {
-        'operators': ['==', '!=', '<=', '>=', '<', '>'],
+        'operators': ['==', '!=', '<', '<=', '>', '>='],
         'form_input_type': 'date'
         },
     'boolean': {
@@ -31,8 +31,8 @@ LABELS = {
     'not_ilike': 'does not contain',
     '==': 'is',
     '!=': 'is not',
-    '<=': 'less than or equal',
-    '>=': 'greater than or equal',
+    '<=': 'less or equal',
+    '>=': 'greater or equal',
     '<': 'less than',
     '>': 'greater than'
     }
