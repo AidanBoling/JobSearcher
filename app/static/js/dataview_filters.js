@@ -5,8 +5,8 @@
     function addFilter(type, element, elementId) {
 
         const { groupDiv, groupIdPost, itemsInGroup, groupNum } = getGroupElInfo(element)
-
-        const groupOpElementName = groupDiv.querySelector('.group-operator select').name
+        
+        const groupOpElementName = groupDiv.querySelector(`.group-operator select#group-operator_g${groupIdPost}`).name
         const groupNamePrefix = groupOpElementName.split('.').slice(0, -1).join('.')
         //console.log('groupNamePrefix: ', groupNamePrefix)
 
@@ -15,8 +15,6 @@
         if (indexGroupItem === 1) {
             // Delete hidden operator field element (will be replaced in row/group creation step)
             const hiddenGroupOpEl = groupDiv.querySelector('.group-operator')
-
-            //console.log('Removing hidden group operator.')
             hiddenGroupOpEl.remove()
         }
 
@@ -55,6 +53,7 @@
         }
 
         const { groupDiv, groupIdPost, itemsInGroup, groupNum } = getGroupElInfo(btnElement)
+        console.log('groupDiv: ', groupDiv)
 
         // If filter to delete is only filter, disable the "clear all" button
         if (groupIdPost === '1' && itemsInGroup === 1) {
@@ -82,8 +81,9 @@
         let groupOp = ''
         if (rowNumber === 2) {
             // If row being deleted is 2nd row of group, will need to replace the groupOp
-            groupOp = groupDiv.querySelector('.group-operator')
-            console.log('group-operator: ', groupOp)
+            const groupOpSelectEl = groupDiv.querySelector(`select#group-operator_g${groupIdPost}`)
+            groupOp = groupOpSelectEl.closest('.group-operator')
+            // console.log('group-operator: ', groupOp)
 
             replaceGroupOp = true
             //console.log('Row to delete is 2nd child of group.')
@@ -126,7 +126,7 @@
             // Row deleted was not the last row of the group, so need to update the 
             // various appropriate numbers in the name, id, and class attributes of all 
             // the remaining rows and nested groups (recursively)
-            const groupOpEl = groupDiv.querySelector('.group-operator select')
+            const groupOpEl = groupDiv.querySelector(`select#group-operator_g${groupIdPost}`)
             const groupNamePrefix = groupOpEl.name.split('.').slice(0, -1).join('.')
 
             const groupElementInfo = {
@@ -191,11 +191,11 @@
 
                             // Get updated idPost, then update the main group element, and the groupOp element
                             const nestedIdPost = getFilterIdPost('group', groupDiv, groupIdPost, nestedGroupDiv)
-                            updateElementId(nestedGroupDiv, index, nestedIdPost)
+                            updateElementId(nestedGroupDiv, nestedIdPost)
 
                             const nestedGroupOp = nestedGroupDiv.querySelector('.group-operator select')
-                            updateElementNamePrefix(nestedGroupOp, index, namePrefix)
-                            updateElementId(nestedGroupOp, index, nestedIdPost)
+                            updateElementNamePrefix(nestedGroupOp, namePrefix)
+                            updateElementId(nestedGroupOp, nestedIdPost)
 
                             // Current group info, to pass to next iteration
                             const parentGroupInfo = {
@@ -212,9 +212,9 @@
             }
 
 
-            function updateElementNamePrefix(element, indexGroupItem, namePrefix) {
-                name = element.name
-                console.log('current element name: ', name)
+            function updateElementNamePrefix(element, namePrefix) {
+                const name = element.name
+                // console.log('current element name: ', name)
 
                 const nameEndStartIndex = name.lastIndexOf('.') + 1
                 let nameEnd = name.slice(nameEndStartIndex)
@@ -226,9 +226,9 @@
             }
 
 
-            function updateElementId(element, indexGroupItem, idPost) {
+            function updateElementId(element, idPost) {
                 const elId = element.id
-                console.log('current element id: ', element.id)
+                // console.log('current element id: ', element.id)
 
                 let idPostStartIndex = elId.lastIndexOf('_g')
                 if (idPostStartIndex === -1) {
@@ -566,11 +566,9 @@
         console.log('groupIdPost: ', idPost)
 
         const totalGroupItems = groupDiv.querySelectorAll(`.outer-row.in-group-${idPost}`).length
-        //console.log('infoFunc indexGroupItem: ', totalGroupItems)
 
         const groupNumList = idPost.split('-')
         const groupNumber = groupNumList.pop()
-        //console.log('groupNum: ', groupNumber)
 
         return {
             groupDiv: groupDiv,
