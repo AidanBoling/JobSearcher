@@ -190,7 +190,7 @@
 {% macro group_op_element(current_group_op, name_prefix, id_post, selected='', div_class_inner='col-auto d-inline', is_empty=false, is_echo=false, div_style='width: 80px;') %}
 
 {% set options = [('AND', 'And'), ('OR', 'Or')] %}
-{% set onchange = 'updateOpEchos(this, this.options[this.selectedIndex].value)' %}
+{% set onchange = 'handleGroupOpChange(this.options[this.selectedIndex])' %}
 {% set ns = namespace(selected = selected) %}
 {% if not ns.selected %}
 {% set ns.selected = current_group_op %}
