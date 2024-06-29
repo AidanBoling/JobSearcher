@@ -300,7 +300,6 @@
         const idPost = elementId.split('_')[1]
         const namePrefix = inputName.split('.').slice(0, -1).join('.')
 
-
         function getOptionsText(valuesLabelsList) {
             let options = ''
             valuesLabelsList.forEach((valueLabel, i) => {
@@ -312,29 +311,8 @@
             return options
         }
 
-        function getInputText(type, id, namePrefix, value = '') {
-            return (`<input type="${type}" id="filter-value_${type}_${id}" aria-label="Value" class="form-control" name="${namePrefix}.values" value="${value}"  />`)
-        }
-
-        function getInputNumber(id, namePrefix, value = '') {
-            valueProp = value ? `value=${value}` : ''
-
-            return (`<input type="number" id="filter-value_number_${id}" aria-label="Value" class="form-control" name="${namePrefix}.values" ${valueProp} />`)
-        }
-
-        function getCheckboxText(idPost, namePrefix, isChecked = false) {
-            const checkedAttr = isChecked ? 'checked' : ''
-            const id = `filter-value_checkbox_${idPost}`
-            const name = `${namePrefix}.values`
-            const hiddenInputEl = uncheckedValueEl(id, name)
-            
-            return (`<input type="checkbox" id="${id}" aria-label="Value" class="form-check-input" name="${name}" value="bool_true" ${checkedAttr} onchange="toggleUncheckedValue(this, this.checked)" />
-                    ${hiddenInputEl}`)
-        }
-
-
         // Operator Options
-        const operatorOptions = getOptionsText(filter['op_list'])
+        const operatorOptions = getOptionsText(filter.op_list)
         const operatorSelect = filterRow.querySelector('.filter-operator .form-select')
 
         operatorSelect.innerHTML = operatorOptions
@@ -342,46 +320,54 @@
 
         // Field Values
         const valueDiv = filterRow.querySelector('div.filter-value')
+        const inputType = filter.input_type
         let valueText = ''
-        if (filter['input_type'] === 'multi-select') {
+
+        if (inputType === 'multi-select') {
             const valueOptions = getOptionsText(filter.values)
             valueText = `<select class="form-select" name="${namePrefix}.values" id="filter-value_multi-select_${idPost}" aria-label="Value">
-                                    ${valueOptions}
-                                </select>`
+                            ${valueOptions}
+                        </select>`
         }
-        else if (filter['input_type'] === 'boolean') {
+        else if (inputType === 'date') {
+            const valueOptions = getOptionsText(filter.values)
+            valueText = `<select class="form-select" name="${namePrefix}.values" id="filter-value_date_${idPost}" aria-label="Value" onchange="handleDateOptionChange(this, this.options[this.selectedIndex])">
+                            ${valueOptions}
+                        </select>`
+        }
+        else if (inputType === 'boolean') {
             valueText = getCheckboxText(idPost, namePrefix)
         }
-        else if (filter['input_type'] === 'number') {
-            valueText = getInputNumber(idPost, namePrefix)
+        else if (inputType === 'number') {
+            valueText = getInputText('number', idPost, namePrefix, {})
         }
         else {
-            let value = ''
-            if (filter.values) { value = filter.values }
-            valueText = getInputText('text', idPost, namePrefix, value)
+            let options = {value: ''}
+            if (filter.values) { options.value = filter.values }
+
+            valueText = getInputText('text', idPost, namePrefix, options)
         }
 
-        if (valueText) {valueDiv.innerHTML = valueText}
+        valueDiv.innerHTML = valueText
+
+        if (inputType === 'date') {
+            const dateOptionsSelectEl = valueDiv.querySelector('select')
+            const selectedOptionEl = dateOptionsSelectEl.options[0]
+            setDateValueInputs(dateOptionsSelectEl, selectedOptionEl)
+        }
         
-        // Un-hide element
         valueDiv.classList.remove('d-none')
     }
 
 
+    function handleDateOptionChange(selectElement, selectedOptionEl) {
+        updateSelected(selectedOptionEl)
+        setDateValueInputs(selectElement, selectedOptionEl)
+    }
+
+
     function handleGroupOpChange(optionElement) {
-        function updateSelected(optionElement) {
-            const parentEl = optionElement.parentElement
-            const options = parentEl.querySelectorAll('option')
-            
-            options.forEach(option => { 
-                if (option.hasAttribute('selected')) { 
-                    option.removeAttribute('selected') 
-                }
-            });
-
-            optionElement.setAttribute('selected', 'true')
-        }
-
+        
         function updateOpEchos(selectedOptionElement) {
             const groupDiv = selectedOptionElement.closest('.filter-group')
             const groupIdPost = groupDiv.id.split('_').pop()
@@ -396,7 +382,7 @@
         updateOpEchos(optionElement)
     }
 
-    
+
     function toggleUncheckedValue(checkboxEl, isChecked) {
         if (isChecked) {
             const parentEl = checkboxEl.closest('.filter-value')
@@ -564,6 +550,40 @@
     }
 
 
+    function getInputText(type, idPost, namePrefix, options) {
+        const {value = '', label = 'Value', placeholder = ''} = options
+        const valueAttr = value ? ` value=${value}` : ''
+        const placeholderAttr = placeholder ? ` placeholder=${placeholder}` : ''
+
+        return (`<input type="${type}" id="filter-value_${type}_${idPost}" aria-label="${label}" class="form-control" name="${namePrefix}.values"${valueAttr}${placeholderAttr}/>`)
+    }
+
+
+    function getCheckboxText(idPost, namePrefix, isChecked = false) {
+        const checkedAttr = isChecked ? 'checked' : ''
+        const id = `filter-value_checkbox_${idPost}`
+        const name = `${namePrefix}.values`
+        const hiddenInputEl = uncheckedValueEl(id, name)
+        
+        return (`<input type="checkbox" id="${id}" aria-label="Value" class="form-check-input" name="${name}" value="bool_true" ${checkedAttr} onchange="toggleUncheckedValue(this, this.checked)" />
+                ${hiddenInputEl}`)
+    }
+
+
+    function updateSelected(optionElement) {
+        const parentEl = optionElement.parentElement
+        const options = parentEl.querySelectorAll('option')
+        
+        options.forEach(option => { 
+            if (option.hasAttribute('selected')) { 
+                option.removeAttribute('selected') 
+            }
+        });
+
+        optionElement.setAttribute('selected', 'true')
+    }
+
+
     // Filter Helpers
 
     function getGroupElInfo(element) {
@@ -660,4 +680,35 @@
         }
 
         return groupOpElementHtml(namePrefix, idPost, elVars)
+    }
+
+
+    function setDateValueInputs(selectElement, selectedOptionEl) {
+        const valueDiv = selectElement.closest('div.filter-value')
+        const idPost = selectElement.id.split('_')[1]
+        const namePrefix = selectElement.name.split('.').slice(0, -1).join('.')
+        
+        const isExactDate = selectedOptionEl.value.toLowerCase().includes('exact')
+        const isCustomRelativeDate = selectedOptionEl.value.toLowerCase().includes('relative')
+        
+        if (isExactDate) {
+            // Add date picker input right after option element
+            const options = {label: 'Date Picker', placeholder: 'Select a date...'}
+            const valueText = getInputText('date', idPost, namePrefix, options)
+            valueDiv.insertAdjacentHTML('beforeend', valueText)
+        }
+        else if (isCustomRelativeDate) {
+            // Add text input right after option element
+            const valueText = getInputText('text', idPost, namePrefix, {})
+            valueDiv.insertAdjacentHTML('beforeend', valueText)
+        }
+        else {
+            // Remove other inputs that aren't current input
+            valueDivChildren = valueDiv.childNodes
+            if (valueDivChildren.length() > 1) { 
+                valueDivChildren.forEach(child => {
+                    if (child != selectElement) {selectElement.remove()}
+                })
+            }
+        }
     }

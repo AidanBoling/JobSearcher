@@ -44,6 +44,21 @@ class JobPost(TimestampMixin, db.Model):
 
 
 job_filters = {
+    'created': {
+        'filter_type': 'date',
+        'values': '',
+        'get_values': False
+        },
+    'id': {
+        'filter_type': 'number',
+        'values': '',
+        'get_values': False
+        },
+    'post_title': {
+        'filter_type': 'text',
+        'values': '',
+        'get_values': False
+        },
     'company_name': {
         'filter_type': 'text',
         'values': '',
@@ -53,6 +68,10 @@ job_filters = {
         'filter_type': 'text',
         'values': '',
         'get_values': False
+        },
+    'salary_currency': {
+        'filter_type': 'list',
+        'values': []
         },
     'salary_low': {
         'filter_type': 'number',
@@ -64,11 +83,11 @@ job_filters = {
         'values': '',
         'get_values': False
         },
-    'employment_type': {
+    'workplace_type': {
         'filter_type': 'list',
         'values': []
         },
-    'workplace_type': {
+    'employment_type': {
         'filter_type': 'list',
         'values': []
         },
@@ -76,16 +95,38 @@ job_filters = {
         'filter_type': 'list',
         'values': []
         },
+    'description': {
+        'filter_type': 'text',
+        'values': '',
+        'get_values': False
+        },
+    'job_board': {
+        'filter_type': 'list',
+        'values': []
+        },
+    'post_id': {
+        'filter_type': 'number',
+        'values': '',
+        'get_values': False
+        },
+    'posted_date': {
+        'filter_type': 'date',
+        'values': '',
+        'get_values': False
+        },
+    'company_location': {
+        'filter_type': 'text',
+        'values': '',
+        'get_values': False
+        },
+    'company_other': {
+        'filter_type': 'text',
+        'values': '',
+        'get_values': False
+        },
     'bookmarked': {
         'filter_type': 'boolean',
         'values': '',
         'get_values': False
         }
     }
-
-
-
-# 'workplace_type': {
-#         'filter_type': 'list',
-#         'values': ['Remote', 'On-Site', 'Hybrid', 'Other']
-#         },

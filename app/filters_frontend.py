@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-# from db_control import DbControl
 
 TYPES = {
     'list': {
@@ -15,8 +14,9 @@ TYPES = {
         'form_input_type': 'number'
         },
     'date': {
-        'operators': ['==', '!=', '<', '<=', '>', '>='],
-        'form_input_type': 'date'
+        'operators': ['==', '!=', ('<', 'before'), ('<=', 'on or before'), ('>', 'after'), ('>=', 'on or after')],
+        'form_input_type': 'date',
+        'value_options': ['Exact date', 'Today', 'Yesterday', 'One week ago', 'One month ago', 'Other relative date']
         },
     'boolean': {
         'operators': ['==', '!='],
@@ -24,7 +24,7 @@ TYPES = {
         },
     }
 
-LABELS = {
+DEFAULT_LABELS = {
     'any': 'is any of',
     'not_in': 'is none of',
     'ilike': 'contains',
@@ -48,7 +48,6 @@ class FrontendFilter:
     "name" is the column name, "type" is the input selection type, to lookup in TYPES dict,
     and "values" is any value, or list of values, that should be populated into form field
     """
-    # def __init__(self, column_name: str, filter_type: str, values=None):
     name: str
     type: str
     values: 'typing.Any' = ''
@@ -60,9 +59,18 @@ class FrontendFilter:
         self.operators = TYPES[self.type]['operators']
         self.input_type = TYPES[self.type]['form_input_type']
 
-        for op in self.operators:
-            op_label = LABELS[op]
-            self.op_list.append((op, op_label))
+        # self.op_list = [(op, LABELS[op]) for op in self.operators]
+        self.op_list = [op if type(op) is tuple else (op, DEFAULT_LABELS[op]) for op in self.operators]
+
+        value_options = TYPES[self.type].get('value_options')
+        if value_options:
+            self.values = [option if type(option) is tuple else (option, option) for option in value_options]
+
+            # for option in value_options:
+            #     if type(option) is tuple:
+            #         self.value_options.append(option)
+            #     else:
+            #         self.value_options.append((option, option))
 
 
     def __repr__(self):

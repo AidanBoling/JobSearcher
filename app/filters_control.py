@@ -1,4 +1,5 @@
 from dataclasses import asdict
+from dateparser import parse
 from filters_frontend import FrontendFilter
 from db_control import DbControl, DbFilterGroup
 from filters_db import JobDbFilter, DbFilter
@@ -26,29 +27,27 @@ class FrontendFilterOptionsList:
                 values = list(zip(values, values))
 
             filter = FrontendFilter(name=column, type=settings['filter_type'], values=values)
-
-            # filter = FrontendFilter(self.db_control, column, settings['filter_type'], values, settings.get('get_values'))
             self.filters[column] = asdict(filter)
 
 
     def get_col_unique_values(self, column: str) -> list:
         unique_vals = self.db_control.get_from_col(column, unique=True)
+        if None in unique_vals:
+            unique_vals.remove(None)
+        if '' in unique_vals:
+            unique_vals.remove('')
 
         sorted_values = sorted(unique_vals, key=str.lower)
-        if '' in sorted_values:
-            sorted_values.remove('')
         # print(f'Unique values for {column}: ', sorted_values)
         return sorted_values
 
 
 
-# TODO: Rename to FiltersConverter
-
 class FiltersConverter:
 
     def __init__(self, db_control: DbControl, db_filter_class: DbFilter, fe_filter_settings: dict, saved_view_filters: dict):
         # self.fe_settings = fe_filter_settings #options
-        # self.db_control = db_control
+        self.db_control = db_control
         self.db_filter = db_filter_class
         self.frontend_filters = {}  # Frontend filter form options
         self.global_filters = []
@@ -57,12 +56,15 @@ class FiltersConverter:
         self.db_filter_groups: dict = {}
 
         list = FrontendFilterOptionsList(db_control, fe_filter_settings)
-        self.frontend_filters = list.filters 
+        self.frontend_filters = list.filters
+        self.filter_settings = fe_filter_settings
 
-        # self.get_view_filters()
+        self.list_operators = ['any', 'not_in']
+        self.list_field_types = ['date']
+        self.list_fields = [key for key in fe_filter_settings.keys() if fe_filter_settings[key]['filter_type'] in self.list_field_types]
+
         self.get_view_db_filter_groups()
-        
-        print(self.db_filter_groups)
+        # print(self.db_filter_groups)
 
 
     def update_filters(self, all_filters):
@@ -94,10 +96,19 @@ class FiltersConverter:
                     filters.append(item)
 
                 elif item.get('field'):
-                    if item['operator'] in ['any', 'not_in']: 
-                        if type(item['values']) is not list:
-                            item['values'] = [item['values']]
-                    # FIXME: added the above lines for testing; remove when fix the frontend input for select multiple (so returns an array)
+                    field = item['field']
+                    field_type = self.filter_settings[field]['filter_type']
+                    
+                    if field in self.list_fields:
+                        values = item['values']
+
+                        if field_type == 'date':
+                            first_value = values[0].lower()
+
+                            if len(values) > 1 and ('exact' in first_value or 'relative' in first_value):
+                                values.pop(0)
+                            value = ' '.join(values)
+                            item['values'] = parse(value, settings={'RETURN_AS_TIMEZONE_AWARE': True})
                 
                     filter = dbFilter(item['field'], item['values'], item['operator'])
                     filters.append(filter)
@@ -117,14 +128,18 @@ class FiltersConverter:
 
         def filters_from_form(filter_data: dict):
             filters = {}
-            for filter_field in filter_data:
+            for filter_item in filter_data:
                 # Separate path from key, value for each item
-
-                path_list = filter_field.split('.')
+                path_list = filter_item.split('.')
                 key = path_list.pop(-1)
-                value = filter_data[filter_field]
-                
                 path = '.'.join(path_list)
+                value = filter_data[filter_item]
+
+                if key == 'values':
+                    filter_field = filters[path]['field']
+                    filter_operator = filters[path]['operator']
+                    if filter_field in self.list_fields or filter_operator in self.list_operators:
+                        value = filter_data.getlist(filter_item)
                 
                 # Consolidate items into filters
                 if not filters.get(path):
@@ -139,13 +154,12 @@ class FiltersConverter:
             group = filter_data.get('group')
             if group:
                 filter_data.pop('group')
-            
-            g_filters = {}
-            for path, item in filter_data.items():
-                path_start, path = split_path(path)
-                g_filters.update({path: item})
-            
-            group['filters'] = get_group_filters(g_filters)
+                g_filters = {}
+                for path, item in filter_data.items():
+                    path_start, path = split_path(path)
+                    g_filters.update({path: item})
+                
+                group['filters'] = get_group_filters(g_filters)
 
             return group
                                 
@@ -154,8 +168,8 @@ class FiltersConverter:
             filters = {}
 
             for path, item in filter_data.items():
-                
                 path_start, path = split_path(path)
+
                 if path_start not in ['filter', 'group']:
                     index = int(path_start)
                     filter = ''
@@ -176,9 +190,7 @@ class FiltersConverter:
 
         def split_path(path):
             # Pop off front segment from path, return segment and new path 
-            path_list = path.split('.')
-            # print('paths: ', path_list)
-            
+            path_list = path.split('.')            
             path_start = path_list.pop(0)
             path = '.'.join(path_list)
             return path_start, path
