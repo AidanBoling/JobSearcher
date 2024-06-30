@@ -553,7 +553,7 @@
     function getInputText(type, idPost, namePrefix, options) {
         const {value = '', label = 'Value', placeholder = ''} = options
         const valueAttr = value ? ` value=${value}` : ''
-        const placeholderAttr = placeholder ? ` placeholder=${placeholder}` : ''
+        const placeholderAttr = placeholder ? ` placeholder="${placeholder}"` : ''
 
         return (`<input type="${type}" id="filter-value_${type}_${idPost}" aria-label="${label}" class="form-control" name="${namePrefix}.values"${valueAttr}${placeholderAttr}/>`)
     }
@@ -685,30 +685,43 @@
 
     function setDateValueInputs(selectElement, selectedOptionEl) {
         const valueDiv = selectElement.closest('div.filter-value')
+        const valueDivClasses = valueDiv.classList
         const idPost = selectElement.id.split('_')[1]
         const namePrefix = selectElement.name.split('.').slice(0, -1).join('.')
         
         const isExactDate = selectedOptionEl.value.toLowerCase().includes('exact')
         const isCustomRelativeDate = selectedOptionEl.value.toLowerCase().includes('relative')
         
-        if (isExactDate) {
-            // Add date picker input right after option element
-            const options = {label: 'Date Picker', placeholder: 'Select a date...'}
-            const valueText = getInputText('date', idPost, namePrefix, options)
-            valueDiv.insertAdjacentHTML('beforeend', valueText)
-        }
-        else if (isCustomRelativeDate) {
-            // Add text input right after option element
-            const valueText = getInputText('text', idPost, namePrefix, {})
+        if (isExactDate || isCustomRelativeDate) {
+            let options = {}
+            let type = 'text'
+            
+            if (isExactDate) {
+                options = {label: 'Date Picker', placeholder: 'Select a date...'}
+                type = 'date'
+            }
+            if (isCustomRelativeDate) {
+                options = {label: 'Custom Relative Date', placeholder: 'e.g. 3 months ago'}
+            }
+            
+            valueDivClasses.add('value-group')
+
+            // Add inputs right after option element
+            const valueText = getInputText(type, idPost, namePrefix, options)
             valueDiv.insertAdjacentHTML('beforeend', valueText)
         }
         else {
+            if (valueDivClasses.contains('value-group')) {
+            valueDivClasses.remove('value-group') }
+
             // Remove other inputs that aren't current input
-            valueDivChildren = valueDiv.childNodes
-            if (valueDivChildren.length() > 1) { 
-                valueDivChildren.forEach(child => {
-                    if (child != selectElement) {selectElement.remove()}
-                })
+            if (valueDiv.childElementCount > 1) { 
+                const valueDivChildren = valueDiv.children
+                for (let child of valueDivChildren) {
+                    // console.log('child: ', child)
+                    // console.log('child == selectElement: ', child === selectElement)
+                    if (child != selectElement) { child.remove() }
+                }
             }
         }
     }

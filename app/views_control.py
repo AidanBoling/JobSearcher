@@ -83,7 +83,7 @@ class ViewsControl:
             self.saved_views.names.append(name)
             
             self.save_views()
-            self.filters_control.update_filters(self.get_all_filters())
+            self.filters_control.update_all_filters(self.get_all_filters())
             view = name
         
         return view
@@ -129,16 +129,12 @@ class ViewsControl:
         filter_group_dict = self.filters_control.form_response_to_dict(data)
         if not filter_group_dict.get('filters'):
             filter_group_dict = {}
-        print(f'\nUpdating filters for view "{view}": ', filter_group_dict)
+        # print(f'\nUpdating filters for view "{view}": ', filter_group_dict)
                 
-        # Update and save view 
         self.saved_views.views[view]['job_filters'] = filter_group_dict
         self.save_views()
 
-        # Update filters_control
-        self.filters_control.view_filters[view] = filter_group_dict
-
-        self.filters_control.update_view_db_filter_group(view)
+        self.filters_control.update_view_filters(view, filter_group_dict)
 
         # Later TODO (maybe): Allow save view filters separate from "saving" filters
         # -- e.g. update filters temporarily, and user can decide if keep changes
@@ -183,7 +179,7 @@ class ViewsControl:
             self.saved_views.names.append(name)
             self.save_views()
 
-            self.filters_control.update_filters(self.get_all_filters())
+            self.filters_control.update_all_filters(self.get_all_filters())
 
             return name
         
@@ -206,7 +202,7 @@ class ViewsControl:
             deleted_view = self.saved_views.views.pop(name)
 
         self.save_views()
-        self.filters_control.update_filters(self.get_all_filters())
+        self.filters_control.update_all_filters(self.get_all_filters())
 
         return deleted_view
     

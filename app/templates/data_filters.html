@@ -129,40 +129,75 @@
 
     {# Operator and Value #}
     {% if filter_current %}
+    {% set filter_options = f_options[filter_current['field']] %}
+    {% set input_type = filter_options['input_type'] %}
+
     {# -- Operator #}
-    {{ filter_select(item='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
-    aria_label='Operator', div_class='col-2', options=f_options[filter_current['field']]['op_list'],
-    selected_option=filter_current['operator']) }}
-
+    <div class="col-2 filter-operator">
+        {{ filter_select(item='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
+        aria_label='Operator', options=filter_options['op_list'],
+        selected_option=filter_current['operator']) }}
+    </div>
     {# -- Value #}
-    {% if f_options[filter_current['field']]['input_type'] == 'multi-select' %}
+    {% set item = 'filter-value' %}
+    {% if input_type == 'date' %}
+    {% set has_multiple_values = filter_current['values']|length > 1 %}
 
-    {{ filter_select_multi(item='filter-value', name='{}.values'.format(name_prefix), id_post=id_post,
-    aria_label='Values', div_class='col', options=f_options[filter_current['field']]['values'],
-    selected_options=filter_current['values']) }}
+    <div class="col {{ item }}{% if has_multiple_values %} value-group{% endif %}">
+        {% set first_selection = filter_current['values'][0] %}
 
-    {% elif f_options[filter_current['field']]['input_type'] == 'boolean' %}
+        {{ filter_select(item=item, name='{}.values'.format(name_prefix), id_post=id_post,
+        aria_label='Value', options=filter_options['values'],
+        selected_option=first_selection, onchange='handleDateOptionChange(this, this.options[this.selectedIndex])') }}
 
-    {{ filter_checkbox(item='filter-value', name='{}.values'.format(name_prefix), id_post=id_post,
-    aria_label='Value', is_checked=filter_current['values'], div_class='col') }}
+        {% if has_multiple_values %}
+
+        {% if 'exact' in first_selection.lower() %}
+        {{ filter_input(item=item, type='date', name='{}.values'.format(name_prefix), id_post=id_post,
+        aria_label='Date Picker', value=filter_current['values'][1]) }}
+        {% elif 'relative' in first_selection.lower() %}
+        {{ filter_input(item=item, type='text', name='{}.values'.format(name_prefix), id_post=id_post,
+        aria_label='Custom Relative Date', value=filter_current['values'][1]) }}
+        {% endif %}
+
+        {% endif %}
+    </div>
 
     {% else %}
+    <div class="col {{ item }}">
+        {% if input_type == 'multi-select' %}
 
-    {{ filter_input(item='filter-value', type='text', name='{}.values'.format(name_prefix), id_post=id_post,
-    aria_label='Value', div_class='col', value=filter_current['values']) }}
+        {{ filter_select_multi(item=item, name='{}.values'.format(name_prefix), id_post=id_post,
+        aria_label='Values', options=f_options[filter_current['field']]['values'],
+        selected_options=filter_current['values']) }}
 
+        {% elif input_type == 'boolean' %}
+
+        {{ filter_checkbox(item=item, name='{}.values'.format(name_prefix), id_post=id_post,
+        aria_label='Value', is_checked=filter_current['values']) }}
+
+        {% else %}
+        {% set type = input_type if input_type in ['text', 'number'] else 'text' %}
+
+        {{ filter_input(item=item, type=type, name='{}.values'.format(name_prefix), id_post=id_post,
+        aria_label='Value', value=filter_current['values']) }}
+
+        {% endif %}
+    </div>
     {% endif %}
 
     {% else %}
-
     {# -- Operator #}
-    {{ filter_select(item='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
-    aria_label='Operator', div_class='col-2', class='d-none') }}
+    <div class="col-2 filter-operator">
+        {{ filter_select(item='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
+        aria_label='Operator', class='d-none') }}
+    </div>
 
     {# -- Value #}
-    {{ filter_select(item='filter-value', name='{}.values'.format(name_prefix), id_post=id_post,
-    aria_label='Value', div_class='col', class='d-none') }}
-
+    <div class="col filter-value">
+        {{ filter_select(item='filter-value', name='{}.values'.format(name_prefix), id_post=id_post,
+        aria_label='Value', class='d-none') }}
+    </div>
     {% endif %}
 
     <div class="col-auto d-inline">
@@ -205,9 +240,10 @@
     <div class="op-text" style="{{ div_style }}">{{ current_group_op|title }}</div>
 </div>
 {% else %}
-
-{{ filter_select(item='group-operator', name='{}.group_op'.format(name_prefix), id_post=id_post,
-                aria_label='Filter Group Operator', div_class=div_class_inner, options=options, selected_option=ns.selected, class='', style=div_style, onchange=onchange) }}
+<div class="{{ div_class_inner }} group-operator">
+    {{ filter_select(name='{}.group_op'.format(name_prefix), id_post=id_post,
+                aria_label='Filter Group Operator', options=options, selected_option=ns.selected, class='', style=div_style, onchange=onchange) }}
+</div>
 {% endif %}
 
 {% endmacro %}
@@ -224,62 +260,53 @@
 
 {# -- Components: Form Fields #}
 
-{% macro filter_select(item, name, id_post, aria_label, div_class='col-4', class='', options=[], selected_option='', style='', onchange='') %}
-<div class="{{ div_class }} {{ item }}">
-    <select class="form-select {{ class }}" name="{{ name }}" id="{{ item }}_{{ id_post }}"
-        aria-label="{{ aria_label }}" style="{{ style }}" {% if onchange %}onchange="{{onchange}}" {% endif %}>
-        {% if options %}
+{% macro filter_select(item, name, id_post, aria_label, class='', options=[], selected_option='', style='', onchange='') %}
+<select class="form-select {{ class }}" name="{{ name }}" id="{{ item }}_{{ id_post }}" aria-label="{{ aria_label }}"
+    {% if style %} style="{{ style }}" {% endif %}{% if onchange %} onchange="{{onchange}}" {% endif %}>
+    {% if options %}
 
-        {% for option in options %}
-        {% if option[0] == selected_option %}
-        <option value="{{ option[0] }}" selected>{{ option[1] }}</option>
-        {% else %}
-        <option value="{{ option[0] }}">{{ option[1] }}</option>
-        {% endif %}
-        {% endfor %}
+    {% for option in options %}
+    {% if option[0] == selected_option %}
+    <option value="{{ option[0] }}" selected>{{ option[1] }}</option>
+    {% else %}
+    <option value="{{ option[0] }}">{{ option[1] }}</option>
+    {% endif %}
+    {% endfor %}
 
-        {% endif %}
-    </select>
-</div>
+    {% endif %}
+</select>
 {% endmacro %}
 
 
 {# TODO: Fix multi-select to actually be multi-select --> checkboxes #}
-{% macro filter_select_multi(item, name, id_post, aria_label, div_class='col-4', class='', options=[], selected_options=[]) %}
-<div class="{{ div_class }} {{ item }}">
-    <select class="form-select {{ class }}" name="{{ name }}" id="{{ item }}_{{ id_post }}"
-        aria-label="{{ aria_label }}">
-        {% if options %}
+{% macro filter_select_multi(item, name, id_post, aria_label, class='', options=[], selected_options=[]) %}
+<select class="form-select {{ class }}" name="{{ name }}" id="{{ item }}_{{ id_post }}" aria-label="{{ aria_label }}">
+    {% if options %}
 
-        {% for option in options %}
-        {% if option[0] in selected_options %}
-        <option value="{{ option[0] }}" selected>{{ option[1] }}</option>
-        {% else %}
-        <option value="{{ option[0] }}">{{ option[1] }}</option>
-        {% endif %}
-        {% endfor %}
-
-        {% endif %}
-    </select>
-</div>
-{% endmacro %}
-
-
-{% macro filter_input(item, type, name, id_post, aria_label, div_class='col-4', class='', value='') %}
-<div class="{{ div_class }} {{ item }}">
-    <input type="{{ type }}" id="{{ item }}_{{ type }}_{{ id_post }}" aria-label="{{ aria_label }}"
-        class="form-control {{ class }}" name="{{ name }}" {% if value %}value="{{ value }}" {% endif %} />
-</div>
-{% endmacro %}
-
-
-{% macro filter_checkbox(item, name, id_post, aria_label, is_checked, div_class='col-4', class='') %}
-<div class="{{ div_class }} {{ item }}">
-    <input type="checkbox" id="{{ item }}_checkbox_{{ id_post }}" aria-label="{{ aria_label }}"
-        class="form-check-input {{ class }}" name="{{ name }}" value="bool_true"
-        {% if is_checked == 'bool_true' %}checked{% endif %} onchange="toggleUncheckedValue(this, this.checked)" />
-    {% if is_checked == 'bool_false' %}
-    <input type="hidden" id="{{ item }}_checkbox_{{ id_post }}_unchecked" name="{{ name }}" value="bool_false" />
+    {% for option in options %}
+    {% if option[0] in selected_options %}
+    <option value="{{ option[0] }}" selected>{{ option[1] }}</option>
+    {% else %}
+    <option value="{{ option[0] }}">{{ option[1] }}</option>
     {% endif %}
-</div>
+    {% endfor %}
+
+    {% endif %}
+</select>
+{% endmacro %}
+
+
+{% macro filter_input(item, type, name, id_post, aria_label, class='', value='') %}
+<input type="{{ type }}" id="{{ item }}_{{ type }}_{{ id_post }}" aria-label="{{ aria_label }}"
+    class="form-control {{ class }}" name="{{ name }}" {% if value %}value="{{ value }}" {% endif %} />
+{% endmacro %}
+
+
+{% macro filter_checkbox(item, name, id_post, aria_label, is_checked, class='') %}
+<input type="checkbox" id="{{ item }}_checkbox_{{ id_post }}" aria-label="{{ aria_label }}"
+    class="form-check-input {{ class }}" name="{{ name }}" value="bool_true"
+    {% if is_checked == 'bool_true' %}checked{% endif %} onchange="toggleUncheckedValue(this, this.checked)" />
+{% if is_checked == 'bool_false' %}
+<input type="hidden" id="{{ item }}_checkbox_{{ id_post }}_unchecked" name="{{ name }}" value="bool_false" />
+{% endif %}
 {% endmacro %}

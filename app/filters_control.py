@@ -1,4 +1,5 @@
 from dataclasses import asdict
+from copy import deepcopy
 from dateparser import parse
 from filters_frontend import FrontendFilter
 from db_control import DbControl, DbFilterGroup
@@ -52,7 +53,7 @@ class FiltersConverter:
         self.frontend_filters = {}  # Frontend filter form options
         self.global_filters = []
         
-        self.view_filters: dict = saved_view_filters
+        self._all_view_filters: dict = deepcopy(saved_view_filters)
         self.db_filter_groups: dict = {}
 
         list = FrontendFilterOptionsList(db_control, fe_filter_settings)
@@ -63,22 +64,37 @@ class FiltersConverter:
         self.list_field_types = ['date']
         self.list_fields = [key for key in fe_filter_settings.keys() if fe_filter_settings[key]['filter_type'] in self.list_field_types]
 
-        self.get_view_db_filter_groups()
+        self.update_db_filter_groups()
         # print(self.db_filter_groups)
 
 
-    def update_filters(self, all_filters):
-        self.view_filters = all_filters
-        self.get_view_db_filter_groups()
+    @property
+    def all_view_filters(self):
+        return self._all_view_filters
+    
+
+    @all_view_filters.setter
+    def all_view_filters(self, all_view_filters):
+        self._all_view_filters = deepcopy(all_view_filters)
 
 
-    def get_view_db_filter_groups(self):
-        for view in self.view_filters.keys():
+    def update_view_filters(self, view, filters):
+        self._all_view_filters[view] = deepcopy(filters)
+        self.update_view_db_filter_group(view)
+
+
+    def update_all_filters(self, all_filters):
+        self.all_view_filters = all_filters
+        self.update_db_filter_groups()
+
+
+    def update_db_filter_groups(self):
+        for view in self.all_view_filters.keys():
             self.update_view_db_filter_group(view)
         
 
     def update_view_db_filter_group(self, view: str):
-        view_group = self.nested_filter_group_to_db(self.view_filters[view], self.db_filter)
+        view_group = self.nested_filter_group_to_db(self.all_view_filters[view], self.db_filter)
         self.db_filter_groups.update({view: view_group})
 
 
