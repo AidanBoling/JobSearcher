@@ -2,7 +2,7 @@
 
     // -- onClick (Buttons):
 
-    function addFilter(type, element, elementId) {
+    function addFilter(type, element) {
 
         const { groupDiv, groupIdPost, itemsInGroup } = getGroupElInfo(element)
         
@@ -228,14 +228,15 @@
             function updateElementId(element, idPost) {
                 const elId = element.id
                 // console.log('current element id: ', element.id)
-
-                let idPostStartIndex = elId.lastIndexOf('_g')
+                let idPostJoin = '_g'
+                let idPostStartIndex = elId.lastIndexOf(idPostJoin)
                 if (idPostStartIndex === -1) {
-                    idPostStartIndex = elId.lastIndexOf('_')
+                    idPostJoin = '_'
+                    idPostStartIndex = elId.lastIndexOf(idPostJoin)
                 }
 
                 const idStart = elId.slice(0, idPostStartIndex)
-                const newId = `${idStart}_${idPost}`
+                const newId = `${idStart}${idPostJoin}${idPost}`
 
                 element.id = newId
                 console.log('updated element id: ', newId)
@@ -404,17 +405,13 @@
     function newFilterGroupEl(outerGroupOpEl, namePrefix, idPost, previousGroupIdPost) {
         const groupOpEl = groupOpElementHtml(namePrefix, idPost, { divClass: 'd-none' })
         const newFilterBtn = filterButtonElement('row', 'Add Filter', '#svg-bi-plus-lg', idPost)
-        const newGroupBtn = filterButtonElement('group', 'Add Filter Group', '#svg-bi-subtract', idPost)
+        const newGroupBtn = filterButtonElement('group', 'Add Group', '#svg-bi-subtract', idPost)
 
         // "Outside" of group
         const groupOuterColWrapper = (innerContent, classDivCols, classDivInner = 'row outer-row') => (`
                     <div class="col g-col-outer row-cap ${classDivCols}">
                         <div class="row">
-                            <div class="col g-col-inner row-cap ${classDivCols}">
-                                <div class="${classDivInner}">
-                                    ${innerContent}
-                                </div>
-                            </div>
+                            ${innerContent}
                         </div>
                     </div>`)
 
@@ -425,15 +422,11 @@
                     <div class="filter-group in-group-${previousGroupIdPost} col g-col-outer"
                         id="filter-group_${idPost}">
                         ${groupOpEl}
-                        <div class="row">
-                            <div class="col g-col-inner">
-                                <div class="filter-btn row">
-                                    <div class="col btn-group filter-btn-group" role="group" aria-label="Add Filters">
-                                        ${newFilterBtn}
-                                        <div class="vr"></div>
-                                        ${newGroupBtn}
-                                    </div>
-                                </div>
+                        <div class="filter-btn row">
+                            <div class="col btn-group filter-btn-group" role="group" aria-label="Add Filters">
+                                ${newFilterBtn}
+                                <div class="vr"></div>
+                                ${newGroupBtn}
                             </div>
                         </div>
                     </div>
@@ -444,9 +437,8 @@
 
     function newFilterRowEl(groupOperatorEl, namePrefix, idPost, groupIdPost) {
         const rowDivClass = ''
-        const colsDivClass = 'col-4'
-        const fieldDivClass = 'col-4 filter-field'
-        const operatorDivClass = 'col-2 filter-operator'
+        const fieldDivClass = 'col-auto filter-field'
+        const operatorDivClass = 'col-auto filter-operator'
         const operatorSelectClass = 'd-none'
         const valueDivClass = 'col filter-value'
 
@@ -466,20 +458,24 @@
         return (
             `<div class="filter-row row outer-row in-group-${groupIdPost} ${rowDivClass}" id="filter-row_${idPost}">
                 ${groupOperatorEl}
-                <div class="${fieldDivClass}">
-                    <select name="${namePrefix}.field" id="field-name_${idPost}"
-                        class="form-select" aria-label="Field Name"
-                        onchange="getFilterOptions(this, this.options[this.selectedIndex].value)">
-                        <option value="" selected>Select field</option>
-                        ${options}
-                    </select>
+                <div class="filter col">
+                    <div class="row">
+                        <div class="${fieldDivClass}">
+                            <select name="${namePrefix}.field" id="field-name_${idPost}"
+                                class="form-select" aria-label="Field Name"
+                                onchange="getFilterOptions(this, this.options[this.selectedIndex].value)">
+                                <option value="" selected>Select field</option>
+                                ${options}
+                            </select>
+                        </div>
+                        <div class="${operatorDivClass}">
+                            <select class="form-select ${operatorSelectClass}" name="${namePrefix}.operator" id="filter-operator_${idPost}"
+                                aria-label="Operator">
+                            </select>
+                        </div>
+                        <div class="${valueDivClass}"></div>
+                    </div>
                 </div>
-                <div class="${operatorDivClass}">
-                    <select class="form-select ${operatorSelectClass}" name="${namePrefix}.operator" id="filter-operator_${idPost}"
-                        aria-label="Operator">
-                    </select>
-                </div>
-                <div class="${valueDivClass}"></div>
                 <div class="col-auto d-inline">
                     ${deleteButton}
                 </div>
@@ -490,7 +486,8 @@
 
 
     function groupOpElementHtml(namePrefix, idPost, { itemClass = '', innerText = 'Where', divClass = '', selected = 'AND' }) {
-        const divStyle = 'width: 80px;'
+        // const divStyle = 'width: 80px;'
+        const divStyle = ''
         const ariaLabel = 'Filter Group Operator'
         let innerElement = ''
 
@@ -501,10 +498,10 @@
             const orSelected = selected === 'OR' ? 'selected' : ''
 
             innerElement = `<select class="form-select" name="${namePrefix}.group_op" id="group-operator_g${idPost}"
-                        aria-label="${ariaLabel}" style="${divStyle}" onchange="handleGroupOpChange(this.options[this.selectedIndex])">
-                            <option value="AND" ${andSelected}>And</option>
-                            <option value="OR" ${orSelected}>Or</option>
-                        </select>`
+                                aria-label="${ariaLabel}" style="${divStyle}" onchange="handleGroupOpChange(this.options[this.selectedIndex])">
+                                <option value="AND" ${andSelected}>And</option>
+                                <option value="OR" ${orSelected}>Or</option>
+                            </select>`
         }
         else {
             innerElement = `<div class="op-text" style="${divStyle}">${innerText}</div>`
@@ -539,7 +536,7 @@
         const btnContent = iconBtnContent(svgHref, text = label, text_is_hidden = false, { iconOptions })
 
         return `<button type="button" class="${btnClass}" id='${idType}_g${groupIdPost}'
-                    onclick="addFilter('${type}', this, this.id)">
+                    onclick="addFilter('${type}', this)">
                     ${btnContent}
                 </button>`
     }
@@ -692,7 +689,18 @@
         const isExactDate = selectedOptionEl.value.toLowerCase().includes('exact')
         const isCustomRelativeDate = selectedOptionEl.value.toLowerCase().includes('relative')
         
-        if (isExactDate || isCustomRelativeDate) {
+        if (valueDivClasses.contains('value-group')) {
+            valueDivClasses.remove('value-group') }
+        
+        if (valueDiv.childElementCount > 1) {
+            const valueDivChildren = valueDiv.children
+            for (let child of valueDivChildren) {
+                if (child != selectElement) { child.remove() }
+            }
+        }
+
+        if (isExactDate || isCustomRelativeDate) {      // Add inputs right after option element
+
             let options = {}
             let type = 'text'
             
@@ -706,22 +714,7 @@
             
             valueDivClasses.add('value-group')
 
-            // Add inputs right after option element
             const valueText = getInputText(type, idPost, namePrefix, options)
             valueDiv.insertAdjacentHTML('beforeend', valueText)
-        }
-        else {
-            if (valueDivClasses.contains('value-group')) {
-            valueDivClasses.remove('value-group') }
-
-            // Remove other inputs that aren't current input
-            if (valueDiv.childElementCount > 1) { 
-                const valueDivChildren = valueDiv.children
-                for (let child of valueDivChildren) {
-                    // console.log('child: ', child)
-                    // console.log('child == selectElement: ', child === selectElement)
-                    if (child != selectElement) { child.remove() }
-                }
-            }
         }
     }

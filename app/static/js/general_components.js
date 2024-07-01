@@ -11,7 +11,7 @@ function iconSvg(svgHref, iconOptions) {
 
 function iconBtnContent(svgHref, text, text_is_hidden=false, {iconOptions, spacer_style = 'width: .20rem;'}) {
     const icon_el = iconSvg(svgHref, iconOptions)
-    const text_hidden_attr = 'class="visually-hidden"'
+    const text_hidden_attr = text_is_hidden ? 'class="visually-hidden"' : ''
     let spacer_el = ''
     if (!text_is_hidden) {
         spacer = `<span class="spacer" aria-hidden="true" style="display: inline-block; ${spacer_style}"></span>`

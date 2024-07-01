@@ -531,6 +531,11 @@ tr > th {
 
 /* FILTER VIEW/EDIT */
 
+.filter-group {
+    --gap-default: .60rem;
+    --group-col-padding: .75rem;
+}
+
 .filter-group:not(.in-group-0) {
     border-color: rgba(245, 245, 245, 0.10) !important;
     border-width: 1px !important;
@@ -545,37 +550,50 @@ tr > th {
     background-color: rgba(245, 245, 245, 0.05);
 }
 
+.row {
+    --bs-gutter-x: 0;
+}
+
+.row.outer-row,
+.filter.col > *:not(.d-none),
+.value-group {
+    gap: var(--gap-default);
+}
+
 .row.outer-row {
-    --padding-y: .5rem !important;
-    --bs-gutter-x: 0.75rem;
+    margin-top: calc(2 * var(--gap-default)) !important;
+    margin-bottom: calc(2 * var(--gap-default)) !important;
+}
 
-    padding-top: var(--padding-y);
-    padding-bottom: var(--padding-y);
+.row.outer-row[class*="in-group"]:first-child,
+.row.outer-row[class*="in-group"]:nth-child(2):nth-last-child(2) {
+    margin-top: 0 !important;
+}
 
-    margin-top: calc(-1* var(--bs-gutter-y)) !important;
-    margin-right: calc(-.5* var(--bs-gutter-x)) !important;
-    margin-left: calc(-.5* var(--bs-gutter-x)) !important;
+.filter-group > .row:last-child {
+    margin-bottom: 0 !important;
 }
 
 .filter-group .g-col-inner {
-    --margin-y: .5rem !important;
-    margin-top: var(--margin-y);
-    /* margin-bottom: var(--margin-y) */
+    margin-top: var(--group-col-padding) !important;
 }
 
-.g-col-inner .filter-btn.row:not(:only-child) {
-    padding-top: 1.5rem;
-}
-
-.filter-btn.row > div {
-    --padding-y: .5rem !important;
-
-    padding-top: var(--margin-y);
-    padding-bottom: var(--margin-y);
+.filter-group.g-col-outer:not(.in-group-0) {
+    padding: var(--group-col-padding);
 }
 
 .filter-btn.row .btn-group {
     --bs-gutter-y: 0;
+}
+
+.g-col-outer > .filter-btn.row:not(:nth-child(2)),
+.g-col-inner > .filter-btn.row:not(:first-child) {
+    padding-top: 1rem;
+}
+
+.row-cap.g-col-outer {
+    padding-top: var(--group-col-padding);
+    padding-bottom: var(--group-col-padding);
 }
 
 .row-cap.g-col-outer,
@@ -594,6 +612,46 @@ tr > th {
     margin-top: 0.4em;
     vertical-align: middle;
     margin-left: .25rem;
+}
+
+.op-text {
+    --text-px: 6px;
+    --text-py: calc(var(--text-px) * 2);
+    padding: var(--text-px) var(--text-py);
+}
+
+.group-operator > *,
+.group-op-echo > *,
+.group-op-first > * {
+    width: 8ch;
+}
+
+.filter-field,
+.filter-operator {
+    min-width: max-content;
+    flex: 1
+}
+
+.filter-value > *:only-child {
+    min-width: max-content;
+}
+
+.filter-value {
+    flex: 2 0 0%;
+}
+
+.filter-row .value-group {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.filter-row .value-group > * {
+    min-width: max-content;
+    flex: 1 0;
+}
+
+.filter-row .value-group > input:not(:first-child) {
+    flex-grow: 2;
 }
 
 
@@ -651,7 +709,7 @@ tr > th {
 
 .modal .sort-filter form.sort-filter {
     --padding-x: 1.5rem;
-    --padding-y: .75rem;
+    --padding-y: var(--padding-x);
     padding: var(--padding-y) var(--padding-x) !important;
 }
 

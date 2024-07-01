@@ -20,74 +20,69 @@
     {% endif %}
 
     <div class="filter-group in-group-{{ prev_group_number }} col g-col-outer" id="filter-group_{{ ns.group_id_post }}">
-        <div class="row">
-            {% set group_op_id_post = 'g{}'.format(ns.group_id_post) %}
+        {% set group_op_id_post = 'g{}'.format(ns.group_id_post) %}
 
-            {% if filters_current['filters']|length < 2 %}
-            {{group_op_element(div_class_inner='col-auto d-inline d-none {}'.format(class_col_inner), current_group_op=filters_current['group_op'], name_prefix=name_prefix, id_post=group_op_id_post, selected='AND') }}
-            {% endif %}
+        {% if filters_current['filters']|length < 2 %}
+        {{group_op_element(div_class_inner='col-auto d-inline d-none {}'.format(class_col_inner), current_group_op=filters_current['group_op'], name_prefix=name_prefix, id_post=group_op_id_post, selected='AND') }}
+        {% endif %}
 
-            <div class="col g-col-inner">
-                {% set ns.group_num = 0 %}
-                {% set ns.filter_row_num = 0 %}
+        {% set ns.group_num = 0 %}
+        {% set ns.filter_row_num = 0 %}
 
-                {# Loop through each filter #}
-                {% for f in filters_current['filters'] %}
+        {# Loop through each filter #}
+        {% for f in filters_current['filters'] %}
 
-                {# Only show form select input for operator on 2nd filter item of a group. 
+        {# Only show form select input for operator on 2nd filter item of a group. 
                 For all filter items > 2, show "echo" -- just the operator value text . #}
 
-                {% set ns.group_op_is_empty = false %}
-                {% set ns.group_op_is_echo = false %}
-                {% if loop.index < 2 %}
-                {% set ns.group_op_is_empty = true %}
-                {% elif loop.index > 2 %}
-                {% set ns.group_op_is_echo = true %}
-                {% endif %}
+        {% set ns.group_op_is_empty = false %}
+        {% set ns.group_op_is_echo = false %}
+        {% if loop.index < 2 %}
+        {% set ns.group_op_is_empty = true %}
+        {% elif loop.index > 2 %}
+        {% set ns.group_op_is_echo = true %}
+        {% endif %}
 
-                {% set group_op_el = group_op_element(current_group_op=filters_current['group_op'], name_prefix=name_prefix, id_post=group_op_id_post, is_empty=ns.group_op_is_empty, is_echo=ns.group_op_is_echo, div_style='width: 80px;') %}
+        {% set group_op_el = group_op_element(current_group_op=filters_current['group_op'], name_prefix=name_prefix, id_post=group_op_id_post, is_empty=ns.group_op_is_empty, is_echo=ns.group_op_is_echo, div_style='') %}
 
-                {% set keys = f.keys()|list %}
-                {% if 'group_op' in keys %}
-                {# If is group #}
-                {% set ns.group_num = ns.group_num + 1 %}
-                {{ filter_group(filter_options=filter_options, job_fields=job_fields, number=ns.group_num, prev_group_number=number, prev_group_id_post=ns.group_id_post, outer_group_op_el=group_op_el, name_prefix='{}.{}.group'.format(name_prefix, loop.index0), filters_current=f) }}
+        {% set keys = f.keys()|list %}
+        {% if 'group_op' in keys %}
+        {# If is group #}
+        {% set ns.group_num = ns.group_num + 1 %}
+        {{ filter_group(filter_options=filter_options, job_fields=job_fields, number=ns.group_num, prev_group_number=number, prev_group_id_post=ns.group_id_post, outer_group_op_el=group_op_el, name_prefix='{}.{}.group'.format(name_prefix, loop.index0), filters_current=f) }}
 
-                {% else %}
-                {# If is row #}
-                {% set ns.filter_row_num = ns.filter_row_num + 1 %}
-                {{ filter_row(group_id_post=ns.group_id_post, number=ns.filter_row_num, f_options=filter_options, job_fields=job_fields, group_op_element=group_op_el, name_prefix='{}.{}.filter'.format(name_prefix, loop.index0), filter_current=f, class_row='')
+        {% else %}
+        {# If is row #}
+        {% set ns.filter_row_num = ns.filter_row_num + 1 %}
+        {{ filter_row(group_id_post=ns.group_id_post, number=ns.filter_row_num, f_options=filter_options, job_fields=job_fields, group_op_element=group_op_el, name_prefix='{}.{}.filter'.format(name_prefix, loop.index0), filter_current=f, class_row='')
                 }}
-                {% endif %}
+        {% endif %}
 
-                {% endfor %}
+        {% endfor %}
 
-                <div class="filter-btn row">
-                    <div class="{% if prev_group_number > 0 %}col{% else %}col-8{% endif %} btn-group filter-btn-group"
-                        role="group" aria-label="Add Filters">
-                        <button type="button" class="filter-btn btn ab-btn-dark-color with-hover-border"
-                            id='add-filter_g{{ ns.group_id_post }}' onclick="addFilter('row', this, this.id)">
-                            {{ iconBtnContentSvg('#svg-bi-plus-lg', 'Add Filter') }}
-                        </button>
-                        <div class="vr"></div>
-                        <button type="button" class="filter-btn btn ab-btn-dark-color with-hover-border"
-                            id='add-filter-group_g{{ ns.group_id_post }}' onclick="addFilter('group', this, this.id)">
-                            {{ iconBtnContentSvg('#svg-bi-subtract', 'Add Group') }}
-                        </button>
-                    </div>
-
-                    {% if prev_group_number == 0 %}
-                    <div class="col d-flex justify-content-end">
-                        <button class="remove-all-btn btn ab-btn-danger with-hover-border w-150 align-self-end"
-                            type="button" onclick="removeAllFilters(this)"
-                            {% if not filters_current.filters %}disabled{% endif %}>
-                            {{ iconBtnContentSvg('#svg-bi-trash3', text='Clear All') }}
-                        </button>
-                    </div>
-                    {% endif %}
-
-                </div>
+        <div class="filter-btn row">
+            <div class="{% if prev_group_number > 0 %}col{% else %}col-8{% endif %} btn-group filter-btn-group"
+                role="group" aria-label="Add Filters">
+                <button type="button" class="filter-btn btn ab-btn-dark-color with-hover-border"
+                    id='add-filter_g{{ ns.group_id_post }}' onclick="addFilter('row', this)">
+                    {{ iconBtnContentSvg('#svg-bi-plus-lg', 'Add Filter') }}
+                </button>
+                <div class="vr"></div>
+                <button type="button" class="filter-btn btn ab-btn-dark-color with-hover-border"
+                    id='add-filter-group_g{{ ns.group_id_post }}' onclick="addFilter('group', this)">
+                    {{ iconBtnContentSvg('#svg-bi-subtract', 'Add Group') }}
+                </button>
             </div>
+
+            {% if prev_group_number == 0 %}
+            <div class="col d-flex justify-content-end">
+                <button class="remove-all-btn btn ab-btn-danger with-hover-border w-150 align-self-end" type="button"
+                    onclick="removeAllFilters(this)" {% if not filters_current.filters %}disabled{% endif %}>
+                    {{ iconBtnContentSvg('#svg-bi-trash3', text='Clear All') }}
+                </button>
+            </div>
+            {% endif %}
+
         </div>
     </div>
     <!-- </fieldset> -->
@@ -103,103 +98,103 @@
 
 <div class="filter-row row outer-row in-group-{{ group_id_post }} {{ class_row }}" id="filter-row_{{ id_post }}">
     {{ group_op_element }}
+    <div class="filter col">
+        <div class="row">
+            {# Field #}
+            <div class="col-auto filter-field">
+                <select name="{{ name_prefix }}.field" id="field-name_{{ id_post }}" class="form-select"
+                    aria-label="Field Name" onchange="getFilterOptions(this, this.options[this.selectedIndex].value)">
 
-    {# Field #}
-    <div class="col-4 filter-field">
-        <select name="{{ name_prefix }}.field" id="field-name_{{ id_post }}" class="form-select" aria-label="Field Name"
-            onchange="getFilterOptions(this, this.options[this.selectedIndex].value)">
+                    {% if not filter_current %}
+                    <option value="" selected>Select field</option>
+                    {% endif %}
 
-            {% if not filter_current %}
-            <option value="" selected>Select field</option>
-            {% endif %}
+                    {% set keys = f_options.keys()|list %}
+                    {% for field in job_fields if field.name in keys %}
 
-            {% set keys = f_options.keys()|list %}
-            {% for field in job_fields if field.name in keys %}
+                    {% if filter_current and field.name == filter_current['field'] %}
+                    <option value="{{ field.name }}" selected>{{ field.label }}</option>
 
-            {% if filter_current and field.name == filter_current['field'] %}
-            <option value="{{ field.name }}" selected>{{ field.label }}</option>
+                    {% else %}
+                    <option value="{{ field.name }}">{{ field.label }}</option>
+                    {% endif %}
+
+                    {% endfor %}
+                </select>
+            </div>
+
+            {# Operator and Value #}
+            {% if filter_current %}
+            {% set filter_options = f_options[filter_current['field']] %}
+            {% set input_type = filter_options['input_type'] %}
+
+            {# -- Operator #}
+            <div class="col-auto filter-operator">
+                {{ filter_select(item='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
+                    aria_label='Operator', options=filter_options['op_list'], selected_option=filter_current['operator']) }}
+            </div>
+            {# -- Value #}
+            {% set item = 'filter-value' %}
+            {% if input_type == 'date' %}
+            {% set has_multiple_values = filter_current['values']|length > 1 %}
+
+            <div class="col {{ item }}{% if has_multiple_values %} value-group{% endif %}">
+                {% set first_selection = filter_current['values'][0] %}
+
+                {{ filter_select(item=item, name='{}.values'.format(name_prefix), id_post=id_post,
+                    aria_label='Value', options=filter_options['values'], selected_option=first_selection, 
+                    onchange='handleDateOptionChange(this, this.options[this.selectedIndex])') }}
+
+                {% if has_multiple_values %}
+
+                {% if 'exact' in first_selection.lower() %}
+                {{ filter_input(item=item, type='date', name='{}.values'.format(name_prefix), id_post=id_post,
+                aria_label='Date Picker', value=filter_current['values'][1]) }}
+                {% elif 'relative' in first_selection.lower() %}
+                {{ filter_input(item=item, type='text', name='{}.values'.format(name_prefix), id_post=id_post,
+                aria_label='Custom Relative Date', value=filter_current['values'][1]) }}
+                {% endif %}
+
+                {% endif %}
+            </div>
 
             {% else %}
-            <option value="{{ field.name }}">{{ field.label }}</option>
+            <div class="col {{ item }}">
+                {% if input_type == 'multi-select' %}
+
+                {{ filter_select_multi(item=item, name='{}.values'.format(name_prefix), id_post=id_post,
+                aria_label='Values', options=f_options[filter_current['field']]['values'], selected_options=filter_current['values']) }}
+
+                {% elif input_type == 'boolean' %}
+
+                {{ filter_checkbox(item=item, name='{}.values'.format(name_prefix), id_post=id_post,
+                aria_label='Value', is_checked=filter_current['values']) }}
+
+                {% else %}
+                {% set type = input_type if input_type in ['text', 'number'] else 'text' %}
+
+                {{ filter_input(item=item, type=type, name='{}.values'.format(name_prefix), id_post=id_post,
+                aria_label='Value', value=filter_current['values']) }}
+
+                {% endif %}
+            </div>
             {% endif %}
 
-            {% endfor %}
-        </select>
+            {% else %}
+            {# -- Operator #}
+            <div class="col-auto filter-operator">
+                {{ filter_select(item='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
+                aria_label='Operator', class='d-none') }}
+            </div>
+
+            {# -- Value #}
+            <div class="col filter-value">
+                {{ filter_select(item='filter-value', name='{}.values'.format(name_prefix), id_post=id_post,
+                aria_label='Value', class='d-none') }}
+            </div>
+            {% endif %}
+        </div>
     </div>
-
-    {# Operator and Value #}
-    {% if filter_current %}
-    {% set filter_options = f_options[filter_current['field']] %}
-    {% set input_type = filter_options['input_type'] %}
-
-    {# -- Operator #}
-    <div class="col-2 filter-operator">
-        {{ filter_select(item='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
-        aria_label='Operator', options=filter_options['op_list'],
-        selected_option=filter_current['operator']) }}
-    </div>
-    {# -- Value #}
-    {% set item = 'filter-value' %}
-    {% if input_type == 'date' %}
-    {% set has_multiple_values = filter_current['values']|length > 1 %}
-
-    <div class="col {{ item }}{% if has_multiple_values %} value-group{% endif %}">
-        {% set first_selection = filter_current['values'][0] %}
-
-        {{ filter_select(item=item, name='{}.values'.format(name_prefix), id_post=id_post,
-        aria_label='Value', options=filter_options['values'],
-        selected_option=first_selection, onchange='handleDateOptionChange(this, this.options[this.selectedIndex])') }}
-
-        {% if has_multiple_values %}
-
-        {% if 'exact' in first_selection.lower() %}
-        {{ filter_input(item=item, type='date', name='{}.values'.format(name_prefix), id_post=id_post,
-        aria_label='Date Picker', value=filter_current['values'][1]) }}
-        {% elif 'relative' in first_selection.lower() %}
-        {{ filter_input(item=item, type='text', name='{}.values'.format(name_prefix), id_post=id_post,
-        aria_label='Custom Relative Date', value=filter_current['values'][1]) }}
-        {% endif %}
-
-        {% endif %}
-    </div>
-
-    {% else %}
-    <div class="col {{ item }}">
-        {% if input_type == 'multi-select' %}
-
-        {{ filter_select_multi(item=item, name='{}.values'.format(name_prefix), id_post=id_post,
-        aria_label='Values', options=f_options[filter_current['field']]['values'],
-        selected_options=filter_current['values']) }}
-
-        {% elif input_type == 'boolean' %}
-
-        {{ filter_checkbox(item=item, name='{}.values'.format(name_prefix), id_post=id_post,
-        aria_label='Value', is_checked=filter_current['values']) }}
-
-        {% else %}
-        {% set type = input_type if input_type in ['text', 'number'] else 'text' %}
-
-        {{ filter_input(item=item, type=type, name='{}.values'.format(name_prefix), id_post=id_post,
-        aria_label='Value', value=filter_current['values']) }}
-
-        {% endif %}
-    </div>
-    {% endif %}
-
-    {% else %}
-    {# -- Operator #}
-    <div class="col-2 filter-operator">
-        {{ filter_select(item='filter-operator', name='{}.operator'.format(name_prefix), id_post=id_post,
-        aria_label='Operator', class='d-none') }}
-    </div>
-
-    {# -- Value #}
-    <div class="col filter-value">
-        {{ filter_select(item='filter-value', name='{}.values'.format(name_prefix), id_post=id_post,
-        aria_label='Value', class='d-none') }}
-    </div>
-    {% endif %}
-
     <div class="col-auto d-inline">
         {{ deleteFilterBtn(filter_type='row') }}
     </div>
@@ -212,17 +207,13 @@
 {% macro group_outer_column_wrapper(inner_content, class_div_cols, class_div_inner='row outer-row') %}
 <div class="col g-col-outer row-cap {{ class_div_cols }}">
     <div class="row">
-        <div class="col g-col-inner row-cap {{ class_div_cols }}">
-            <div class="{{ class_div_inner }}">
-                {{ inner_content|safe }}
-            </div>
-        </div>
+        {{ inner_content|safe }}
     </div>
 </div>
 {% endmacro %}
 
 
-{% macro group_op_element(current_group_op, name_prefix, id_post, selected='', div_class_inner='col-auto d-inline', is_empty=false, is_echo=false, div_style='width: 80px;') %}
+{% macro group_op_element(current_group_op, name_prefix, id_post, selected='', div_class_inner='col-auto d-inline', is_empty=false, is_echo=false, div_style='') %}
 
 {% set options = [('AND', 'And'), ('OR', 'Or')] %}
 {% set onchange = 'handleGroupOpChange(this.options[this.selectedIndex])' %}
@@ -241,7 +232,7 @@
 </div>
 {% else %}
 <div class="{{ div_class_inner }} group-operator">
-    {{ filter_select(name='{}.group_op'.format(name_prefix), id_post=id_post,
+    {{ filter_select(item='group-operator', name='{}.group_op'.format(name_prefix), id_post=id_post,
                 aria_label='Filter Group Operator', options=options, selected_option=ns.selected, class='', style=div_style, onchange=onchange) }}
 </div>
 {% endif %}

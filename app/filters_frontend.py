@@ -25,8 +25,8 @@ TYPES = {
     }
 
 DEFAULT_LABELS = {
-    'any': 'is any of',
-    'not_in': 'is none of',
+    'any': 'any of',
+    'not_in': 'none of',
     'ilike': 'contains',
     'not_ilike': 'does not contain',
     '==': 'is',
