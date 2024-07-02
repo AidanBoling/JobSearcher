@@ -15,6 +15,7 @@ class FrontendFilterOptionsList:
 
         self.build()
 
+
     def build(self):
 
         filterable_columns = self.fe_settings.keys()
@@ -46,56 +47,19 @@ class FrontendFilterOptionsList:
 
 class FiltersConverter:
 
-    def __init__(self, db_control: DbControl, db_filter_class: DbFilter, fe_filter_settings: dict, saved_view_filters: dict):
-        # self.fe_settings = fe_filter_settings #options
-        self.db_control = db_control
-        self.db_filter = db_filter_class
-        self.frontend_filters = {}  # Frontend filter form options
-        self.global_filters = []
-        
-        self._all_view_filters: dict = deepcopy(saved_view_filters)
-        self.db_filter_groups: dict = {}
-
-        list = FrontendFilterOptionsList(db_control, fe_filter_settings)
-        self.frontend_filters = list.filters
+    def __init__(self, db_filter_class: DbFilter, fe_filter_settings: dict):
+        self.db_filter = db_filter_class        
         self.filter_settings = fe_filter_settings
 
         self.list_operators = ['any', 'not_in']
         self.list_field_types = ['date']
         self.list_fields = [key for key in fe_filter_settings.keys() if fe_filter_settings[key]['filter_type'] in self.list_field_types]
 
-        self.update_db_filter_groups()
-        # print(self.db_filter_groups)
 
-
-    @property
-    def all_view_filters(self):
-        return self._all_view_filters
-    
-
-    @all_view_filters.setter
-    def all_view_filters(self, all_view_filters):
-        self._all_view_filters = deepcopy(all_view_filters)
-
-
-    def update_view_filters(self, view, filters):
-        self._all_view_filters[view] = deepcopy(filters)
-        self.update_view_db_filter_group(view)
-
-
-    def update_all_filters(self, all_filters):
-        self.all_view_filters = all_filters
-        self.update_db_filter_groups()
-
-
-    def update_db_filter_groups(self):
-        for view in self.all_view_filters.keys():
-            self.update_view_db_filter_group(view)
-        
-
-    def update_view_db_filter_group(self, view: str):
-        view_group = self.nested_filter_group_to_db(self.all_view_filters[view], self.db_filter)
-        self.db_filter_groups.update({view: view_group})
+    def convert_saved_filters_to_db(self, filters: dict):
+        dict_filter_group = deepcopy(filters)
+        db_filter_group = self.nested_filter_group_to_db(dict_filter_group, self.db_filter)
+        return db_filter_group
 
 
     def nested_filter_group_to_db(self, group: dict, dbFilter: DbFilter) -> DbFilterGroup:
@@ -222,5 +186,5 @@ class FiltersConverter:
 
 class JobFiltersConverter(FiltersConverter):
 
-    def __init__(self, db_control: DbControl, saved_view_filters: dict):
-        super().__init__(db_control=db_control, db_filter_class=JobDbFilter, fe_filter_settings=available_job_filters, saved_view_filters=saved_view_filters)
+    def __init__(self):
+        super().__init__(db_filter_class=JobDbFilter, fe_filter_settings=available_job_filters)

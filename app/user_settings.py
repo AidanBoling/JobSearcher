@@ -38,9 +38,11 @@ class DataFiltersTitle:
     regex: str
 
 
+# TODO: Change this to GlobalFilters
 @dataclass
 class DataFilters:    # global data filters
     post_title: DataFiltersTitle
+    job_filters: dict
 
 
 # @dataclass

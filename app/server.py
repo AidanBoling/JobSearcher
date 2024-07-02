@@ -4,11 +4,14 @@ import json
 from datetime import datetime, timezone
 from flask import Flask, render_template, request, abort, redirect, url_for, jsonify
 from sqlalchemy import Boolean
-from models.job_posts import db
+from models.job_posts import db, job_filters as fe_filter_settings
 from db_control import JobDbControl
 from views_control import ViewsControl
+from filters_control import FrontendFilterOptionsList
 import job_searcher 
 from utils import update_table_settings, update_list_settings
+
+from filters_control import JobFiltersConverter
 
 
 from user_settings import SearchSettings, DataDisplayDefaults, DataFilters, SettingsControl, SavedViews
@@ -27,6 +30,8 @@ default_table_settings = display_settings.table
 
 global_data_filters_controller = SettingsControl(DataFilters, 'global_data_filters')
 global_data_filters = global_data_filters_controller.get_as_dataclass()
+# global_filters = {'dict': global_data_filters.job_filters, 'db': ''}
+global_db_filters = ''
 
 
 # # Connect to Database
@@ -37,9 +42,10 @@ with app.app_context():
     db.create_all()
     db_control = JobDbControl(db)
 
-    views_ctrl = ViewsControl(db_control, display_settings)
+    views_ctrl = ViewsControl(display_settings)
     
-    filter_options = views_ctrl.filters_control.frontend_filters
+    filter_options_list = FrontendFilterOptionsList(db_control, fe_filter_settings)
+    filter_options = filter_options_list.filters
 
 
 def main():
@@ -240,9 +246,6 @@ def main():
     #     return redirect(url_for('settings'))
     
 
-    
-
-
 def search_and_save_jobs():
     jobs = job_searcher.run_search(db_control, search_settings)
     
@@ -266,11 +269,39 @@ def update_search_settings_obj(data: dict):
     search_settings.exclude_companies = [company.strip() for company in data['exclude_companies'].split(', ')]
 
 
-def update_global_data_filters_obj(data: dict):
-    global global_data_filters
+# def update_global_data_filters_obj(data: dict):
+#     global global_data_filters
 
-    global_data_filters.post_title.exclude_keywords = [phrase.strip().lower() for phrase in data['title_exclude_keywords'].split(', ')]
-    global_data_filters.post_title.regex = data['title_regex']
+#     global_data_filters.post_title.exclude_keywords = [phrase.strip().lower() for phrase in data['title_exclude_keywords'].split(', ')]
+#     global_data_filters.post_title.regex = data['title_regex']
+
+
+def update_global_filters(form_data):
+    global global_data_filters
+    global global_db_filters
+
+    filters_converter = JobFiltersConverter()
+    
+    filter_group_dict = filters_converter.form_response_to_dict(form_data)
+    if not filter_group_dict.get('filters'):
+        filter_group_dict = {}
+    print(f'\nUpdating global filters: ', filter_group_dict)
+
+    global_data_filters.job_filters = filter_group_dict
+
+    global_data_filters_controller.save_to_file(global_data_filters)
+
+    update_global_filters_db_group()
+    # global_db_filters = filters_converter.convert_saved_filters_to_db(filter_group_dict)
+
+
+def update_global_filters_db_group():
+    global global_db_filters
+
+    filters_converter = JobFiltersConverter()
+    filter_group_dict = global_data_filters.job_filters
+    
+    global_db_filters = filters_converter.convert_saved_filters_to_db(filter_group_dict)
 
 
 def get_job_data(view):
@@ -280,9 +311,11 @@ def get_job_data(view):
         print('View doesn\'t exist -- using default.')
         view = views_ctrl.default_view
 
-    filter_group = views_ctrl.filters_control.db_filter_groups[view]
+    filter_group = views_ctrl.db_filter_groups[view]
     sort = views_ctrl.saved_views.views[view]['sort']
     
+    # global_filters = global_db_filters 
+
     if filter_group:
         jobs = db_control.get_list(filter_group=filter_group, sort_by=sort)
     else:
@@ -333,8 +366,8 @@ def to_bool(val):
 
 def in_current_view(id):
     view = views_ctrl.current_view['name']
-    filter_group = views_ctrl.filters_control.db_filter_groups[view]
- 
+    filter_group = views_ctrl.db_filter_groups[view]
+
     is_in_view = db_control.job_exists_where(id, filter_group)
     print('is in view: ', is_in_view)
 
@@ -365,7 +398,7 @@ def save_in_deletion_log(job):
         print('Entry added to deletion log.')
 
 
-
+update_global_filters_db_group()
 main()
 
 
