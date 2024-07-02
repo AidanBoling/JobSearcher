@@ -167,7 +167,7 @@
 
                         const namePrefix = getFilterNamePrefix('row', groupNamePrefix, index)
 
-                        updateElementId(rowEl, index, rowIdPost)
+                        updateElementId(rowEl, rowIdPost)
                         updateRowNamesIds(rowEl, index, rowIdPost, namePrefix)
                     }
                     else {
@@ -194,7 +194,7 @@
 
                             const nestedGroupOp = nestedGroupDiv.querySelector('.group-operator select')
                             updateElementNamePrefix(nestedGroupOp, namePrefix)
-                            updateElementId(nestedGroupOp, nestedIdPost)
+                            updateElementId(nestedGroupOp, `g${nestedIdPost}`)
 
                             // Current group info, to pass to next iteration
                             const parentGroupInfo = {
@@ -228,15 +228,14 @@
             function updateElementId(element, idPost) {
                 const elId = element.id
                 // console.log('current element id: ', element.id)
-                let idPostJoin = '_g'
-                let idPostStartIndex = elId.lastIndexOf(idPostJoin)
+                
+                let idPostStartIndex = elId.lastIndexOf('_g')
                 if (idPostStartIndex === -1) {
-                    idPostJoin = '_'
-                    idPostStartIndex = elId.lastIndexOf(idPostJoin)
+                    idPostStartIndex = elId.lastIndexOf('_')
                 }
 
                 const idStart = elId.slice(0, idPostStartIndex)
-                const newId = `${idStart}${idPostJoin}${idPost}`
+                const newId = `${idStart}_${idPost}`
 
                 element.id = newId
                 console.log('updated element id: ', newId)
@@ -442,7 +441,7 @@
         const operatorSelectClass = 'd-none'
         const valueDivClass = 'col filter-value'
 
-        const jobFields = viewOptions.table.job_fields
+        // const jobFields = viewOptions.table.job_fields
         const filterableFields = Object.keys(filterOptions)
         
         let options = ''

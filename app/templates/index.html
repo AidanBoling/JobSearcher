@@ -91,6 +91,7 @@
     // Variables from backend via Jinja
     const views = {{ views | tojson }}
     const viewOptions = {{ options | tojson }}
+    const jobFields = {{ options.table.job_fields | tojson }}
     const sortOptions = {{ sort_options | tojson }}
     const filterOptions = {{ filter_options | tojson }}
 
