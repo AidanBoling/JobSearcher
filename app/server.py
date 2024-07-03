@@ -8,6 +8,7 @@ from models.job_posts import db, job_filters as fe_filter_settings
 from db_control import JobDbControl
 from views_control import ViewsControl
 from filters_control import FrontendFilterOptionsList
+from filters_db import DbFilterGroup
 import job_searcher 
 from utils import update_table_settings, update_list_settings
 
@@ -30,8 +31,7 @@ default_table_settings = display_settings.table
 
 global_data_filters_controller = SettingsControl(DataFilters, 'global_data_filters')
 global_data_filters = global_data_filters_controller.get_as_dataclass()
-# global_filters = {'dict': global_data_filters.job_filters, 'db': ''}
-global_db_filters = ''
+global_db_filters = None
 
 
 # # Connect to Database
@@ -46,6 +46,7 @@ with app.app_context():
     
     filter_options_list = FrontendFilterOptionsList(db_control, fe_filter_settings)
     filter_options = filter_options_list.filters
+    job_fields = default_table_settings.job_fields
 
 
 def main():
@@ -101,9 +102,11 @@ def main():
 
     @app.post('/views/<view>/update/filters')
     def update_filters(view):
+        data = {}
         if request.form:
-            views_ctrl.update_view_data_filters(view, request.form)
-
+            data = request.form
+        
+        views_ctrl.update_view_data_filters(view, data)
         return redirect(request.referrer)
     
 
@@ -206,7 +209,8 @@ def main():
     # APP SETTINGS
     @app.get('/settings')
     def settings():
-        return render_template('settings.html', search_settings=search_settings, global_data_filters=global_data_filters)
+
+        return render_template('settings.html', search_settings=search_settings, filter_options=filter_options, job_fields=job_fields, global_data_filters=global_data_filters)
 
 
     # Later TODO: Add Celery, so can run search in background, and redirect immediately. 
@@ -233,7 +237,7 @@ def main():
                 update_search_settings_obj(request.form)
                 search_settings_controller.save_to_file(search_settings)   
             if section == 'global_data_filters':
-                update_global_data_filters_obj(request.form)
+                update_global_filters(request.form)
                 global_data_filters_controller.save_to_file(global_data_filters)   
         return redirect(url_for('settings'))
     
@@ -276,32 +280,32 @@ def update_search_settings_obj(data: dict):
 #     global_data_filters.post_title.regex = data['title_regex']
 
 
-def update_global_filters(form_data):
+def update_global_filters(form_data: dict):
     global global_data_filters
-    global global_db_filters
-
-    filters_converter = JobFiltersConverter()
     
+    filters_converter = JobFiltersConverter()
     filter_group_dict = filters_converter.form_response_to_dict(form_data)
     if not filter_group_dict.get('filters'):
         filter_group_dict = {}
-    print(f'\nUpdating global filters: ', filter_group_dict)
+    
+    # print(f'\nUpdating global filters: ', filter_group_dict)
 
     global_data_filters.job_filters = filter_group_dict
-
     global_data_filters_controller.save_to_file(global_data_filters)
 
     update_global_filters_db_group()
-    # global_db_filters = filters_converter.convert_saved_filters_to_db(filter_group_dict)
 
 
 def update_global_filters_db_group():
     global global_db_filters
 
-    filters_converter = JobFiltersConverter()
     filter_group_dict = global_data_filters.job_filters
     
-    global_db_filters = filters_converter.convert_saved_filters_to_db(filter_group_dict)
+    if filter_group_dict:
+        filters_converter = JobFiltersConverter()
+        global_db_filters = filters_converter.convert_saved_filters_to_db(filter_group_dict)
+    else:
+        global_db_filters = None
 
 
 def get_job_data(view):
@@ -310,11 +314,16 @@ def get_job_data(view):
     if not views_ctrl.view_exists(view):
         print('View doesn\'t exist -- using default.')
         view = views_ctrl.default_view
+        #Q: ^Should be moved to route, and result in a redirect to default? 
 
-    filter_group = views_ctrl.db_filter_groups[view]
     sort = views_ctrl.saved_views.views[view]['sort']
-    
-    # global_filters = global_db_filters 
+    view_filters = views_ctrl.db_filter_groups[view]
+
+    filter_group = view_filters
+    if view_filters and global_db_filters:
+        filter_group = DbFilterGroup('and', [global_db_filters, view_filters])
+    elif global_db_filters:
+        filter_group = global_db_filters
 
     if filter_group:
         jobs = db_control.get_list(filter_group=filter_group, sort_by=sort)
@@ -327,9 +336,6 @@ def get_job_data(view):
 def get_template_variables(view):
 
     jobs = get_job_data(view)
-
-    # TODO: Delete filters (now not used)
-    # filters={'settings': filter_options}
 
     views={'current': views_ctrl.current_view, 
         'names': views_ctrl.saved_views.names

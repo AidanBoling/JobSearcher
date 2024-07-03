@@ -1,19 +1,23 @@
 {% extends "base.html" %}
 
-{% block page_title %}Settings{% endblock %}
+{% block page_title %}Admin{% endblock %}
 
 {% block content %}
-{% from 'modals.html' import edit_modal, edit_modal_button %}
+{% from 'modals.html' import edit_modal, edit_modal_button, dataview_settings_modal %}
 {% from 'form.html' import text_input %}
+{% from 'data_filters_form.html' import update_global_filters_form %}
 
-<h1>Settings</h1>
+
+<h1>Admin Tools & Settings</h1>
 <hr />
+<h2>Job Search</h2>
 <div>
     <a class="btn btn-primary" href="{{ url_for('run_job_search') }}" role="button">Run Search</a>
 </div>
 
+
 <br />
-<h2>Search Settings</h2>
+<h3>Search Settings</h3>
 {{ edit_modal_button('Edit Settings', data_target='settings-searchSettings') }}
 
 <ul class="mt-3">
@@ -40,11 +44,41 @@
 </ul>
 
 <br />
+<!--
+<h2>View Defaults</h2>
+[Edit button]
+<ul>
+<li>Default view: [View]
+</li>
+<li>
+Layout: [Table, or List]
+</li>
+[For edit, Use the same button toggle from the views Settings modal]
+<h2><Layout Defaults></h2>
 
-<h2>Data Filters</h2>
-{{ edit_modal_button('Edit Filters', data_target='settings-dataFilters') }}
+<h3>Table</h3>
+<li>
+Fields Visible: 
+    <ul>
+    <li>[field]</li>
+    ...
+    <li>[field]</li>
+    </ul>
+</li>
+<li>
+Field Order:
+    <ul>...</ul>
+</li>
+</ul>
+-->
 
-<h3 class="mt-3 fs-4">Post Title Filters</h3>
+<h2>Global Filters</h2>
+{# {{ edit_modal_button('Edit Filters', data_target='settings-dataFilters') }} #}
+
+<button class="btn ab-btn-light" type="button" data-bs-toggle="modal" data-bs-target="#settingsModal-filters">
+    {{ iconBtnContentSvg('#svg-bi-funnel', 'View/Edit Filters', icon_w='18', icon_h='18') }}
+</button>
+{# <h3 class="mt-3 fs-4">Post Title Filters</h3>
 <ul class="mt-2">
     <li class="mb-3">
         <p class="fs-5 mb-1">Exclude Keywords:</p>
@@ -57,16 +91,16 @@
         </div>
     </li>
     <li><span class="fs-5 mb-1">Regex: </span><code>{{ global_data_filters.post_title['regex'] }}</code></li>
-</ul>
+</ul> #}
 
 
-{% call(data) edit_modal(formURL=url_for('update_settings', section='search_settings'), title='Edit Search Settings', id='settings-searchSettings', data=search_settings) %}
+{# {% call(data) edit_modal(formURL=url_for('update_settings', section='search_settings'), title='Edit Search Settings', id='settings-searchSettings', data=search_settings) %}
 {# TODO: Add input instructions (comma-separated lists, exact spelling, etc.)) #}
 {{ text_input('Search Terms/Phrases', id='search_phrases', name='search_phrases', value=data['search_phrases']|join(', ')) }}
 {{ text_input('Exclude Companies', id='exclude_companies', name='exclude_companies', value=data['exclude_companies']|join(', ')) }}
 {% endcall %}
 
-{% call(data) edit_modal(formURL=url_for('update_settings', section='global_data_filters'), title='Edit Data Filters', id='settings-dataFilters', data=global_data_filters) %}
+{% call(data) edit_modal(formURL=url_for('update_settings', section='global_data_filters'), title='Edit Global Filters', id='settings-dataFilters', data=global_data_filters) %}
 {# TODO: Add input instructions (comma-separated lists, exact spelling, etc.)) #}
 
 <fieldset>
@@ -75,6 +109,34 @@
     {{ text_input('Regex Filter - post title', id='title_regex', name='title_regex', value=data.post_title['regex']) }}
 </fieldset>
 
+{% endcall %} #}
+
+{% call dataview_settings_modal(title='Filters', id_post='filters', outer_class='sort-filter') %}
+<div class="modal-body p-0 modal-content-bg sort-filter">
+    <div class="modal-body-bg">
+        {{ update_global_filters_form(id='globalFiltersForm-filtersModal', filter_options=filter_options, job_fields=job_fields, global_filters=global_data_filters.job_filters) }}
+    </div>
+</div>
+<div class="modal-footer p-4 modal-gradient-bg border-0 sort-filter">
+    <button class="btn btn-primary" type="submit" form="globalFiltersForm-filtersModal">Save</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+</div>
 {% endcall %}
+
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+
+<script>
+    // Variables from backend via Jinja
+
+    // {# const globalOptions = {{ options | tojson }} #}
+    const jobFields = {{ job_fields | tojson }}
+    const filterOptions = {{ filter_options | tojson }}
+
+</script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/dataview_filters.js') }}"></script>
 
 {% endblock %}

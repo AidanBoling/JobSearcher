@@ -11,3 +11,14 @@
 </form>
 
 {% endmacro %}
+
+{% macro update_global_filters_form(id, filter_options, job_fields, global_filters) %}
+<form action="{{ url_for( 'update_settings', section='global_data_filters' ) }}" method="POST" id="{{id}}" class="sort-filter">
+
+    <div class="container-fluid">
+        {{ filter_group(filter_options=filter_options, job_fields=job_fields, filters_current=global_filters) }}
+    </div>
+
+</form>
+
+{% endmacro %}

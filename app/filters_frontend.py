@@ -6,7 +6,7 @@ TYPES = {
         'form_input_type': 'multi-select',
         },
     'text': {
-        'operators': ['ilike', 'not_ilike', '==', '!='],
+        'operators': ['icontains', 'not_icontains', '==', '!='],
         'form_input_type': 'text'
         },
     'number': {
@@ -29,6 +29,8 @@ DEFAULT_LABELS = {
     'not_in': 'none of',
     'ilike': 'contains',
     'not_ilike': 'does not contain',
+    'icontains': 'contains',
+    'not_icontains': 'does not contain',
     '==': 'is',
     '!=': 'is not',
     '<=': 'less or equal',
@@ -36,8 +38,6 @@ DEFAULT_LABELS = {
     '<': 'less than',
     '>': 'greater than'
     }
-
-
 
 
 

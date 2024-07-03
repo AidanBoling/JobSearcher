@@ -1,4 +1,4 @@
-from sqlalchemy.sql.expression import and_, or_
+from sqlalchemy.sql.expression import and_, or_, not_
 from sqlalchemy import true, false
 from models.job_posts import JobPost
 from models.base import Base
@@ -25,7 +25,9 @@ class DbFilter:
             'any': self.col.in_,
             'not_in': self.col.not_in,
             'ilike': self.col.ilike,
-            'not_ilike': self.col.not_ilike
+            'not_ilike': self.col.not_ilike,
+            'icontains': self.col.icontains,
+            'not_icontains': [self.col.icontains, not_]
             }
         
         if self.value == 'bool_true':
@@ -34,6 +36,11 @@ class DbFilter:
             self.value = False
 
     def get(self):
+        if type(self.op_map[self.operator]) is list:
+            inner_clause = self.op_map[self.operator][0](self.value)
+            outer_clause = self.op_map[self.operator][1]
+            return outer_clause(inner_clause)
+        
         return self.op_map[self.operator](self.value)
         #Later TODO: Error handling (e.g. throw exception(invalid operator, must be '==', '>=', etc...))
 

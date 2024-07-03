@@ -1,6 +1,5 @@
 from copy import deepcopy
 from filters_control import JobFiltersConverter
-# from db_control import DbControl
 from user_settings import SavedViews, DataDisplayDefaults, SettingsControl
 from utils import update_table_settings, update_list_settings
 
@@ -28,18 +27,6 @@ class ViewsControl:
 
         self.set_current(self.default_view)
         self.update_all_filters()
-
-
-    def update_all_filters(self):
-        self.all_filters = self.get_all_filters()
-        for view in self.all_filters.keys():
-            self.update_view_db_filter_group(view)
-
-
-    def update_view_db_filter_group(self, view: str):
-        view_filters = self.all_filters[view]
-        view_db_group = self.filters_control.convert_saved_filters_to_db(view_filters)
-        self.db_filter_groups.update({view: view_db_group})
 
 
     def view_exists(self, view: str):
@@ -75,6 +62,18 @@ class ViewsControl:
         self.current_view['filters']['saved'] = saved_view['job_filters']
 
         self.current_view['sort'] = saved_view['sort']
+
+
+    def update_all_filters(self):
+        self.all_filters = self.get_all_filters()
+        for view in self.all_filters.keys():
+            self.update_view_db_filter_group(view)
+
+
+    def update_view_db_filter_group(self, view: str):
+        view_filters = self.all_filters[view]
+        view_db_group = self.filters_control.convert_saved_filters_to_db(view_filters)
+        self.db_filter_groups.update({view: view_db_group})
 
 
     def get_all_filters(self):
@@ -143,7 +142,7 @@ class ViewsControl:
             return
         
         filter_group_dict = self.filters_control.form_response_to_dict(data)
-        if not filter_group_dict.get('filters'):
+        if not filter_group_dict or not filter_group_dict.get('filters'):
             filter_group_dict = {}
         # print(f'\nUpdating filters for view "{view}": ', filter_group_dict)
                 

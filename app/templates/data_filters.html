@@ -223,15 +223,15 @@
 {% endif %}
 
 {% if is_empty %}
-<div class="{{ div_class_inner }} group-op-first">
+<div class="{{ div_class_inner }} group-op group-op-first">
     <div class="op-text" style="{{ div_style }}">Where</div>
 </div>
 {% elif is_echo %}
-<div class="{{ div_class_inner }} group-op-echo">
+<div class="{{ div_class_inner }} group-op group-op-echo">
     <div class="op-text" style="{{ div_style }}">{{ current_group_op|title }}</div>
 </div>
 {% else %}
-<div class="{{ div_class_inner }} group-operator">
+<div class="{{ div_class_inner }} group-op group-operator">
     {{ filter_select(item='group-operator', name='{}.group_op'.format(name_prefix), id_post=id_post,
                 aria_label='Filter Group Operator', options=options, selected_option=ns.selected, class='', style=div_style, onchange=onchange) }}
 </div>
