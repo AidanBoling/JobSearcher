@@ -1,4 +1,4 @@
-// OnChange and OnClick Actions
+// ONCHANGE AND ONCLICK ACTIONS
 
     // -- onClick (Buttons):
 
@@ -42,92 +42,65 @@
 
 
     function deleteFilter(btnElement, filterType) {
-        // TODO: Check/add to documentation/notes for this function
-
-        let filterRowDiv = ''
-        if (filterType === 'group') {
-            filterRowDiv = btnElement.closest('.group-inner.outer-row')
-        }
-        else if (filterType === 'row') {
-            filterRowDiv = btnElement.closest('.filter-row.outer-row')
-        }
+        // Later TODO: Check/add to documentation/notes for this function
+        // Later TODO: Rename to handleDeleteFilter
+        
+        let rowDivSelector = '.filter-row.outer-row'
+        if (filterType === 'group') { rowDivSelector = '.group-inner.outer-row' }
+        const filterRowDiv = btnElement.closest(rowDivSelector)
 
         const { groupDiv, groupIdPost, itemsInGroup, groupNum } = getGroupElInfo(btnElement)
         console.log('groupDiv: ', groupDiv)
 
-        // If filter to delete is only filter, disable the "clear all" button
+        const groupOpSelectEl = groupDiv.querySelector(`select#group-operator_g${groupIdPost}`)
+        const groupNamePrefix = groupOpSelectEl.name.split('.').slice(0, -1).join('.')
+
         if (groupIdPost === '1' && itemsInGroup === 1) {
+            // If filter to delete is the only filter, disable the "clear all" button
             const removeAllBtn = groupDiv.querySelector('.remove-all-btn')
             removeAllBtn.setAttribute("disabled", true)
         }
 
-        // Determine if row to delete is 2nd row of group
         const allRowEls = groupDiv.querySelectorAll(`.outer-row.in-group-${groupIdPost}`)
         const groupRowsArray = Array.from(allRowEls)
 
         const rowIndex = groupRowsArray.indexOf(filterRowDiv)
-        if (rowIndex === -1) { throw new Error('Element not found in group element list.') }
-
         const rowNumber = rowIndex + 1
         //console.log(`Row to delete is ${rowNumber}/${itemsInGroup} in group`)
 
-        let isLastRow = false
-        if (rowNumber === itemsInGroup) {
-            isLastRow = true
-            // console.log('Row is last row in group.')
-        }
+        let deletedLastRow = false
+        if (rowNumber === itemsInGroup) { deletedLastRow = true }
 
-        let replaceGroupOp = false
+        let deletedFirstOrSecondRow = false
+        if (rowNumber <= 2) { deletedFirstOrSecondRow = true }
+
         let groupOp = ''
-        if (rowNumber === 2) {
-            // If row being deleted is 2nd row of group, will need to replace the groupOp
-            const groupOpSelectEl = groupDiv.querySelector(`select#group-operator_g${groupIdPost}`)
+        if (itemsInGroup === 2) {
+            // 1 of only 2 rows will be deleted; group op will be moved to beginning of filterGroup
             groupOp = groupOpSelectEl.closest('.group-operator')
+            groupOp.classList.add('d-none')
 
-            replaceGroupOp = true
-            //console.log('Row to delete is 2nd child of group.')
-        }
+            if (deletedLastRow) { groupDiv.insertAdjacentElement('afterbegin', groupOp) }
+        } 
 
 
         // DELETE ROW
         console.log('Deleting row...')
         filterRowDiv.remove()
 
-        //AFTER DELETE:
-        const newGroupEls = groupDiv.querySelectorAll(`.outer-row.in-group-${groupIdPost}`)
-        const newGroupArray = Array.from(newGroupEls)
 
-        if (replaceGroupOp) {
-            console.log('Replacing group op...')
+        // AFTER DELETE:
+        if (!deletedLastRow) {
+            // If row deleted was not the last row of the group, need to:
+            // - update the group ops for the first 2 rows (if deleted row was one of first 2 rows)
+            // - recursively update the various appropriate numbers in the name, id, and class attributes of all 
+            // remaining rows and nested groups
 
-            if (!isLastRow) {
-                // Add groupOp to new 2nd row
-                let groupOpDivRow2 = newGroupArray[1].querySelector('.group-op-echo')
-                //console.log('New 2nd row current group-op: ', groupOpDivRow2)
-
-                groupOpDivRow2.insertAdjacentElement('beforebegin', groupOp)
-                groupOpDivRow2.remove()
-            }
-            else {
-                //  Add groupOp as first child of first child under filterGroup
-                console.log('Was last row, so adding group op to beginning of filterGroup')
-                const firstDivInGroup = groupDiv.querySelector('div.row')
-                firstDivInGroup.insertAdjacentElement('afterbegin', groupOp)
-
-                // Then add additional class: 'd-none'
-                const newGroupOp = groupDiv.querySelector('.group-operator')
-                newGroupOp.classList.add('d-none')
-                //console.log('inserted group-operator: ', newGroupOp)
-            }
-        }
-
-        if (!isLastRow) {
-            // Row deleted was not the last row of the group, so need to update the 
-            // various appropriate numbers in the name, id, and class attributes of all 
-            // the remaining rows and nested groups (recursively)
-            const groupOpEl = groupDiv.querySelector(`select#group-operator_g${groupIdPost}`)
-            const groupNamePrefix = groupOpEl.name.split('.').slice(0, -1).join('.')
-
+            const newGroupEls = groupDiv.querySelectorAll(`.outer-row.in-group-${groupIdPost}`)
+            const newGroupArray = Array.from(newGroupEls)
+            const rowsToUpdate = newGroupArray.slice(rowIndex)
+            //console.log('Rows to update: ', rowsToUpdate)
+            
             const groupElementInfo = {
                 groupDiv: groupDiv,
                 groupIdPost: groupIdPost,
@@ -135,150 +108,39 @@
                 currentGroupIdPost: groupIdPost
             }
 
-            function updateGroupFilters(groupArray, groupElementInfo, startIndex = 0) {
-                console.log('Starting group filter update...')
-                const { groupDiv, groupIdPost, groupNamePrefix, currentGroupIdPost } = groupElementInfo
-
-                // First, update the in-group-* class for each item (needed to 
-                // correctly generate the idPost for each in next step).
-                const currentInGroupClass = `in-group-${currentGroupIdPost}`
-                const newInGroupClass = `in-group-${groupIdPost}`
-
-                //console.log('current in-group class: ', currentInGroupClass)
-                //console.log('newInGroupClass: ', newInGroupClass)
-
-                if (currentInGroupClass != newInGroupClass) {
-                    console.log('Updating the in-group classes...')
-                    groupArray.forEach((rowEl) => {
-                        rowEl.classList.remove(currentInGroupClass)
-                        rowEl.classList.add(newInGroupClass)
-                    })
-                }
-
-                // Update each item, according to whether is row or nested group
-                groupArray.forEach((rowEl, i) => {
-                    index = i + startIndex
-                    console.log('row (new) index: ', index)
-
-                    const rowIdPost = getFilterIdPost('row', groupDiv, groupIdPost, rowEl)
-
-                    if (rowEl.matches('.filter-row')) {
-                        console.log('Row is a filter row')
-
-                        const namePrefix = getFilterNamePrefix('row', groupNamePrefix, index)
-
-                        updateElementId(rowEl, rowIdPost)
-                        updateRowNamesIds(rowEl, index, rowIdPost, namePrefix)
-                    }
-                    else {
-                        console.log('Row is a nested group')
-                        const namePrefix = getFilterNamePrefix('group', groupNamePrefix, index)
-
-                        const nestedGroupDiv = rowEl.querySelector('.filter-group')
-
-                        if (nestedGroupDiv) {
-                            // Update the in-group class for the nested group
-                            nestedGroupDiv.classList.remove(currentInGroupClass)
-                            nestedGroupDiv.classList.add(newInGroupClass)
-
-                            // Get the pre-updated idPost for this nested group 
-                            const currentNestedIdPost = nestedGroupDiv.id.split('_').pop()
-
-                            // Get the new array using the pre-updated idPost
-                            const nestedGroupEls = nestedGroupDiv.querySelectorAll(`.outer-row.in-group-${currentNestedIdPost}`)
-                            const nestedGroupArray = Array.from(nestedGroupEls)
-
-                            // Get updated idPost, then update the main group element, and the groupOp element
-                            const nestedIdPost = getFilterIdPost('group', groupDiv, groupIdPost, nestedGroupDiv)
-                            updateElementId(nestedGroupDiv, nestedIdPost)
-
-                            const nestedGroupOp = nestedGroupDiv.querySelector('.group-operator select')
-                            updateElementNamePrefix(nestedGroupOp, namePrefix)
-                            updateElementId(nestedGroupOp, `g${nestedIdPost}`)
-
-                            // Current group info, to pass to next iteration
-                            const parentGroupInfo = {
-                                groupDiv: nestedGroupDiv,
-                                groupIdPost: nestedIdPost,
-                                groupNamePrefix: namePrefix,
-                                currentGroupIdPost: currentNestedIdPost
-                            }
-
-                            updateGroupFilters(nestedGroupArray, parentGroupInfo)
-                        }
-                    }
-                })
-            }
-
-
-            function updateElementNamePrefix(element, namePrefix) {
-                const name = element.name
-                // console.log('current element name: ', name)
-
-                const nameEndStartIndex = name.lastIndexOf('.') + 1
-                let nameEnd = name.slice(nameEndStartIndex)
-
-                const newName = `${namePrefix}.${nameEnd}`
-
-                element.name = newName
-                console.log('updated element name: ', newName)
-            }
-
-
-            function updateElementId(element, idPost) {
-                const elId = element.id
-                // console.log('current element id: ', element.id)
+            if (deletedFirstOrSecondRow) {
+                console.log('Updating group ops...')
                 
-                let idPostStartIndex = elId.lastIndexOf('_g')
-                if (idPostStartIndex === -1) {
-                    idPostStartIndex = elId.lastIndexOf('_')
+                for (let newRowIndex = 0; newRowIndex < 2; newRowIndex++) {
+                    const currentRowEl = newGroupEls[newRowIndex]
+                    const groupOpDiv = currentRowEl.querySelector('.group-op')
+                    const newRowGroupOp = getRowGroupOpElement(newRowIndex, groupNamePrefix, groupDiv, { idPost: groupIdPost })
+
+                    groupOpDiv.insertAdjacentHTML('beforebegin', newRowGroupOp)
+                    
+                    if (newGroupArray.length < 2) {
+                        groupDiv.insertAdjacentElement('afterbegin', groupOp)
+                        break
+                    }
+                    else { groupOpDiv.remove() }
                 }
-
-                const idStart = elId.slice(0, idPostStartIndex)
-                const newId = `${idStart}_${idPost}`
-
-                element.id = newId
-                console.log('updated element id: ', newId)
             }
-
-
-            function updateRowNamesIds(row, index, idPost, namePrefix) {
-                // Get all elements with attribute 'name'
-                const childElementsWithName = row.querySelectorAll('[name]');
-                childElementsWithName.forEach((element) => {
-                    //console.log('Starting forEach loop for children w/ names...')
-                    if (element.name.split('.').pop() === 'group_op') { return }
-                    updateElementNamePrefix(element, index, namePrefix)
-                })
-
-                // Get all elements with attribute 'id'
-                const childElementsWithId = row.querySelectorAll('[id]');
-                childElementsWithId.forEach((element) => {
-                    //console.log('Starting forEach loop for children w/ ids...')
-                    if (element.id.split('_')[0] === 'group-operator') { return }
-                    updateElementId(element, index, idPost)
-                })
-            }
-
-            const rowsToUpdate = newGroupArray.slice(rowIndex)
-            //console.log('Rows to update: ', rowsToUpdate)
-
+            
             updateGroupFilters(rowsToUpdate, groupElementInfo, rowIndex)
         }
-
     }
 
 
     function removeAllFilters(element) {
+        // Later TODO: Rename to handleRemoveAllFilters
+
         const filterForm = element.closest('form')
         const outerFilterGroup = filterForm.querySelector('.filter-group.in-group-0')
         
-        // First, copy the group Operator element, and add to top-level of group (hidden)
+        // Copy the first group Operator element, and add to top-level of group (hidden)
         const groupOp = outerFilterGroup.querySelector('.group-operator')
-        const firstDivInGroup = outerFilterGroup.querySelector('div.row')
-        firstDivInGroup.insertAdjacentElement('afterbegin', groupOp)
-        const newGroupOp = outerFilterGroup.querySelector('.group-operator')
-        newGroupOp.classList.add('d-none')
+        groupOp.classList.add('d-none')
+        outerFilterGroup.insertAdjacentElement('afterbegin', groupOp)
         
         // Remove rows
         const filterRowsAll = filterForm.querySelectorAll('.outer-row.in-group-1')
@@ -399,7 +261,7 @@
     }
 
 
-    // Filter Components
+    // COMPONENTS
 
     function newFilterGroupEl(outerGroupOpEl, namePrefix, idPost, previousGroupIdPost) {
         const groupOpEl = groupOpElementHtml(namePrefix, idPost, { divClass: 'd-none' })
@@ -506,7 +368,7 @@
             innerElement = `<div class="op-text" style="${divStyle}">${innerText}</div>`
         }
 
-        return (`<div class="col-auto d-inline ${itemClass} ${divClass}">
+        return (`<div class="col-auto d-inline group-op ${itemClass} ${divClass}">
                     ${innerElement}
                 </div>`)
 
@@ -580,7 +442,7 @@
     }
 
 
-    // Filter Helpers
+    // HELPERS
 
     function getGroupElInfo(element) {
 
@@ -716,4 +578,132 @@
             const valueText = getInputText(type, idPost, namePrefix, options)
             valueDiv.insertAdjacentHTML('beforeend', valueText)
         }
+    }
+
+
+    // --- Remove-Filter Helper
+
+    function updateGroupFilters(groupArray, groupElementInfo, startIndex = 0) {
+        console.log('Starting group filter update...')
+        const { groupDiv, groupIdPost, groupNamePrefix, currentGroupIdPost } = groupElementInfo
+
+        // First, update the in-group-* class for each item (needed to 
+        // correctly generate the idPost for each in next step).
+        const currentInGroupClass = `in-group-${currentGroupIdPost}`
+        const newInGroupClass = `in-group-${groupIdPost}`
+
+        //console.log('current in-group class: ', currentInGroupClass)
+        //console.log('newInGroupClass: ', newInGroupClass)
+
+        if (currentInGroupClass != newInGroupClass) {
+            console.log('Updating the in-group classes...')
+            groupArray.forEach((rowEl) => {
+                rowEl.classList.remove(currentInGroupClass)
+                rowEl.classList.add(newInGroupClass)
+            })
+        }
+
+        // Update each item, according to whether is row or nested group
+        groupArray.forEach((rowEl, i) => {
+            index = i + startIndex
+            console.log('row (new) index: ', index)
+
+            const rowIdPost = getFilterIdPost('row', groupDiv, groupIdPost, rowEl)
+
+            if (rowEl.matches('.filter-row')) {
+                console.log('Row is a filter row')
+
+                const namePrefix = getFilterNamePrefix('row', groupNamePrefix, index)
+
+                updateElementId(rowEl, rowIdPost)
+                updateRowNamesIds(rowEl, rowIdPost, namePrefix)
+            }
+            else {
+                console.log('Row is a nested group')
+                const namePrefix = getFilterNamePrefix('group', groupNamePrefix, index)
+
+                const nestedGroupDiv = rowEl.querySelector('.filter-group')
+
+                if (nestedGroupDiv) {
+                    // Update the in-group class for the nested group
+                    nestedGroupDiv.classList.remove(currentInGroupClass)
+                    nestedGroupDiv.classList.add(newInGroupClass)
+
+                    // Get the pre-updated idPost for this nested group 
+                    const currentNestedIdPost = nestedGroupDiv.id.split('_').pop()
+
+                    // Get the new array using the pre-updated idPost
+                    const nestedGroupEls = nestedGroupDiv.querySelectorAll(`.outer-row.in-group-${currentNestedIdPost}`)
+                    const nestedGroupArray = Array.from(nestedGroupEls)
+
+                    // Get updated idPost, then update the main group element, and the groupOp element
+                    const nestedIdPost = getFilterIdPost('group', groupDiv, groupIdPost, nestedGroupDiv)
+                    updateElementId(nestedGroupDiv, nestedIdPost)
+
+                    const nestedGroupOp = nestedGroupDiv.querySelector('.group-operator select')
+                    updateElementNamePrefix(nestedGroupOp, namePrefix)
+                    updateElementId(nestedGroupOp, `g${nestedIdPost}`)
+
+                    // Current group info, to pass to next iteration
+                    const parentGroupInfo = {
+                        groupDiv: nestedGroupDiv,
+                        groupIdPost: nestedIdPost,
+                        groupNamePrefix: namePrefix,
+                        currentGroupIdPost: currentNestedIdPost
+                    }
+
+                    updateGroupFilters(nestedGroupArray, parentGroupInfo)
+                }
+            }
+        })
+    }
+
+
+    function updateElementNamePrefix(element, namePrefix) {
+        const name = element.name
+        // console.log('current element name: ', name)
+
+        const nameEndStartIndex = name.lastIndexOf('.') + 1
+        let nameEnd = name.slice(nameEndStartIndex)
+
+        const newName = `${namePrefix}.${nameEnd}`
+
+        element.name = newName
+        console.log('updated element name: ', newName)
+    }
+
+
+    function updateElementId(element, idPost) {
+        const elId = element.id
+        // console.log('current element id: ', element.id)
+
+        let idPostStartIndex = elId.lastIndexOf('_g')
+        if (idPostStartIndex === -1) {
+            idPostStartIndex = elId.lastIndexOf('_')
+        }
+
+        const idStart = elId.slice(0, idPostStartIndex)
+        const newId = `${idStart}_${idPost}`
+
+        element.id = newId
+        console.log('updated element id: ', newId)
+    }
+
+
+    function updateRowNamesIds(row, idPost, namePrefix) {
+        // Get all elements with attribute 'name'
+        const childElementsWithName = row.querySelectorAll('[name]');
+        childElementsWithName.forEach((element) => {
+            //console.log('Starting forEach loop for children w/ names...')
+            if (element.name.split('.').pop() === 'group_op') { return }
+            updateElementNamePrefix(element, namePrefix)
+        })
+
+        // Get all elements with attribute 'id'
+        const childElementsWithId = row.querySelectorAll('[id]');
+        childElementsWithId.forEach((element) => {
+            //console.log('Starting forEach loop for children w/ ids...')
+            if (element.id.split('_')[0] === 'group-operator') { return }
+            updateElementId(element, idPost)
+        })
     }
