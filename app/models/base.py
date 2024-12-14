@@ -10,10 +10,6 @@ class Base(DeclarativeBase):
         return [col.name for col in self.__table__.columns]
     
     
-    def get_field_names(self):
-        return [col.name for col in self.__table__.columns] 
-
-
     def update_cols(self, updates: dict):
         updated = {}
         for name, value in updates.items():

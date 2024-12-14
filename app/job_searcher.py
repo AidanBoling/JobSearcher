@@ -43,7 +43,7 @@ def run_search(db_control: JobDbControl=None, search_settings: object=None):
         update_excluded_ids_file(search_bot, job_board)
 
     else:
-        print('No new job posts to add from LinkedIn.') 
+        print(f'No new job posts to add from {job_board}.') 
     
     return jobs
 
