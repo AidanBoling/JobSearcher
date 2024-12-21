@@ -1,4 +1,3 @@
-import os
 import sys
 from time import sleep
 import random
@@ -7,18 +6,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import selenium.common.exceptions as selexceptions
 from selenium_driver import SeleniumDriver
-from user_settings import SearchSettings, SettingsControl
+from user_settings import JobSearch, SettingsControl
 
-
-LINKEDIN_USERNAME = os.environ.get('LINKEDIN_USERNAME')
-LINKEDIN_PASSWORD = os.environ.get('LINKEDIN_PASSWORD')
 
 LINKEDIN_LOGIN_URL = 'https://www.linkedin.com/login'
 
-# Later TODO: For easier changing of search params, change below so can paste the entire url from an example
+# [/] Later TODO: For easier changing of search params, change below so can paste the entire url from an example
 # search, and get the START and END from that.
+
 LI_SEARCH_URL_START = 'https://www.linkedin.com/jobs/search/?f_E=2&f_TPR=r604800&f_WT=2&geoId=103644278&keywords='
 LI_SEARCH_URL_END = '&location=United%20States&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true'
+
+LI_SEARCH_URL_DEFAULT = 'https://www.linkedin.com/jobs/search/?f_E=2&f_TPR=r604800&f_WT=2&geoId=103644278&keywords=&location=United%20States&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true'
 LI_JOB_PAGE_BASE_URL = 'https://www.linkedin.com/jobs/view/'
 
 DEFAULT_MAX_ATTEMPTS = 2
@@ -29,15 +28,16 @@ DEFAULT_MAX_ATTEMPTS = 2
 #     def __init__(self, driver_control: SeleniumDriver, settings: object):
 #         self.sel = driver_control
 #         self.driver = driver_control.get_driver()
-#         self.user_settings = 
+#         self.user_settings = SettingsControl(SearchSettings, 'job_search').get_section_config()
 
 
 class LinkedInScraper:
 
-    def __init__(self, driver_control: SeleniumDriver, limit_result_pages='', max_attempts=DEFAULT_MAX_ATTEMPTS):
+    def __init__(self, driver_control: SeleniumDriver, search_url:str=LI_SEARCH_URL_DEFAULT, limit_result_pages='', max_attempts=DEFAULT_MAX_ATTEMPTS):
         # super().__init__(driver_control)
         self.sel = driver_control
         self.driver = driver_control.get_driver()
+        self.search_url = search_url
         self.current_results_page = 1
         self.total_pages = 1
         self.result_pages_limit = limit_result_pages
@@ -45,15 +45,14 @@ class LinkedInScraper:
         self.max_attempts = max_attempts
         self.excluded_ids = []
 
-        # search_settings_controller = SettingsControl(SearchSettings, 'search_settings')
-        self.user_settings = SettingsControl(SearchSettings, 'search_settings').get_section_config()
+        self.user_settings = SettingsControl(JobSearch, 'job_search').get_section_config()['search_settings']
 
 
     def set_job_ids(self, ids: list):
         self.job_ids = ids
 
 
-    def login(self):
+    def login(self, credentials: dict):
         self.driver.get(LINKEDIN_LOGIN_URL)
         
         try:
@@ -62,9 +61,9 @@ class LinkedInScraper:
         
             self.sel.wait_until_available(username_field)
         
-            username_field.send_keys(LINKEDIN_USERNAME)
+            username_field.send_keys(credentials['username'])
             sleep(random.choice([1,2,3]))
-            password_field.send_keys(LINKEDIN_PASSWORD, Keys.ENTER)
+            password_field.send_keys(credentials['password'], Keys.ENTER)
 
         except selexceptions.NoSuchElementException:
             # Skips if already logged in --> username field element won't be found, so throws error
@@ -101,11 +100,19 @@ class LinkedInScraper:
             sys.exit()
 
 
+    def split_search_url(self):
+        url_list = self.search_url.split("keywords='")
+        return {'start': url_list[0], 'end': url_list[1]}
+
+
     def search_jobs(self, search_phrase: str):
         '''Searches LinkedIn for given search_phrase, and returns list of all job ids found in results.'''
         
         search_phrase = search_phrase.replace(' ', '%20')
-        self.driver.get(LI_SEARCH_URL_START + search_phrase + LI_SEARCH_URL_END)
+        url_split = self.split_search_url()
+
+        self.driver.get(url_split['start'] + search_phrase + url_split['end'])
+        # self.driver.get(LI_SEARCH_URL_START + search_phrase + LI_SEARCH_URL_END)
         sleep(2)
         
         # Get pagination info from page (skips if error b/c only one page of results)

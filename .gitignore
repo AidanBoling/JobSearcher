@@ -5,7 +5,7 @@
 /.idea
 /venv
 instance
-
+.env
 ~
 readme.md
 notes.md

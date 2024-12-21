@@ -69,7 +69,13 @@ class SavedViews:
         return {view_name: view['layout'] for view_name, view in self.views.items()}
 
 
+@dataclass
+class JobSearch:
+    search_settings: SearchSettings
+    linked_accounts: dict
 
+
+# Q: Change to ConfigControl?
 class SettingsControl:
     def __init__(self, data_class, section):
         self.data_class = data_class
@@ -120,6 +126,7 @@ class SettingsControl:
     #     self.config[self.section] = settings
 
     #     print('Config after: ', self.config[self.section])
+
 
 
 

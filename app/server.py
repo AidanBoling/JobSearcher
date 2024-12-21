@@ -22,8 +22,13 @@ ROOT_DIR = Path(__file__).parent
 app = Flask(__name__)
 app.secret_key = 'a super secret key'
 
-search_settings_controller = SettingsControl(SearchSettings, 'search_settings')
-search_settings = search_settings_controller.get_as_dataclass()
+job_search_settings_controller = SettingsControl(SearchSettings, 'job_search')
+job_search_settings = job_search_settings_controller.get_as_dataclass()
+accounts_settings=job_search_settings.linked_accounts
+search_settings = job_search_settings.search_settings
+
+# search_settings_controller = SettingsControl(SearchSettings, 'job_search')
+# search_settings = search_settings_controller.get_as_dataclass()
 
 default_settings_controller = SettingsControl(DataDisplayDefaults, 'display_defaults')
 display_settings = default_settings_controller.get_as_dataclass()
@@ -235,7 +240,10 @@ def main():
         if request.form:
             if section == 'search_settings':
                 update_search_settings_obj(request.form)
-                search_settings_controller.save_to_file(search_settings)   
+                job_search_settings_controller.save_to_file(search_settings) 
+            if section == 'accounts':
+                update_user_accounts_settings(request.form)
+                job_search_settings_controller.save_to_file(global_data_filters)     
             if section == 'global_data_filters':
                 update_global_filters(request.form)
                 global_data_filters_controller.save_to_file(global_data_filters)   
@@ -271,6 +279,12 @@ def update_search_settings_obj(data: dict):
 
     search_settings.search_phrases = [phrase.strip() for phrase in data['search_phrases'].split(', ')]
     search_settings.exclude_companies = [company.strip() for company in data['exclude_companies'].split(', ')]
+
+
+def update_user_accounts_settings(data: dict):
+    # global user_accounts_settings
+
+    # user_accounts_settings.enabled
 
 
 # def update_global_data_filters_obj(data: dict):
