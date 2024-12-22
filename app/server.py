@@ -11,24 +11,24 @@ from filters_control import FrontendFilterOptionsList
 from filters_db import DbFilterGroup
 import job_searcher 
 from utils import update_table_settings, update_list_settings
-
+from accounts import has_credentials, is_valid_account, get_user_account_config_defaults
+from accounts_manager import AccountsManager
 from filters_control import JobFiltersConverter
 
 
-from user_settings import SearchSettings, DataDisplayDefaults, DataFilters, SettingsControl, SavedViews
+from user_settings import JobSearch, DataDisplayDefaults, DataFilters, SettingsControl, SavedViews
 
 ROOT_DIR = Path(__file__).parent
 
 app = Flask(__name__)
 app.secret_key = 'a super secret key'
 
-job_search_settings_controller = SettingsControl(SearchSettings, 'job_search')
+job_search_settings_controller = SettingsControl(JobSearch, 'job_search')
 job_search_settings = job_search_settings_controller.get_as_dataclass()
-accounts_settings=job_search_settings.linked_accounts
 search_settings = job_search_settings.search_settings
 
-# search_settings_controller = SettingsControl(SearchSettings, 'job_search')
-# search_settings = search_settings_controller.get_as_dataclass()
+accounts_manager = AccountsManager()
+accounts_settings = accounts_manager.accounts
 
 default_settings_controller = SettingsControl(DataDisplayDefaults, 'display_defaults')
 display_settings = default_settings_controller.get_as_dataclass()
@@ -214,8 +214,16 @@ def main():
     # APP SETTINGS
     @app.get('/settings')
     def settings():
-
-        return render_template('settings.html', search_settings=search_settings, filter_options=filter_options, job_fields=job_fields, global_data_filters=global_data_filters)
+        accounts_settings = accounts_manager.get_frontend_data()
+       
+        settings_data = {'search_settings': search_settings,
+                         'accounts_settings': accounts_settings,
+                         'filter_options': filter_options,
+                         'job_fields': job_fields, 
+                         'global_data_filters': global_data_filters
+            }
+        print(settings_data['accounts_settings'])
+        return render_template('settings.html', **settings_data)
 
 
     # Later TODO: Add Celery, so can run search in background, and redirect immediately. 
@@ -240,16 +248,47 @@ def main():
         if request.form:
             if section == 'search_settings':
                 update_search_settings_obj(request.form)
-                job_search_settings_controller.save_to_file(search_settings) 
+                job_search_settings_controller.save_to_file(job_search_settings) 
             if section == 'accounts':
-                update_user_accounts_settings(request.form)
-                job_search_settings_controller.save_to_file(global_data_filters)     
+                accounts_manager.update_user_config(request.form)
+                # update_user_accounts_settings(request.form)
+                # job_search_settings_controller.save_to_file(accounts_settings)     
             if section == 'global_data_filters':
                 update_global_filters(request.form)
                 global_data_filters_controller.save_to_file(global_data_filters)   
         return redirect(url_for('settings'))
     
-    
+
+    @app.post('/settings/update/accounts/toggle')
+    def toggle_account_enabled():
+        response = {}
+        account_key = request.form['account']
+
+        try:
+            value = to_bool(request.form['value'])
+        except ValueError or KeyError:
+            response = {'status': 'Error', 'message': 'Value field missing, or value not an accepted boolean value.'}
+            return jsonify(response)
+
+        try:       
+            accounts_manager.update_user_config(account_key, {'enabled': value})
+        except KeyError:
+            response = {'status': 'Error', 'message': 'Given account identifier (key) is not a valid option'}
+
+
+        response = {'status': 'Success'}
+        response['account'] = accounts_manager.get_frontend_data()[account_key]
+
+        account_name = response['account']['name']
+        account_status = 'disabled'
+        if value:
+            account_status = 'enabled'
+        
+        response['message'] = f'Account "{account_name}" {account_status}.'
+
+        return jsonify(response)
+
+
     # @app.post('/settings/update/global_data_filters')
     # def update_global_data_filters():
     #     if request.form:
@@ -260,7 +299,7 @@ def main():
 
 def search_and_save_jobs():
     jobs = job_searcher.run_search(db_control, search_settings)
-    
+    # TODO: Check if still need to be able pass through search_settings here^, or if can let run_search handle retrieval
     if jobs:
         db_control.add_many(jobs)
 
@@ -279,12 +318,6 @@ def update_search_settings_obj(data: dict):
 
     search_settings.search_phrases = [phrase.strip() for phrase in data['search_phrases'].split(', ')]
     search_settings.exclude_companies = [company.strip() for company in data['exclude_companies'].split(', ')]
-
-
-def update_user_accounts_settings(data: dict):
-    # global user_accounts_settings
-
-    # user_accounts_settings.enabled
 
 
 # def update_global_data_filters_obj(data: dict):

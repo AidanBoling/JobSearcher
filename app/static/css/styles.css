@@ -311,12 +311,17 @@ main {
 } */
 
 
-/* DATAVIEW SECTION */
+/* SHARED */
 
-.dataview-frame {
+.dataview-frame,
+.settings-frame {
     padding: 1.75rem;
     background: #131618b0;
 }
+
+
+/* DATAVIEW SECTION */
+
 
 .view-border {
     /* border-color: #181b1ec0 !important; */
@@ -623,7 +628,7 @@ tr > th {
 .group-operator > *,
 .group-op-echo > *,
 .group-op-first > * {
-    width: 8ch;
+    width: 7.6ch;
 }
 
 .filter-field,

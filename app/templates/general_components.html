@@ -34,3 +34,14 @@
     <span {% if text_is_hidden %}class="visually-hidden" {% endif %}>{{ text }}</span>
 </label>
 {% endmacro %}
+
+
+{% macro checkboxToggleButton(id, label, onchange, is_checked=false, text_is_hidden=true, icon_size='16', icon_style='') %}
+<div class="form-check form-switch">
+    <input class="form-check-input" type="checkbox" id="{{ id }}" autocomplete="off" onchange="{{ onchange }}"
+        {% if is_checked %}checked{% endif %}>
+    <label class="form-check-label" for="{{ id }}">
+        <span {% if text_is_hidden %}class="visually-hidden" {% endif %}>{{ label }}</span>
+    </label>
+</div>
+{% endmacro %}
