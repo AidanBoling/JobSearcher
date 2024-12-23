@@ -12,14 +12,19 @@ ACCOUNTS = {'LINKEDIN': {'name': 'LinkedIn', 'search_bot': LinkedInScraper, 'def
 class AccountsManager:
     def __init__(self):
         self.base_config = ACCOUNTS
-        self.user_config_job_search_ctrl = SettingsControl(JobSearch, 'job_search')
+        self.user_config_job_search_ctrl: SettingsControl = SettingsControl(JobSearch, 'job_search')
         self.user_config: dict = self.user_config_job_search_ctrl.get_section_config()['linked_accounts']
-        self.calculated_info: dict = {}
-        self.accounts = {}
         self.user_config_defaults: dict = {}
+        # self.accounts: dict = {}
 
-        self.refresh_calculated_info()
-        self.refresh_combined_accounts_info()
+        #Calculated
+        self.calculated_each: dict = {}
+        self.calculated_all: dict = {'setup_errors': [], 'enabled': []}
+        self.accounts_available:list = []
+        self.enabled_not_set_up:list = []
+
+        self.refresh_calculated_data()
+        # self.refresh_combined_accounts_info()
 
         for account, config in self.base_config.items():
             try:
@@ -30,39 +35,73 @@ class AccountsManager:
             self.user_config_defaults[account] = {'search_url': url}
         
 
-    def get_account_credentials(self, account:str) -> dict:
-        prefix = account.upper()
+    def refresh_calculated_data(self):
+        setup_errors = []
+        enabled = []
 
-        username = os.getenv(f'{prefix}_USERNAME')
-        password = os.getenv(f'{prefix}_PASSWORD')
-
-        return {'username': username, 'password': password}
-
-
-    def refresh_calculated_info(self):
         for account in self.base_config:
-            calculated = {}
+            account = account.lower()
+            calc = {'has_credentials': True,
+                    'required_missing': []}
+            
             credentials = self.get_account_credentials(account)
             
-            calculated['has_credentials'] = credentials['username'] and credentials['password']
-            if calculated['has_credentials']:
-                calculated['username'] = credentials['username']
+            if not credentials['username'] or not credentials['password']:
+                calc['has_credentials'] = False
+                calc['required_missing'].append('username or password')
 
-            self.calculated_info[account] = calculated
+            if credentials['username']:
+                calc['username'] = credentials['username']
+
+            user_config = self.user_config.get(account)
+
+            if user_config:
+                print(user_config)
+                if user_config.get('search_url') == False:
+                    calc['required_missing'].append('search url')
+                if user_config.get('enabled') == True:
+                    enabled.append(account)
+            else:        
+                calc['required_missing'].append('search url')    
 
 
-    def refresh_combined_accounts_info(self):
-        combined_info = self.base_config
+            if calc['required_missing']:
+                setup_errors.append(account)
+
+            self.calculated_each[account] = calc
         
-        for account_key, config in combined_info.items():
-            try:
-                config.update(self.user_config[account_key.lower()])
-            except KeyError:
-                pass
+        self.calculated_all = {'enabled': enabled,
+                               'setup_errors': setup_errors}
+        self.available_accounts = [account for account in enabled if account not in setup_errors]
+        print(self.available_accounts)
+
+        self.enabled_not_set_up = list(set(enabled + setup_errors))
+        print(self.enabled_not_set_up)
+
+
+
+    # def refresh_combined_accounts_info(self):
+    #     combined_info = self.base_config
+        
+    #     for account_key, config in combined_info.items():
+    #         account_key = account_key.lower()
+    #         try:
+    #             config.update(self.user_config[account_key])
+    #         except KeyError:
+    #             pass
             
-            config.update(self.calculated_info[account_key])
+    #         config.update(self.calculated_each[account_key])
             
-        self.accounts = combined_info
+    #     self.accounts = combined_info
+
+
+    def get_account_credentials(self, account:str) -> dict:
+        account = account.upper()
+
+        username = os.getenv(f'{account}_USERNAME')
+        password = os.getenv(f'{account}_PASSWORD')
+
+        return {'username': username, 'password': password}
 
 
     def update_user_config(self, account_key, data:dict) -> dict:
@@ -82,8 +121,8 @@ class AccountsManager:
         
         self.user_config_job_search_ctrl.save_to_file(job_search_settings) 
 
-        self.refresh_calculated_info()
-        self.refresh_combined_accounts_info()
+        self.refresh_calculated_data()
+        # self.refresh_combined_accounts_info()
 
         return self.user_config[account_key]
 
@@ -99,16 +138,21 @@ class AccountsManager:
     
     
     def get_frontend_data(self) -> dict: 
+        '''Aggregates just the info needed for the UI for all accounts.'''
+       
         accounts_data = {}
-        
-        for account_key, config in self.user_config.items():
-            if self.is_valid_account(account_key):
-                accounts_data[account_key] = config
-                calculated = self.calculated_info[account_key.upper()]
-                accounts_data[account_key].update(calculated)
-                accounts_data[account_key]['name'] = self.base_config[account_key.upper()]['name']
+        for key, config in self.base_config.items():
+            account = key.lower()
+            accounts_data[account] = {'name': config['name'],
+                                    **self.user_config[account],
+                                    **self.calculated_each[account]
+                                    }
+    
+        accounts_summary = {'available': self.available_accounts,
+                            'enabled_not_set_up': self.enabled_not_set_up,
+                            **self.calculated_all}
 
-        return accounts_data
+        return {'accounts': accounts_data, 'summary': accounts_summary}
 
 
     def set_credentials(self, account:str, username:str, password:str):
@@ -119,3 +163,6 @@ class AccountsManager:
 
         set_key(env_file, f'{key_prefix}_USERNAME', username)
         set_key(env_file, f'{key_prefix}_PASSWORD', password)
+
+        self.refresh_calculated_data()
+        # self.refresh_combined_accounts_info()

@@ -6,7 +6,7 @@
 {% from 'modals.html' import edit_modal, edit_modal_button, dataview_settings_modal %}
 {% from 'form.html' import text_input %}
 {% from 'data_filters_form.html' import update_global_filters_form %}
-{% from 'general_components.html' import checkboxToggleButton %}
+{% from 'general_components.html' import checkboxToggleButton, iconSvg %}
 
 
 {% macro admin_panel_edit_button(label, data_target, icon, class='btn ab-btn-light with-border with-hover-border') %}
@@ -59,16 +59,57 @@
     </div>
 
     <div class="settings-frame shadow">
-        <div class="d-flex gap-5">
+        <div>
             <h3>Linked Accounts</h3>
-            {{ admin_panel_edit_button('Edit Accounts', data_target='editModal-admin-accounts', icon='#svg-bi-link-45deg')}}
+            <hr />
         </div>
-        {# Show all account options (currently just LI). For accounts that have been set up, show as [image of checked box] [account name]; for inactive, show greyed out. #}
-        <ul class="mt-3 list-group list-group-flush">
-            {% for key, account in accounts_settings|items %}
+        <div id="section-messages-accounts">
+            {# Section Error Messages #}
+            <ul>
+                {% if accounts_summary.enabled_not_set_up|length > 0 %}
+                <li class="text-danger">
+                    Some accounts are enabled but set-up is incomplete:
+                    <ul>
+                        {% for key, account in accounts_settings.items() if key in accounts_summary.enabled_not_set_up %}
+                        <li>{{ account.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% endif %}
 
-            <li>
-                {{ checkboxToggleButton(id='toggleButton-{}'.format(key), label=account.name, onchange='handleToggleAccount(this)', is_checked=account.enabled, text_is_hidden=false) }}
+            </ul>
+        </div>
+
+        <ul class="mt-3">
+
+            {% for key, account in accounts_settings|items %}
+            <li style="list-style-type:none;">
+                <div class="d-flex gap-2 align-items-center">
+                    <div class="d-flex gap-2">
+                        {{ checkboxToggleButton(id='toggleButton-{}'.format(key), label='Enable {}'.format(account.name), onchange='handleToggleAccount(this)', is_checked=account.enabled) }}
+                        {{ account.name }}
+                    </div>
+
+                    {% if key in(accounts_summary.enabled_not_set_up) %}
+                    <div class="text-danger">
+                        {{ iconSvg('#svg-bi-exclamation-circle-fill') }}
+                    </div>
+                    {% endif %}
+
+                    {% if account.enabled %}
+                    <div class="align-self-end">
+                        {{ admin_panel_edit_button('Edit Configuration', data_target='editModal-admin-accounts-{{ key }}',
+                        icon='#svg-bi-link-45deg')}}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {# Error Messages #}
+                <div class="text-danger">
+                    {% if key in accounts_summary.enabled_not_setup %}
+                    Configuration incomplete. Missing {{ account.required_missing|join(', ') }}
+                    {% endif %}
+                </div>
             </li>
 
             {% endfor %}
@@ -149,7 +190,7 @@ Field Order:
 
 
 {% for key, account in accounts_settings|items %}
-{% call(data) edit_modal(formURL=url_for('update_settings', section='accounts'), title='Edit {{ account.name }} Settings', id='admin-accounts') %}
+{% call(data) edit_modal(formURL=url_for('update_settings', section='accounts'), title='Edit {{ account.name }} Settings', id='admin-accounts-{{ account.name }}') %}
 <fieldset>
     <legend>Credentials</legend>
     {# Add info -- warn to be sure to check is correct - search won't work if isn't... Recommend doing test run for account to verify credentials work, and complete any captchas if needed, etc . #}

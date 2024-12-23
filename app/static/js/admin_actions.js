@@ -19,7 +19,12 @@ function handleToggleAccount(btnElement) {
             updateAccountBtn(!isChecked, accountBtnDiv, btnId)
         }
         else { 
-            refreshElementHtml(viewSettingsUrl, accountBtnDiv, btnId)
+            getAsHTMLDoc(viewSettingsUrl)
+                .then(doc => {
+                    updateAccountListItem(doc, btnId)
+                    updateSectionMessages(doc, elId='section-messages-accounts') 
+                    })
+            // refreshElementHtml(viewSettingsUrl, accountBtnDiv, btnId)
             // openUpdateCredentialsModal(account) 
         }
     })
@@ -52,17 +57,17 @@ function submitForm(formData, endpointUrl) {
 }
 
 
-function refreshElementHtml(endpointUrl, accountBtnEl, elId) {
-    getAsHTMLDoc(endpointUrl)
-    .then(doc => {
-        updateAccountListItem(doc, accountBtnEl, elId)
-        })
-}
+// function refreshElementHtml(endpointUrl, accountBtnEl, elId) {
+//     return getAsHTMLDoc(endpointUrl)
+//     .then(doc => {
+//         updateAccountListItem(doc, accountBtnEl, elId)
+//         })
+// }
 
 
-function openUpdateCredentialsModal(account) {
-// TODO
-}
+// function openUpdateCredentialsModal(account) {
+// // TODO
+// }
 
 
 async function getAsHTMLDoc(endpointUrl) {
@@ -75,10 +80,19 @@ async function getAsHTMLDoc(endpointUrl) {
 }
 
 
-function updateAccountListItem(doc, btnEl, btnId) {
-    const currentAccountListEl = btnEl.closest('li')
+function updateAccountListItem(doc, btnId) {
+    // const currentAccountListEl = btnEl.closest('li')
+    const currentAccountListEl = document.getElementById(btnId).closest('li')
     const updatedList = doc.getElementById(btnId).closest('li')
     // console.log(updatedList)
 
     currentAccountListEl.innerHTML = updatedList.innerHTML
+}
+
+
+function updateSectionMessages(doc, elId) {
+    const currentEl = document.getElementById(elId)
+    const updatedEl = doc.getElementById(elId)
+
+    currentEl.innerHTML = updatedEl.innerHTML
 }

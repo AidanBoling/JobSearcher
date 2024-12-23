@@ -28,7 +28,6 @@ job_search_settings = job_search_settings_controller.get_as_dataclass()
 search_settings = job_search_settings.search_settings
 
 accounts_manager = AccountsManager()
-accounts_settings = accounts_manager.accounts
 
 default_settings_controller = SettingsControl(DataDisplayDefaults, 'display_defaults')
 display_settings = default_settings_controller.get_as_dataclass()
@@ -214,16 +213,18 @@ def main():
     # APP SETTINGS
     @app.get('/settings')
     def settings():
-        accounts_settings = accounts_manager.get_frontend_data()
-       
-        settings_data = {'search_settings': search_settings,
-                         'accounts_settings': accounts_settings,
-                         'filter_options': filter_options,
-                         'job_fields': job_fields, 
-                         'global_data_filters': global_data_filters
+        accounts_data = accounts_manager.get_frontend_data()
+
+        data = {'search_settings': search_settings,
+                'accounts_settings': accounts_data['accounts'],
+                'accounts_summary': accounts_data['summary'],
+                'filter_options': filter_options,
+                'job_fields': job_fields, 
+                'global_data_filters': global_data_filters
             }
-        print(settings_data['accounts_settings'])
-        return render_template('settings.html', **settings_data)
+        
+        print(accounts_data)
+        return render_template('settings.html', **data)
 
 
     # Later TODO: Add Celery, so can run search in background, and redirect immediately. 
@@ -251,8 +252,6 @@ def main():
                 job_search_settings_controller.save_to_file(job_search_settings) 
             if section == 'accounts':
                 accounts_manager.update_user_config(request.form)
-                # update_user_accounts_settings(request.form)
-                # job_search_settings_controller.save_to_file(accounts_settings)     
             if section == 'global_data_filters':
                 update_global_filters(request.form)
                 global_data_filters_controller.save_to_file(global_data_filters)   
@@ -277,7 +276,7 @@ def main():
 
 
         response = {'status': 'Success'}
-        response['account'] = accounts_manager.get_frontend_data()[account_key]
+        response['account'] = accounts_manager.get_frontend_data()['accounts'][account_key]
 
         account_name = response['account']['name']
         account_status = 'disabled'
