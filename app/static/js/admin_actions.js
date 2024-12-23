@@ -15,12 +15,11 @@ function handleToggleAccount(btnElement) {
     .then(response => {
         // TODO: Notification 
         console.log(response.message)    
-        
         if (response.status === 'Error') {
             updateAccountBtn(!isChecked, accountBtnDiv, btnId)
         }
-        else if (!response.account.has_credentials || !response.account.search_url) { 
-            // updateAccountItem(account, accountBtnDiv);
+        else { 
+            refreshElementHtml(viewSettingsUrl, accountBtnDiv, btnId)
             // openUpdateCredentialsModal(account) 
         }
     })
@@ -28,22 +27,11 @@ function handleToggleAccount(btnElement) {
 
 
 function updateAccountBtn(isChecked, containingEl, btnElementId) {    
-    const btnLabelUseEl = containingEl.querySelector(`[for="${btnElementId}"]`)
-    console.log('btnLabel: ', btnLabelUseEl)
+    const btnLabelEl = containingEl.querySelector(`[for="${btnElementId}"]`)
+    console.log('btnLabel: ', btnLabelEl)
 
-    btnLabelUseEl.setAttribute('checked', isChecked)
+    btnLabelEl.setAttribute('checked', isChecked)
 }
-
-
-// function updateAccountItem(account, accountBtnDiv) {
-//     settingsAsJson = getAsJson(viewSettingsUrl)
-//     console.log(settingsAsJson)
-// }
-
-// async function getAsJson(endpointUrl) {
-//     const response = await fetch(endpointUrl, { 'method': 'GET' })
-//     return await response.json()
-// }
 
 
 function submitForm(formData, endpointUrl) {
@@ -64,9 +52,33 @@ function submitForm(formData, endpointUrl) {
 }
 
 
-// function updateJobModals(jobId) {
-//     const jobModalsGroup = document.querySelector(`modalsJob-${jobId}`)
-    
-//     // TODO: Do fetch to get+render page with updated info, and then replace modalsGroup Element
+function refreshElementHtml(endpointUrl, accountBtnEl, elId) {
+    getAsHTMLDoc(endpointUrl)
+    .then(doc => {
+        updateAccountListItem(doc, accountBtnEl, elId)
+        })
+}
 
-// }
+
+function openUpdateCredentialsModal(account) {
+// TODO
+}
+
+
+async function getAsHTMLDoc(endpointUrl) {
+    return await fetch(endpointUrl)
+    .then(response => {return response.text()})
+    .then(text => {
+        const parser = new DOMParser();
+        return parser.parseFromString(text, 'text/html');
+        })
+}
+
+
+function updateAccountListItem(doc, btnEl, btnId) {
+    const currentAccountListEl = btnEl.closest('li')
+    const updatedList = doc.getElementById(btnId).closest('li')
+    // console.log(updatedList)
+
+    currentAccountListEl.innerHTML = updatedList.innerHTML
+}
