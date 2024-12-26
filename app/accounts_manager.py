@@ -57,12 +57,13 @@ class AccountsManager:
 
             if user_config:
                 print(user_config)
-                if user_config.get('search_url') == False:
+                if not user_config.get('search_url'):
                     calc['required_missing'].append('search url')
                 if user_config.get('enabled') == True:
                     enabled.append(account)
             else:        
-                calc['required_missing'].append('search url')    
+                calc['required_missing'].append('search url')  
+  
 
 
             if calc['required_missing']:
@@ -73,9 +74,9 @@ class AccountsManager:
         self.calculated_all = {'enabled': enabled,
                                'setup_errors': setup_errors}
         self.available_accounts = [account for account in enabled if account not in setup_errors]
-        print(self.available_accounts)
+        print('available accounts: ',self.available_accounts)
 
-        self.enabled_not_set_up = list(set(enabled + setup_errors))
+        self.enabled_not_set_up = [account for account in enabled if account in setup_errors]
         print(self.enabled_not_set_up)
 
 
@@ -149,7 +150,7 @@ class AccountsManager:
                                     }
     
         accounts_summary = {'available': self.available_accounts,
-                            'enabled_not_set_up': self.enabled_not_set_up,
+                            'enabled_not_set_up': {'keys': self.enabled_not_set_up, 'names': [accounts_data[account]['name'] for account in self.enabled_not_set_up]},
                             **self.calculated_all}
 
         return {'accounts': accounts_data, 'summary': accounts_summary}
