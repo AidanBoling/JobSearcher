@@ -13,7 +13,7 @@ function handleToggleAccount(btnElement) {
 
     submitForm(formData, toggleAccountUrl)
     .then(response => {
-        // TODO: Notification 
+        // TODO: Notification (in notification area) -- account [enabled/disabled]
         console.log(response.message)    
         if (response.status === 'Error') {
             updateAccountBtn(!isChecked, accountBtnDiv, btnId)
@@ -24,8 +24,9 @@ function handleToggleAccount(btnElement) {
                     updateAccountListItem(doc, btnId)
                     updateSectionMessages(doc, elId='section-messages-accounts') 
                     })
-            // refreshElementHtml(viewSettingsUrl, accountBtnDiv, btnId)
-            // openUpdateCredentialsModal(account) 
+
+            if (isChecked && response.account.required_missing) {
+            openUpdateCredentialsModal(account) }
         }
     })
 }
@@ -57,17 +58,10 @@ function submitForm(formData, endpointUrl) {
 }
 
 
-// function refreshElementHtml(endpointUrl, accountBtnEl, elId) {
-//     return getAsHTMLDoc(endpointUrl)
-//     .then(doc => {
-//         updateAccountListItem(doc, accountBtnEl, elId)
-//         })
-// }
-
-
-// function openUpdateCredentialsModal(account) {
-// // TODO
-// }
+function openUpdateCredentialsModal(account) {
+    const accountConfigModal = new bootstrap.Modal(`#editModal-admin-account-${account}`)
+    accountConfigModal.show()
+}
 
 
 async function getAsHTMLDoc(endpointUrl) {
@@ -81,11 +75,9 @@ async function getAsHTMLDoc(endpointUrl) {
 
 
 function updateAccountListItem(doc, btnId) {
-    // const currentAccountListEl = btnEl.closest('li')
     const currentAccountListEl = document.getElementById(btnId).closest('li')
     const updatedList = doc.getElementById(btnId).closest('li')
-    // console.log(updatedList)
-
+    
     currentAccountListEl.innerHTML = updatedList.innerHTML
 }
 
