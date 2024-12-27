@@ -3,12 +3,10 @@ import os
 from pathlib import Path
 from selenium_driver import SeleniumDriver
 from db_control import JobDbControl
-from linked_in import LinkedInScraper
 from user_settings import SearchSettings, SettingsControl, JobSearch
-from accounts import get_account_credentials, get_enabled_job_boards
 
+from accounts_manager import AccountsManager
 # from dotenv import load_dotenv
-
 
 # load_dotenv()
 # load_dotenv(ROOT_DIR / '.env')
@@ -25,29 +23,11 @@ HEADLESS = True
 LIMIT_PAGES = 1
 MAX_ATTEMPTS_PER_ID = 2
 
-# user_search_settings_ctrl = SettingsControl(SearchSettings, 'search_settings')
-# user_account_ctrl = SettingsControl(LinkedAccounts, 'linked_accounts')
-
-
-# user_settings = {
-#         'search_settings': user_search_settings_ctrl.get_as_dataclass()
-#         'accounts': user_account_ctrl.get_as_dataclass()
-#         }
-
-# job_boards = {'LinkedIn':
-#              {'search_bot_class': LinkedInScraper,
-#              }}
-
-# job_board_bots = {'LinkedIn': LinkedInScraper}
-
-# check credentials
-# for scrapers that have credentials
 
 def run_search(db_control: JobDbControl=None, search_settings: object=None):
     driver = SeleniumDriver(is_headless=HEADLESS)
 
-    # user_account_ctrl = SettingsControl(LinkedAccounts, 'linked_accounts')
-    # user_account_settings = user_account_ctrl.get_as_dataclass()
+    accounts_manager = AccountsManager()
 
     if search_settings is None:
         job_search_config = SettingsControl(JobSearch, 'job_search').get_as_dataclass()
@@ -58,37 +38,31 @@ def run_search(db_control: JobDbControl=None, search_settings: object=None):
         search_phrases = ['junior software engineer']
 
     
-    enabled_job_boards = get_enabled_job_boards()
+    available_job_boards = accounts_manager.get_combined_info(accounts_manager.available_accounts)
     
 
     all_jobs = []
-    for job_board in enabled_job_boards.values():
-        print(job_board)
+    for job_board in available_job_boards:
         board_name = job_board['name']
-        credentials = get_account_credentials(board_name)
-        print(board_name)
+        # print(board_name) --> log...
+        credentials = accounts_manager.get_account_credentials(board_name)
+        search_url = job_board['search_url']
+        search_bot = job_board['search_bot'](driver, search_url, limit_result_pages=LIMIT_PAGES, max_attempts=MAX_ATTEMPTS_PER_ID)
 
-        if credentials:
-            search_url = job_board['search_url']
-            search_bot = job_board['search_bot'](driver, search_url, limit_result_pages=LIMIT_PAGES, max_attempts=MAX_ATTEMPTS_PER_ID)
-            print('search_bot: ', search_bot)
-
-            jobs = []
-            
-            # all_job_ids = login_and_search(search_bot, credentials, search_phrases)
-            # new_job_posts = trim_search_results(all_job_ids, db_control, job_board)
-            
-            # if new_job_posts:
-            #     jobs = get_details(search_bot, new_job_posts)
-            #     update_excluded_ids_file(search_bot, job_board)
-
-            # else:
-            #     print(f'No new job posts to add from {board_name}.') 
-            
-            # all_jobs.extend(jobs)
+        jobs = []
         
+        all_job_ids = login_and_search(search_bot, credentials, search_phrases)
+        new_job_posts = trim_search_results(all_job_ids, db_control, job_board)
+        
+        if new_job_posts:
+            jobs = get_details(search_bot, new_job_posts)
+            update_excluded_ids_file(search_bot, job_board)
+
         else:
-            print(f'No credentials found for {board_name}. Skipping.')
+            print(f'No new job posts to add from {board_name}.') 
+        
+        all_jobs.extend(jobs)
+
     
     return all_jobs
 

@@ -11,7 +11,7 @@ ACCOUNTS = {'LINKEDIN': {'name': 'LinkedIn', 'search_bot': LinkedInScraper, 'def
 
 class AccountsManager:
     def __init__(self):
-        self.base_config = ACCOUNTS
+        self.base_config = {account_key.lower(): value for account_key, value in ACCOUNTS.items()}
         self.user_config_job_search_ctrl: SettingsControl = SettingsControl(JobSearch, 'job_search')
         self.user_config: dict = self.user_config_job_search_ctrl.get_section_config()['linked_accounts']
         self.user_config_defaults: dict = {}
@@ -20,11 +20,10 @@ class AccountsManager:
         #Calculated
         self.calculated_each: dict = {}
         self.calculated_all: dict = {'setup_errors': [], 'enabled': []}
-        self.accounts_available:list = []
+        self.available_accounts: list = []
         self.enabled_not_set_up:list = []
 
         self.refresh_calculated_data()
-        # self.refresh_combined_accounts_info()
 
         for account, config in self.base_config.items():
             try:
@@ -40,7 +39,7 @@ class AccountsManager:
         enabled = []
 
         for account in self.base_config:
-            account = account.lower()
+            # account = account.lower()
             calc = {'has_credentials': True,
                     'required_missing': []}
             
@@ -65,7 +64,6 @@ class AccountsManager:
                 calc['required_missing'].append('search url')  
   
 
-
             if calc['required_missing']:
                 setup_errors.append(account)
 
@@ -74,26 +72,25 @@ class AccountsManager:
         self.calculated_all = {'enabled': enabled,
                                'setup_errors': setup_errors}
         self.available_accounts = [account for account in enabled if account not in setup_errors]
-        print('available accounts: ',self.available_accounts)
+        print('available accounts: ', self.available_accounts)
 
         self.enabled_not_set_up = [account for account in enabled if account in setup_errors]
         print(self.enabled_not_set_up)
 
 
-
-    # def refresh_combined_accounts_info(self):
-    #     combined_info = self.base_config
+    def get_combined_info(self, accounts:list):
+        accounts = [account.lower() for account in accounts]
+        combined_info = {account: self.base_config[account] for account in accounts if self.is_valid_account(account)}
         
-    #     for account_key, config in combined_info.items():
-    #         account_key = account_key.lower()
-    #         try:
-    #             config.update(self.user_config[account_key])
-    #         except KeyError:
-    #             pass
+        for account_key, config in combined_info.items():
+            try:
+                config.update(self.user_config[account_key])
+            except KeyError:
+                pass
+
+            config.update(self.calculated_each[account_key])
             
-    #         config.update(self.calculated_each[account_key])
-            
-    #     self.accounts = combined_info
+        return combined_info
 
 
     def get_account_credentials(self, account:str) -> dict:
@@ -105,12 +102,20 @@ class AccountsManager:
         return {'username': username, 'password': password}
 
 
-    def update_user_config(self, account_key, data:dict) -> dict:
+    def update_configs(self, account_key:str, data:dict):
+        # for credentials fields -> set_credentials
+        # for user_config fields -> update_user_config
+        pass
+
+
+    def update_user_config(self, account_key:str, data:dict) -> dict:
+        account_key = account_key.lower()
         if not self.is_valid_account(account_key): 
             raise KeyError
         
         if account_key not in self.user_config:
             self.user_config[account_key] = self.user_config_defaults[account_key]
+        
 
         self.user_config[account_key] = data
 
@@ -118,7 +123,7 @@ class AccountsManager:
         self.user_config_job_search_ctrl = SettingsControl(JobSearch, 'job_search')
         
         job_search_settings = self.user_config_job_search_ctrl.get_as_dataclass()
-        job_search_settings.linked_accounts[account_key.lower()] = self.user_config[account_key]
+        job_search_settings.linked_accounts[account_key] = self.user_config[account_key]
         
         self.user_config_job_search_ctrl.save_to_file(job_search_settings) 
 
@@ -129,21 +134,21 @@ class AccountsManager:
 
 
     def is_valid_account(self, account_key:str) -> bool:
-        if account_key.upper() in self.base_config:
+        if account_key.lower() in self.base_config:
             return True
         return False
 
 
-    def get_enabled_job_boards(self) -> dict:
-        return {key: value for key, value in self.accounts.items() if value['enabled'] is True}
+    # def get_enabled_job_boards(self) -> dict:
+    #     return {key: value for key, value in self.accounts.items() if value['enabled'] is True}
     
     
     def get_frontend_data(self) -> dict: 
         '''Aggregates just the info needed for the UI for all accounts.'''
        
         accounts_data = {}
-        for key, config in self.base_config.items():
-            account = key.lower()
+        for account, config in self.base_config.items():
+            # account = key.lower()
             accounts_data[account] = {'name': config['name'],
                                     **self.user_config[account],
                                     **self.calculated_each[account]
@@ -167,3 +172,20 @@ class AccountsManager:
 
         self.refresh_calculated_data()
         # self.refresh_combined_accounts_info()
+
+
+
+
+### TEMP:
+    # def refresh_combined_accounts_info(self):
+    #     combined_info = self.base_config
+        
+    #     for account_key, config in combined_info.items():
+    #         try:
+    #             config.update(self.user_config[account_key])
+    #         except KeyError:
+    #             pass
+            
+    #         config.update(self.calculated_each[account_key])
+            
+    #     self.accounts = combined_info
