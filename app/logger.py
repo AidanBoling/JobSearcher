@@ -41,24 +41,29 @@ class LoggingManager:
         self.filter_options = config['formatters']['json']['fmt_keys'].keys()
 
 
-    def get_recent_logs(self, filters=None, max_lines=50, lines=0, from_minutes_ago=0):
+    def get_recent_logs(self, filters:dict={}, max_lines:int=50, lines:int=0, from_minutes_ago:int=0):
         logs = []
+        filter_key_errors = {}
         total_lines = 0
         line_limit = max_lines if lines == 0 else lines
         now =  datetime.now(tz=timezone.utc)
         t_delta_max = timedelta(minutes=from_minutes_ago)
-        
+
         def matches_filters(log: dict):
-            #TODO: check/finish
-            for key, value in filters:
-                if key in self.filter_options:
-                    if type(value) == str:
-                        if log[key] == value:
-                            return True
-                    elif type(value) == list:
-                        if log[key] in value:
-                            return True
-        
+            for key, value in filters.items():
+                try:
+                    if type(value) == str and log[key] != value:
+                        return False
+                    elif type(value) == list and log[key] not in value:
+                        return False
+                except KeyError:
+                    if filter_key_errors.get(key):
+                        filter_key_errors[key] += 1
+                    else: 
+                        filter_key_errors[key] = 1
+                    return False
+
+            return True
 
         def process_line(line):
             log = json.loads(line)
@@ -86,7 +91,12 @@ class LoggingManager:
                     
                     else:
                         process_line(line)
-                    
+        
+        if filter_key_errors:
+            err_statements = [f'{filter} ({error_count})' for filter, error_count in filter_key_errors.items()]
+            print('Filter key errors when retrieving logs:', ', '.join(err_statements))
+            # Later TODO (maybe): Log as debug (or info?) 
+
         logs.reverse()
         return logs        
     
