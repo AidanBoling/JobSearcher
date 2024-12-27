@@ -5,6 +5,7 @@
 /.idea
 /venv
 instance
+logs
 .env
 ~
 readme.md
@@ -23,7 +24,7 @@ dist/
 build/
 *.egg-info/
 
-
+# Misc., temporary:
 open_ai.py
 config.py
 **/index copy.html
@@ -32,3 +33,4 @@ app/static/js/styled-radio-buttons.js
 app/static/css/styled-radio-buttons.css
 app/static/css/inclusive-menu-button.css
 app/templates/table_row.html
+tests
