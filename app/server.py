@@ -10,8 +10,8 @@ from views_control import ViewsControl
 from filters_control import FrontendFilterOptionsList
 from filters_db import DbFilterGroup
 import job_searcher 
+from logger import LoggingManager
 from utils import update_table_settings, update_list_settings
-from accounts import has_credentials, is_valid_account, get_user_account_config_defaults
 from accounts_manager import AccountsManager
 from filters_control import JobFiltersConverter
 
@@ -23,11 +23,14 @@ ROOT_DIR = Path(__file__).parent
 app = Flask(__name__)
 app.secret_key = 'a super secret key'
 
+logging_manager = LoggingManager()
+logger = logging_manager.logger
+
 job_search_settings_controller = SettingsControl(JobSearch, 'job_search')
+accounts_manager = AccountsManager(job_search_settings_controller)
+
 job_search_settings = job_search_settings_controller.get_as_dataclass()
 search_settings = job_search_settings.search_settings
-
-accounts_manager = AccountsManager()
 
 default_settings_controller = SettingsControl(DataDisplayDefaults, 'display_defaults')
 display_settings = default_settings_controller.get_as_dataclass()
@@ -37,6 +40,7 @@ global_data_filters_controller = SettingsControl(DataFilters, 'global_data_filte
 global_data_filters = global_data_filters_controller.get_as_dataclass()
 global_db_filters = None
 
+form_errors={}
 
 # # Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:////{ROOT_DIR / "instance/jobs.db"}'
@@ -54,6 +58,14 @@ with app.app_context():
 
 
 def main():
+    
+    # logs = logging_manager.get_recent_logs(filters={'madeupfilter': '0', 'level': ['INFO', 'WARNING'], 'module': 'server'}, from_minutes_ago=2)
+    # for log in logs:
+    #     print(log)
+
+    # print('logs found:', len(logs))
+
+
     @app.route('/',)
     def dataview():        
         return redirect(url_for('get_view', view=views_ctrl.current_view['name']))
@@ -214,7 +226,7 @@ def main():
     @app.get('/settings')
     def settings():
         accounts_data = accounts_manager.get_frontend_data()
-
+        
         data = {'search_settings': search_settings,
                 'accounts_settings': accounts_data['accounts'],
                 'accounts_summary': accounts_data['summary'],
@@ -223,7 +235,13 @@ def main():
                 'global_data_filters': global_data_filters
             }
         
-        print(accounts_data)
+        sections = ['job_search', 'search_settings', 'accounts', 'global_data_filters']
+        section_errors = {section: get_admin_section_errors(section, data) for section in sections}
+        section_messages = {} # TODO
+
+        data = {**data, 'section_messages': section_messages, 'section_errors': section_errors}
+        
+        # print(accounts_data)
         return render_template('settings.html', **data)
 
 
@@ -247,11 +265,14 @@ def main():
     @app.post('/settings/update/<section>')
     def update_settings(section):
         if request.form:
+            logger.debug(f'Form data received:\n    {request.form}')
+
             if section == 'search_settings':
                 update_search_settings_obj(request.form)
                 job_search_settings_controller.save_to_file(job_search_settings) 
             if section == 'accounts':
-                accounts_manager.update_user_config(request.form)
+                parsed_data = parse_accounts_form_data(request.form)
+                accounts_manager.sort_and_save_form_data(parsed_data)
             if section == 'global_data_filters':
                 update_global_filters(request.form)
                 global_data_filters_controller.save_to_file(global_data_filters)   
@@ -270,7 +291,7 @@ def main():
             return jsonify(response)
 
         try:       
-            accounts_manager.update_user_config(account_key, {'enabled': value})
+            accounts_manager.update_user_config_for_account(account_key, {'enabled': value})
         except KeyError:
             response = {'status': 'Error', 'message': 'Given account identifier (key) is not a valid option'}
 
@@ -319,11 +340,56 @@ def update_search_settings_obj(data: dict):
     search_settings.exclude_companies = [company.strip() for company in data['exclude_companies'].split(', ')]
 
 
-# def update_global_data_filters_obj(data: dict):
-#     global global_data_filters
+def parse_accounts_form_data(data: dict):
+    account = ''
+    config_dict = {}
+    fields_not_updated = []
+    # errors = {}
 
-#     global_data_filters.post_title.exclude_keywords = [phrase.strip().lower() for phrase in data['title_exclude_keywords'].split(', ')]
-#     global_data_filters.post_title.regex = data['title_regex']
+    for field, value in data.items():
+        
+        fsplit = field.split('_')
+        account = fsplit[0]
+        field_name = '_'.join(fsplit[1:])
+        
+        if not value and field_name == 'password':
+            fields_not_updated.append(field)
+        else:
+            if not accounts_manager.is_valid_account(account):
+                logger.error(f"Field name error: Valid account not found in '{field}'")
+                # log_form_error(field, message)
+                fields_not_updated.append(field)
+
+            else:
+                if not config_dict.get(account):
+                    config_dict[account] = {}
+                config_dict[account][field_name] = value
+
+        # else:
+        #     fields_not_updated.append(field)
+
+    
+    for account in config_dict:
+        # print(f'fields to be updated for account "{account}": ', list(config_dict[account].keys()))
+        print(f'fields not to be updated for account "{account}": ', fields_not_updated)
+    # print('Errors: ', form_errors)
+    
+    return config_dict
+
+
+def get_admin_section_errors(section:str, data:dict):
+    errors = []
+    if section == 'accounts':
+        if enabled_not_set_up := data['accounts_summary']['enabled_not_set_up']['names']:
+            errors.append(f'Some accounts are enabled but set-up is incomplete: {", ".join(enabled_not_set_up)}')
+    # if section == 'job_search':
+    #     pass
+    # if section == 'search_settings':
+    #     pass
+    # if section == 'global_data_filters':
+    #     pass
+
+    return errors
 
 
 def update_global_filters(form_data: dict):
@@ -456,3 +522,33 @@ main()
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+
+
+## -------TEMP - Trash -------- ##
+
+# def update_global_data_filters_obj(data: dict):
+#     global global_data_filters
+
+#     global_data_filters.post_title.exclude_keywords = [phrase.strip().lower() for phrase in data['title_exclude_keywords'].split(', ')]
+#     global_data_filters.post_title.regex = data['title_regex']
+
+
+
+
+# def log_form_error(field:str, message:str, tags:list[str]=[]):
+#     global form_errors
+
+#     form_errors[field] = {
+#         'error': message,
+#         'tags': tags
+#         }
+
+
+# def user_form_messages(form_data, errors):
+#     pass
+    # Fields updated: number out of number successfully updated -> 
+    # validate updates -- 
+    #'The following fields had errors and were not updated

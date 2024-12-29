@@ -3,6 +3,9 @@
     "disable_existing_loggers": false,
     "formatters": {
         "simple": {
+            "format": "%(levelname)s: %(message)s"
+        },
+        "simple_plus": {
             "format": "%(asctime)s %(levelname)s: %(message)s",
             "datefmt": "%m/%d/%Y %I:%M:%S %p"
         },

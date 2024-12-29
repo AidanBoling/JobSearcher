@@ -2,18 +2,25 @@ import os
 from dotenv import load_dotenv, find_dotenv, set_key
 from linked_in import LinkedInScraper
 from user_settings import SettingsControl, JobSearch
+from logger import LoggingManager
 
 env_file = find_dotenv()
 load_dotenv(env_file)
+
+logging_manager = LoggingManager()
+logger = logging_manager.logger
+
 
 ACCOUNTS = {'LINKEDIN': {'name': 'LinkedIn', 'search_bot': LinkedInScraper, 'defaults': {}}}
 
 
 class AccountsManager:
-    def __init__(self):
+    def __init__(self, job_search_config_control:SettingsControl=SettingsControl(JobSearch, 'job_search')):
         self.base_config = {account_key.lower(): value for account_key, value in ACCOUNTS.items()}
-        self.user_config_job_search_ctrl: SettingsControl = SettingsControl(JobSearch, 'job_search')
-        self.user_config: dict = self.user_config_job_search_ctrl.get_section_config()['linked_accounts']
+        self.user_config_job_search_ctrl: SettingsControl = job_search_config_control
+        self.job_search_config: object = self.user_config_job_search_ctrl.get_as_dataclass()
+
+        self.user_config: dict = self.job_search_config.linked_accounts
         self.user_config_defaults: dict = {}
         # self.accounts: dict = {}
 
@@ -23,6 +30,7 @@ class AccountsManager:
         self.available_accounts: list = []
         self.enabled_not_set_up:list = []
 
+        
         self.refresh_calculated_data()
 
         for account, config in self.base_config.items():
@@ -39,23 +47,22 @@ class AccountsManager:
         enabled = []
 
         for account in self.base_config:
-            # account = account.lower()
             calc = {'has_credentials': True,
                     'required_missing': []}
             
             credentials = self.get_account_credentials(account)
-            
             if not credentials['username'] or not credentials['password']:
                 calc['has_credentials'] = False
                 calc['required_missing'].append('username or password')
 
             if credentials['username']:
                 calc['username'] = credentials['username']
-
-            user_config = self.user_config.get(account)
+                print('username: ', credentials['username'])
+            user_config = self.user_config and self.user_config.get(account)
 
             if user_config:
-                print(user_config)
+
+                # print(user_config)
                 if not user_config.get('search_url'):
                     calc['required_missing'].append('search url')
                 if user_config.get('enabled') == True:
@@ -72,15 +79,16 @@ class AccountsManager:
         self.calculated_all = {'enabled': enabled,
                                'setup_errors': setup_errors}
         self.available_accounts = [account for account in enabled if account not in setup_errors]
-        print('available accounts: ', self.available_accounts)
+        # print('available accounts: ', self.available_accounts)
 
         self.enabled_not_set_up = [account for account in enabled if account in setup_errors]
-        print(self.enabled_not_set_up)
+        # print(self.enabled_not_set_up)
 
 
     def get_combined_info(self, accounts:list):
         accounts = [account.lower() for account in accounts]
-        combined_info = {account: self.base_config[account] for account in accounts if self.is_valid_account(account)}
+        combined_info = {account: self.base_config[account] for account in accounts 
+                         if self.is_valid_account(account)}
         
         for account_key, config in combined_info.items():
             try:
@@ -98,17 +106,84 @@ class AccountsManager:
 
         username = os.getenv(f'{account}_USERNAME')
         password = os.getenv(f'{account}_PASSWORD')
+        print('username: ', username)
+        # FIXME: not getting the current credentials from the .env file (.env shows TestName1, print shows TestName)
 
         return {'username': username, 'password': password}
 
 
-    def update_configs(self, account_key:str, data:dict):
-        # for credentials fields -> set_credentials
-        # for user_config fields -> update_user_config
-        pass
+    def sort_and_save_form_data(self, parsed_form_data:dict):
+        field_options = {'user_config': ['enabled', 'search_url'],
+                         'credentials': ['username', 'password'],
+                        #  'base_config': list(self.base_config.keys())
+                         }
+        
+        updated = {key: {} for key in field_options.keys()}
+        
+        for account, fields in parsed_form_data.items():
+            sorted_data = {key: {} for key in field_options.keys()}
+            
+            if self.is_valid_account(account):
+                for field_name, value in fields.items():
+                    for location, options in field_options.items():
+                        if field_name in options:
+                            sorted_data[location].update({field_name: value})
+                            break
+                
+                print(f'sorted config data for account "{account}": ', sorted_data)
 
 
-    def update_user_config(self, account_key:str, data:dict) -> dict:
+            # Add to "updated" only if changes were made
+            
+            if sorted_data['user_config']:
+                current_config = self.user_config.get(account) if self.user_config.get(account) else {}
+                updated_user_config = {**current_config, **sorted_data['user_config']}
+                # print('updated_user_config: ',updated_user_config)
+                if updated_user_config != current_config:
+                    updated['user_config'][account] = updated_user_config
+
+            if sorted_data['credentials']:
+                current_credentials = self.get_account_credentials(account)
+                updated_credentials = {**current_credentials, **sorted_data['credentials']}
+                if updated_credentials != current_credentials:
+                    updated['credentials'][account] = updated_credentials
+
+
+        print('configs to update?: ', updated)
+
+        # Save config(s) only if changes were made
+        if updated['user_config']:   
+    
+            self.user_config = {**self.user_config, **updated['user_config']}
+            self.save_user_config()
+            logger.info(f'User config updated and saved for account(s): {", ".join(updated["user_config"])}')
+        
+        if updated['credentials']:
+            for account, credentials in updated['credentials'].items():
+                self.set_credentials(account, **credentials)
+            logger.info(f'Credentials saved for account(s): {", ".join(updated["credentials"])}')
+
+        if any([value for value in updated.values()]):
+            logger.info('No changes made to account configs; no difference in given config values from current values.')
+            logger.warning("Password field can't be cleared by leaving password field blank; use 'Clear' button instead.")
+
+
+
+    def save_user_config(self) -> dict:
+        # refresh job search settings data, in case other sections (not accounts-related) were updated elsewhere
+        # since instantiation (e.g. via server.py)
+        
+        self.job_search_config = self.user_config_job_search_ctrl.get_as_dataclass()
+        self.job_search_config.linked_accounts = self.user_config
+        
+        self.user_config_job_search_ctrl.save_to_file(self.job_search_config) 
+
+        self.refresh_calculated_data()
+
+        return self.user_config
+
+
+    def update_user_config_for_account(self, account_key:str, data:dict) -> dict:
         account_key = account_key.lower()
         if not self.is_valid_account(account_key): 
             raise KeyError
@@ -116,20 +191,9 @@ class AccountsManager:
         if account_key not in self.user_config:
             self.user_config[account_key] = self.user_config_defaults[account_key]
         
-
         self.user_config[account_key] = data
-
-        # refresh user config data:
-        self.user_config_job_search_ctrl = SettingsControl(JobSearch, 'job_search')
+        self.save_user_config()
         
-        job_search_settings = self.user_config_job_search_ctrl.get_as_dataclass()
-        job_search_settings.linked_accounts[account_key] = self.user_config[account_key]
-        
-        self.user_config_job_search_ctrl.save_to_file(job_search_settings) 
-
-        self.refresh_calculated_data()
-        # self.refresh_combined_accounts_info()
-
         return self.user_config[account_key]
 
 
@@ -147,10 +211,9 @@ class AccountsManager:
         '''Aggregates just the info needed for the UI for all accounts.'''
        
         accounts_data = {}
-        for account, config in self.base_config.items():
-            # account = key.lower()
+        for account, config in self.base_config.items():            
             accounts_data[account] = {'name': config['name'],
-                                    **self.user_config[account],
+                                    **(self.user_config[account] if self.user_config.get(account) else {}),
                                     **self.calculated_each[account]
                                     }
     
@@ -162,7 +225,7 @@ class AccountsManager:
 
 
     def set_credentials(self, account:str, username:str, password:str):
-        if not self.is_valid_account():
+        if not self.is_valid_account(account):
             raise ValueError('No such account option')
 
         key_prefix = account.upper() 
@@ -171,7 +234,6 @@ class AccountsManager:
         set_key(env_file, f'{key_prefix}_PASSWORD', password)
 
         self.refresh_calculated_data()
-        # self.refresh_combined_accounts_info()
 
 
 

@@ -15,6 +15,37 @@
 </button>
 {% endmacro %}
 
+{% macro section_messages(section, messages, errors) %}
+<div id="section-messages-{{section}}">
+
+    {# Section Messages #}
+    {% if messages %}
+    <div class="py-3 border border-secondary rounded rounded-1">
+        <ul class="mb-0">
+            {% for message in messages %}
+            <li class="text-secondary-emphasis">
+                {{ message }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {# Section Error Messages #}
+    {% if errors %}
+    <div class="py-3 border border-danger rounded rounded-1">
+        <ul class="mb-0">
+            {% for error in errors %}
+            <li class="text-secondary-emphasis">
+                {{ error }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
 {# {% set errors_linked_accounts = [] %}
 
 {% if accounts_summary.enabled_not_set_up|length > 0 %}
@@ -93,20 +124,8 @@
             <hr />
         </div>
         {# TODO: Section description #}
-        <div id="section-messages-accounts">
 
-            {# Section Error Messages #}
-            <div class="py-3 border border-danger rounded rounded-1">
-                <ul class="mb-0">
-                    {% if accounts_summary.enabled_not_set_up['keys']|length > 0 %}
-                    <li class="text-secondary-emphasis">
-                        Some accounts are enabled but set-up is incomplete:
-                        {{ accounts_summary.enabled_not_set_up['names'] | join(', ') }}
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
+        {{ section_messages('accounts', messages=section_messages.accounts, errors=section_errors.accounts) }}
 
         <ul class="mt-4 p-0" style="list-style-type:none;">
 
@@ -224,19 +243,26 @@ Field Order:
 
 {% call(data) edit_modal(formURL=url_for('update_settings', section='accounts'), title='Account Configuration: {}'.format(account.name), id='admin-account-{}'.format(key)) %}
 <div class="d-flex flex-column gap-2">
-    <fieldset>
-        <legend class="border-bottom border-secondary">Credentials</legend>
-        <div class="p-2 border border-secondary rounded rounded-1">
+    {# <p>Leaving fields empty will clear value from config EXCEPT for password field -- must use 'clear' button</p> #}
+
+    <fieldset class="mb-4">
+        <legend class="visually-hidden">Credentials</legend>
+        <div>
+
+            {# <div class="p-1 px-3 border border-secondary rounded rounded-1"> #}
             {# Todo maybe: Add info -- warn to be sure to check is correct - search won't work if isn't... Recommend doing test run for account to verify credentials work, and complete any captchas if needed, etc . #}
             {{ text_input('Username', id='{}_username'.format(key), name='{}_username'.format(key), value=account.username if account.username else '', label_class='fs-5') }}
             {{ text_input('Password', id='{}_password'.format(key), name='{}_password'.format(key), value='', label_class='fs-5') }}
-            {# Todo: Add way to delete credentials from config -- like a checkbox "check to delete credentials" #}
+            {# TODO: Add way to delete credentials from config -- like a 'clear' button, or a checkbox "check to delete credentials" #}
         </div>
 
     </fieldset>
-    <hr />
-    <div class="p-2">
-        {{ text_input('Search Url', id='{}_search_url'.format(key), name='search_url', value=account.search_url if account.search_url else '', label_class='fs-5', description_class='pt-2 text-secondary-emphasis',description='Navigate to the {} website and run a test search with any/all the filters you would like (location, etc). Then, copy that url and paste here (as is).'.format(account.name)) }}
+    <div>
+        <hr class="mx-auto" style="width: 75%;" />
+    </div>
+    <div>
+
+        {{ text_input('Search Url', id='{}_search_url'.format(key), name='{}_search_url'.format(key), value=account.search_url if account.search_url else '', label_class='fs-5', description_class='pt-2 text-secondary-emphasis',description='Navigate to the {} website and run a test search with any/all the filters you would like (location, etc). Then, copy that url and paste here (as is).'.format(account.name)) }}
     </div>
 </div>
 

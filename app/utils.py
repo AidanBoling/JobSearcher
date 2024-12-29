@@ -1,4 +1,5 @@
 import re
+import yaml
 from collections import namedtuple
 from price_parser import Price
 
@@ -44,3 +45,17 @@ def get_salary_data_from_str(salary: str):
     print(s)
     
     return s
+
+
+class YamlFile:
+    def __init__(self, file_path:str):
+        self.file_path:str = file_path
+       
+    def get_data(self) -> dict:
+        with open(self.file_path, 'r') as file:
+            data = yaml.safe_load(file)
+        return data   
+
+    def save_data(self, data:dict):  
+        with open(self.file_path, 'w') as file:
+            yaml.dump(data, file)

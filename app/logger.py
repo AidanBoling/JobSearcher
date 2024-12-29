@@ -13,11 +13,12 @@ if not os.path.exists(app_logs_dir):
 
 
 class LoggingManager:
-    def __init__(self):
+    def __init__(self, app_name:str='JobSearchApp'):
         self.log_filepath: Path
         # self.requested_logs: list: []
         self.filter_options = []
-
+        self.logger = logging.getLogger(app_name)
+        
         self.setup_logging()
 
     def setup_logging(self):

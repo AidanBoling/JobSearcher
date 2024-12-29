@@ -1,16 +1,22 @@
 from pathlib import Path
-import yaml
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, field, asdict
 from dacite import from_dict
+from utils import YamlFile
+from yaml.error import YAMLError
+from logger import LoggingManager
 
 ROOT_DIR = Path(__file__).parent
 CONFIG_FILE_PATH = ROOT_DIR / 'instance/user_config.yaml'
 
 
+logging_manager = LoggingManager()
+logger = logging_manager.logger
+
+
 @dataclass
 class SearchSettings:
-    search_phrases: list
-    exclude_companies: list
+    search_phrases: list = field(default_factory=list)
+    exclude_companies: list = field(default_factory=list)
 
 
 @dataclass
@@ -71,24 +77,24 @@ class SavedViews:
 
 @dataclass
 class JobSearch:
-    search_settings: SearchSettings
-    linked_accounts: dict
+    search_settings: SearchSettings = field(default_factory=SearchSettings)
+    linked_accounts: dict = field(default_factory=dict)
 
 
-# Q: Change to ConfigControl?
+
+# TODO (probably): Change to UserConfigControl
 class SettingsControl:
     def __init__(self, data_class, section):
         self.data_class = data_class
         self.section = section
-        self.config = ''
+        self.config:dict = {}
+        self.yaml_file = YamlFile(CONFIG_FILE_PATH)
         
         self.get_raw_config()
 
     
-    def get_raw_config(self):
-        with open(CONFIG_FILE_PATH, 'r') as file:
-            config = yaml.safe_load(file)
-        self.config = config  
+    def get_raw_config(self) -> dict:
+        self.config = self.yaml_file.get_data()
     
 
     def get_section_config(self):
@@ -96,11 +102,10 @@ class SettingsControl:
 
 
     def get_as_dataclass(self):
-        with open(CONFIG_FILE_PATH, 'r') as file:
-            config = yaml.safe_load(file)
+        config = self.yaml_file.get_data()
+        section_config = {k: v for k, v in config[self.section].items() if v is not None}
+        settings_obj = from_dict(data_class=self.data_class, data=section_config)
 
-        settings_obj = from_dict(data_class=self.data_class, data=config[self.section])
-        
         return settings_obj
 
 
@@ -110,9 +115,13 @@ class SettingsControl:
 
         settings = asdict(settings_object)
         self.config[self.section] = settings
+        try:
+            self.yaml_file.save_data(self.config)
+        except YAMLError as e:
+            logger.exception('Error saving settings to file: {e}')
 
-        with open(CONFIG_FILE_PATH, 'w') as file:
-            yaml.dump(self.config, file)
+        
+        
 
 
     # def test_save_to_file(self, settings_object: object):
