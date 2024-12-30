@@ -3,6 +3,8 @@ function handleToggleAccount(btnElement) {
     const account = btnElement.id.split('-').pop()
     const isChecked = btnElement.checked
     const btnId = btnElement.id
+    // const sectionMessagesId = 'section-messages-accounts'
+    const sectionId = 'section-accounts'
 
     updateAccountBtn(isChecked, accountBtnDiv, btnId)
 
@@ -21,14 +23,50 @@ function handleToggleAccount(btnElement) {
         else { 
             getAsHTMLDoc(viewSettingsUrl)
                 .then(doc => {
-                    updateAccountListItem(doc, btnId)
-                    updateSectionMessages(doc, elId='section-messages-accounts') 
+                    // updateAccountListItem(doc, btnId)
+                    updateElementHTML(doc, sectionId) 
                     })
 
             if (isChecked && response.account.required_missing) {
-            openUpdateCredentialsModal(account) }
+                const accountConfigModalId = `editModal-admin-account-${account}`
+                setModalIsVisible(accountConfigModalId, true) 
+            }
         }
     })
+}
+
+
+function handleClearCredentials(btnElement) {
+    const account = btnElement.id.split('-').pop()
+    const btnId = btnElement.id
+    const accountConfigModalId = `editModal-admin-account-${account}`
+    const sectionId = 'section-accounts'
+
+    setButtonIsDisabled(btnElement, true)
+
+    const formData = {
+        'account': account,
+    }
+
+    submitForm(formData, unsetCredentialsUrl)
+    .then(response => {
+        
+        // TODO: Notification (in notification area) -- account [enabled/disabled]
+        console.log(response.message)  
+        
+        if (response.status != 'Error') {
+
+            getAsHTMLDoc(viewSettingsUrl)
+                .then(doc => {
+                    updateElementHTML(doc, accountConfigModalId)
+                    updateElementHTML(doc, sectionId) 
+                    })
+        }
+
+
+    })
+    
+    setButtonIsDisabled(btnElement, false)  
 }
 
 
@@ -37,6 +75,16 @@ function updateAccountBtn(isChecked, containingEl, btnElementId) {
     console.log('btnLabel: ', btnLabelEl)
 
     btnLabelEl.setAttribute('checked', isChecked)
+}
+
+
+function setButtonIsDisabled(btnElement, disable) {
+    if (disable) {
+        btnElement.setAttribute('disabled', 'true')
+    }
+    else {
+        btnElement.removeAttribute('disabled')
+    }
 }
 
 
@@ -58,12 +106,6 @@ function submitForm(formData, endpointUrl) {
 }
 
 
-function openUpdateCredentialsModal(account) {
-    const accountConfigModal = new bootstrap.Modal(`#editModal-admin-account-${account}`)
-    accountConfigModal.show()
-}
-
-
 async function getAsHTMLDoc(endpointUrl) {
     return await fetch(endpointUrl)
     .then(response => {return response.text()})
@@ -74,17 +116,28 @@ async function getAsHTMLDoc(endpointUrl) {
 }
 
 
-function updateAccountListItem(doc, btnId) {
-    const currentAccountListEl = document.getElementById(btnId).closest('li')
-    const updatedList = doc.getElementById(btnId).closest('li')
-    
-    currentAccountListEl.innerHTML = updatedList.innerHTML
-}
-
-
-function updateSectionMessages(doc, elId) {
+function updateElementHTML(doc, elId) {
     const currentEl = document.getElementById(elId)
     const updatedEl = doc.getElementById(elId)
-
+    
     currentEl.innerHTML = updatedEl.innerHTML
 }
+
+
+function setModalIsVisible(modalId, open) {
+    const modal = new bootstrap.Modal(modalId)
+    if (open) {
+        modal.show()
+    }
+    else {
+        modal.hide()
+    }
+}
+
+
+// function updateAccountListItem(doc, btnId) {
+//     const currentAccountListEl = document.getElementById(btnId).closest('li')
+//     const updatedList = doc.getElementById(btnId).closest('li')
+    
+//     currentAccountListEl.innerHTML = updatedList.innerHTML
+// }

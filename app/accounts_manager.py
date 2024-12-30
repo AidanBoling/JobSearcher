@@ -1,5 +1,5 @@
-import os
-from dotenv import load_dotenv, find_dotenv, set_key
+# import os
+from dotenv import find_dotenv, load_dotenv, set_key, unset_key, get_key
 from linked_in import LinkedInScraper
 from user_settings import SettingsControl, JobSearch
 from logger import LoggingManager
@@ -51,24 +51,29 @@ class AccountsManager:
                     'required_missing': []}
             
             credentials = self.get_account_credentials(account)
+
             if not credentials['username'] or not credentials['password']:
                 calc['has_credentials'] = False
-                calc['required_missing'].append('username or password')
+                if not credentials['username']:
+                    calc['required_missing'].append('username')
+                if not credentials['password']:
+                    calc['required_missing'].append('password')
+                # calc['required_missing'].append('username and/or password')
 
             if credentials['username']:
                 calc['username'] = credentials['username']
-                print('username: ', credentials['username'])
+                print('username [from calculated]: ', credentials['username'])
             user_config = self.user_config and self.user_config.get(account)
 
             if user_config:
 
                 # print(user_config)
                 if not user_config.get('search_url'):
-                    calc['required_missing'].append('search url')
+                    calc['required_missing'].append('search URL')
                 if user_config.get('enabled') == True:
                     enabled.append(account)
             else:        
-                calc['required_missing'].append('search url')  
+                calc['required_missing'].append('search URL')  
   
 
             if calc['required_missing']:
@@ -103,11 +108,9 @@ class AccountsManager:
 
     def get_account_credentials(self, account:str) -> dict:
         account = account.upper()
-
-        username = os.getenv(f'{account}_USERNAME')
-        password = os.getenv(f'{account}_PASSWORD')
-        print('username: ', username)
-        # FIXME: not getting the current credentials from the .env file (.env shows TestName1, print shows TestName)
+        
+        username = get_key(env_file, f'{account}_USERNAME')
+        password = get_key(env_file, f'{account}_PASSWORD')
 
         return {'username': username, 'password': password}
 
@@ -161,9 +164,9 @@ class AccountsManager:
         if updated['credentials']:
             for account, credentials in updated['credentials'].items():
                 self.set_credentials(account, **credentials)
-            logger.info(f'Credentials saved for account(s): {", ".join(updated["credentials"])}')
+            # logger.info(f'Credentials saved for account(s): {", ".join(updated["credentials"])}')
 
-        if any([value for value in updated.values()]):
+        if not any([value for value in updated.values()]):
             logger.info('No changes made to account configs; no difference in given config values from current values.')
             logger.warning("Password field can't be cleared by leaving password field blank; use 'Clear' button instead.")
 
@@ -226,16 +229,33 @@ class AccountsManager:
 
     def set_credentials(self, account:str, username:str, password:str):
         if not self.is_valid_account(account):
-            raise ValueError('No such account option')
+            raise ValueError(f'Account option not valid: {account}')
 
         key_prefix = account.upper() 
+        credentials = {f'{key_prefix}_USERNAME':username, 
+                        f'{key_prefix}_PASSWORD':password}
+        credentials_to_set = {k:v for k,v in credentials.items() if v}
+        
+        for key, value in credentials_to_set.items():
+            set_key(env_file, key, value)
 
-        set_key(env_file, f'{key_prefix}_USERNAME', username)
-        set_key(env_file, f'{key_prefix}_PASSWORD', password)
+        # logger.info(f'Credentials saved for account: {account}')
 
         self.refresh_calculated_data()
 
 
+    def unset_credentials(self, account:str):
+        if not self.is_valid_account(account):
+            raise ValueError(f'Account option not valid: {account}')
+
+        key_prefix = account.upper() 
+
+        unset_key(env_file, f'{key_prefix}_USERNAME')
+        unset_key(env_file, f'{key_prefix}_PASSWORD')
+        
+        logger.info(f'Credentials unset for account: {account}')
+        
+        self.refresh_calculated_data()
 
 
 ### TEMP:

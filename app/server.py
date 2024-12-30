@@ -293,7 +293,10 @@ def main():
         try:       
             accounts_manager.update_user_config_for_account(account_key, {'enabled': value})
         except KeyError:
-            response = {'status': 'Error', 'message': 'Given account identifier (key) is not a valid option'}
+            error_message='Given account identifier (key) is not a valid option'
+            response = {'status': 'Error', 'message': error_message}
+            logger.error(f'Account not updated: {error_message}')
+            return jsonify(response)
 
 
         response = {'status': 'Success'}
@@ -306,6 +309,26 @@ def main():
         
         response['message'] = f'Account "{account_name}" {account_status}.'
 
+        return jsonify(response)
+
+
+    @app.post('/settings/update/accounts/clear_credentials')
+    def unset_credentials():
+        response = {}
+        account_key = request.form['account']
+        try:
+            # maybe TODO: if no credentials to remove (accounts_manager says not has_credentials and not username), return message that says not updated, b/c...
+            accounts_manager.unset_credentials(account_key)
+        except ValueError:
+            error_message=f'Given account identifier ({account_key}) is not a valid account option.'
+            response = {'status': 'Error', 'message': error_message}
+            logger.error(f'Credentials not cleared: {error_message}')
+            return jsonify(response)
+        
+        response = {'status': 'Success'}
+        account_name = accounts_manager.base_config[account_key]['name']
+        response['message'] = f'Successfully unset the credentials for account: {account_name}'
+        
         return jsonify(response)
 
 

@@ -6,14 +6,15 @@
 {% from 'modals.html' import edit_modal, edit_modal_button, dataview_settings_modal %}
 {% from 'form.html' import text_input %}
 {% from 'data_filters_form.html' import update_global_filters_form %}
-{% from 'general_components.html' import checkboxToggleButton, iconSvg %}
-
+{% from 'general_components.html' import checkboxToggleButton, iconSvg, iconBtnContentSvg %}
+{# Later TODO: Fix naming consistency for macros #}
 
 {% macro admin_panel_edit_button(label, data_target, icon, class='btn ab-btn-light with-border with-hover-border') %}
 <button class="{{ class }}" type="button" data-bs-toggle="modal" data-bs-target="#{{data_target}}">
     {{ iconBtnContentSvg(icon, label, icon_w='18', icon_h='18') }}
 </button>
 {% endmacro %}
+
 
 {% macro section_messages(section, messages, errors) %}
 <div id="section-messages-{{section}}">
@@ -78,7 +79,7 @@
 {% endif %} #}
 
 
-<div class="vstack gap-3">
+<div id="section-job_search" class="vstack gap-3">
     <div class="settings-frame shadow">
         <h2>Job Search</h2>
         <div>
@@ -87,7 +88,7 @@
     </div>
 
     {# <br /> #}
-    <div class="settings-frame shadow">
+    <div id="section-search_settings" class="settings-frame shadow">
         <div class="d-flex gap-5 justify-content-between">
             <h3>Search Settings</h3>
             {{ admin_panel_edit_button('Edit Settings', data_target='editModal-admin-searchSettings', icon='#svg-bi-link-45deg')}}
@@ -118,7 +119,7 @@
         </ul>
     </div>
 
-    <div class="settings-frame shadow">
+    <div id="section-accounts" class="settings-frame shadow">
         <div>
             <h3>Linked Accounts</h3>
             <hr />
@@ -130,7 +131,7 @@
         <ul class="mt-4 p-0" style="list-style-type:none;">
 
             {% for key, account in accounts_settings|items %}
-            <li>
+            <li id="account-item-{{ key }}">
                 <div class="d-flex justify-content-between">
                     <div class="d-flex gap-2 align-items-center">
                         <div class="d-flex gap-2">
@@ -192,7 +193,7 @@ Field Order:
 </li>
 </ul>
 -->
-    <div class="settings-frame shadow">
+    <div id="section-global_filters" class="settings-frame shadow">
         <div class="d-flex gap-5 justify-content-between">
             <h2>Global Filters</h2>
             {{ admin_panel_edit_button('View/Edit Filters', data_target='settingsModal-filters', icon='#svg-bi-funnel')}}
@@ -248,12 +249,16 @@ Field Order:
     <fieldset class="mb-4">
         <legend class="visually-hidden">Credentials</legend>
         <div>
-
-            {# <div class="p-1 px-3 border border-secondary rounded rounded-1"> #}
             {# Todo maybe: Add info -- warn to be sure to check is correct - search won't work if isn't... Recommend doing test run for account to verify credentials work, and complete any captchas if needed, etc . #}
             {{ text_input('Username', id='{}_username'.format(key), name='{}_username'.format(key), value=account.username if account.username else '', label_class='fs-5') }}
             {{ text_input('Password', id='{}_password'.format(key), name='{}_password'.format(key), value='', label_class='fs-5') }}
-            {# TODO: Add way to delete credentials from config -- like a 'clear' button, or a checkbox "check to delete credentials" #}
+            {# TODO: if has_credentials, show dummy value of dots "....." in password field - maybe as hint? #}
+            <button type="button" class="btn ab-btn-dark-color with-hover-border" id="unset-credentials-{{ key }}"
+                onclick="handleClearCredentials(this)"
+                {% if 'username' in account.required_missing and 'password' in account.required_missing %} disabled
+                {% endif %}>
+                {{ iconBtnContentSvg(svg_href='#svg-bi-trash3', text='Unset Credentials') }}
+            </button>
         </div>
 
     </fieldset>
@@ -296,6 +301,7 @@ Field Order:
     const jobFields = {{ job_fields | tojson }}
     const filterOptions = {{ filter_options | tojson }}
     const toggleAccountUrl = {{ url_for('toggle_account_enabled') | tojson }}
+    const unsetCredentialsUrl = {{ url_for('unset_credentials') | tojson }}
     const viewSettingsUrl = {{ url_for('settings') | tojson }}
 
 
